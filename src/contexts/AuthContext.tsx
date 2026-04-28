@@ -1,11 +1,5 @@
 import { createContext, useContext, useState, ReactNode } from "react";
-
-interface User {
-  dni: string;
-  role: "admin" | "user";
-  dniFrontImage?: string;
-  dniBackImage?: string;
-}
+import { User } from "@/types";
 
 interface AuthContextType {
   user: User | null;
