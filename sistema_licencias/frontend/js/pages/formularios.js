@@ -20,7 +20,7 @@ class FormulariosPage {
             ${renderBackHeader('Formularios de salud')}
             <div class="page-content container-md">
                 <div class="info-box info-box--warning">
-                    <span>⚠️</span>
+                    <span style="display:flex;align-items:center">${Icons.alert}</span>
                     <span>${err.message}</span>
                 </div>
                 <button class="btn btn-outline btn-block mt-4" onclick="Router.navigate('dashboard')">Volver al panel</button>
@@ -32,9 +32,9 @@ class FormulariosPage {
         if (data.enviado && data.formulario) {
             const f = data.formulario;
             const statusMap = {
-                'pendiente': { badge: 'badge-pending', icon: '⏳', text: 'Pendiente de revisión' },
-                'aprobado': { badge: 'badge-success', icon: '✅', text: 'Aprobado' },
-                'rechazado': { badge: 'badge-danger', icon: '❌', text: 'Rechazado' }
+                'pendiente': { badge: 'badge-pending', icon: Icons.clock, text: 'Pendiente de revisión' },
+                'aprobado': { badge: 'badge-success', icon: Icons.check, text: 'Aprobado' },
+                'rechazado': { badge: 'badge-danger', icon: Icons.x, text: 'Rechazado' }
             };
             const st = statusMap[f.estado] || statusMap['pendiente'];
 
@@ -42,7 +42,7 @@ class FormulariosPage {
             ${renderBackHeader('Formularios de salud')}
             <div class="page-content container-md animate-slideUp">
                 <div class="waiting-status ${f.estado === 'pendiente' ? 'waiting-status--pending' : ''}">
-                    <div class="waiting-status__icon">${st.icon}</div>
+                    <div class="waiting-status__icon" style="display:flex;align-items:center;justify-content:center">${st.icon}</div>
                     <h2 class="font-bold" style="font-size:1.25rem;margin-bottom:8px">
                         ${f.estado === 'pendiente' ? 'Formularios enviados' : (f.estado === 'aprobado' ? '¡Formularios aprobados!' : 'Formularios rechazados')}
                     </h2>
@@ -154,7 +154,7 @@ class FormulariosPage {
             };
             reader.readAsDataURL(file);
         } else {
-            preview.innerHTML = `<p class="text-sm text-muted mt-2">📎 ${file.name}</p>`;
+            preview.innerHTML = `<p class="text-sm text-muted mt-2" style="display:flex;align-items:center;gap:4px">${Icons.paperclip} ${file.name}</p>`;
         }
     }
 

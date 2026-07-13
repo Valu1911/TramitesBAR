@@ -13,13 +13,14 @@ from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 from werkzeug.security import generate_password_hash, check_password_hash
 import jwt
+from a2wsgi import WSGIMiddleware
 
 from config import (
     SECRET_KEY, JWT_EXPIRATION_HOURS, ADMIN_JWT_EXPIRATION_HOURS,
     PASOS_TRAMITE, MINIMO_APROBACION_EXAMEN, TOTAL_PREGUNTAS_EXAMEN,
     MONTO_LICENCIA, ALIAS_BANCARIO, CBU_BANCARIO
 )
-from db import execute_query
+from db import execute_query, init_db
 
 import os
 
@@ -120,7 +121,7 @@ def registro():
     if not dni or len(dni) < 7 or len(dni) > 8 or not dni.isdigit():
         return jsonify({'error': 'DNI inválido (7 u 8 dígitos)'}), 400
 
-    existing = execute_query("SELECT id FROM usuarios WHERE dni=%s", (dni,), fetch_one=True)
+    existing = execute_query("SELECT id FROM usuarios WHERE dni=?", (dni,), fetch_one=True)
     if existing:
         return jsonify({'error': 'Ya existe una cuenta con este DNI'}), 409
 
@@ -136,13 +137,13 @@ def registro():
 
     user_id = execute_query(
         """INSERT INTO usuarios (dni, nombre, apellido, email, telefono, fecha_nacimiento, direccion)
-           VALUES (%s, %s, %s, %s, %s, %s, %s)""",
+           VALUES (?, ?, ?, ?, ?, ?, ?)""",
         (dni, nombre, apellido, email, telefono, fecha_nac, direccion)
     )
 
     # Crear trámite automáticamente
     tramite_id = execute_query(
-        "INSERT INTO tramites (usuario_id, tipo, paso_actual) VALUES (%s, %s, %s)",
+        "INSERT INTO tramites (usuario_id, tipo, paso_actual) VALUES (?, ?, ?)",
         (user_id, data.get('tipo_tramite', 'nueva'), 'charlas')
     )
 
@@ -170,7 +171,7 @@ def login():
         return jsonify({'error': 'DNI inválido'}), 400
 
     user = execute_query(
-        "SELECT id, dni, nombre, apellido FROM usuarios WHERE dni=%s",
+        "SELECT id, dni, nombre, apellido FROM usuarios WHERE dni=?",
         (dni,), fetch_one=True
     )
 
@@ -179,7 +180,7 @@ def login():
 
     # Buscar trámite activo
     tramite = execute_query(
-        "SELECT id, paso_actual, tipo, estado FROM tramites WHERE usuario_id=%s AND estado='en_progreso' ORDER BY id DESC LIMIT 1",
+        "SELECT id, paso_actual, tipo, estado FROM tramites WHERE usuario_id=? AND estado='en_progreso' ORDER BY id DESC LIMIT 1",
         (user['id'],), fetch_one=True
     )
 
@@ -217,7 +218,7 @@ def check_dni():
     if not dni or len(dni) < 7 or len(dni) > 8 or not dni.isdigit():
         return jsonify({'error': 'DNI inválido'}), 400
 
-    user = execute_query("SELECT id, nombre, apellido FROM usuarios WHERE dni=%s", (dni,), fetch_one=True)
+    user = execute_query("SELECT id, nombre, apellido FROM usuarios WHERE dni=?", (dni,), fetch_one=True)
     return jsonify({'exists': user is not None, 'nombre': user['nombre'] if user else None})
 
 
@@ -235,7 +236,7 @@ def admin_login():
         return jsonify({'error': 'Usuario y contraseña requeridos'}), 400
 
     admin = execute_query(
-        "SELECT id, usuario, password_hash, nombre, rol FROM admins WHERE usuario=%s AND activo=1",
+        "SELECT id, usuario, password_hash, nombre, rol FROM admins WHERE usuario=? AND activo=1",
         (usuario,), fetch_one=True
     )
 
@@ -288,7 +289,7 @@ def get_progreso():
         return jsonify({'error': 'No hay trámite activo'}), 404
 
     tramite = execute_query(
-        "SELECT * FROM tramites WHERE id=%s", (tramite_id,), fetch_one=True
+        "SELECT * FROM tramites WHERE id=?", (tramite_id,), fetch_one=True
     )
     if not tramite:
         return jsonify({'error': 'Trámite no encontrado'}), 404
@@ -325,7 +326,7 @@ def get_progreso():
         })
 
     usuario = execute_query(
-        "SELECT nombre, apellido, dni FROM usuarios WHERE id=%s",
+        "SELECT nombre, apellido, dni FROM usuarios WHERE id=?",
         (tramite['usuario_id'],), fetch_one=True
     )
 
@@ -357,7 +358,7 @@ def get_videos():
     vistos = []
     if tramite_id:
         vistos_rows = execute_query(
-            "SELECT video_id FROM videos_vistos WHERE tramite_id=%s AND visto=1",
+            "SELECT video_id FROM videos_vistos WHERE tramite_id=? AND visto=1",
             (tramite_id,), fetch_all=True
         )
         vistos = [r['video_id'] for r in vistos_rows]
@@ -378,7 +379,7 @@ def marcar_video_visto():
         return jsonify({'error': 'No hay trámite activo'}), 400
 
     # Verificar que está en paso charlas
-    tramite = execute_query("SELECT paso_actual FROM tramites WHERE id=%s", (tramite_id,), fetch_one=True)
+    tramite = execute_query("SELECT paso_actual FROM tramites WHERE id=?", (tramite_id,), fetch_one=True)
     if not tramite or not puede_acceder_paso(tramite['paso_actual'], 'charlas'):
         return jsonify({'error': 'No podés acceder a este paso'}), 403
 
@@ -387,17 +388,17 @@ def marcar_video_visto():
         return jsonify({'error': 'video_id requerido'}), 400
 
     # Verificar que los videos anteriores ya fueron vistos
-    video = execute_query("SELECT orden FROM videos WHERE id=%s AND activo=1", (video_id,), fetch_one=True)
+    video = execute_query("SELECT orden FROM videos WHERE id=? AND activo=1", (video_id,), fetch_one=True)
     if not video:
         return jsonify({'error': 'Video no encontrado'}), 404
 
     # Verificar que todos los videos con orden menor ya estén vistos
     videos_anteriores = execute_query(
-        "SELECT id FROM videos WHERE activo=1 AND orden < %s", (video['orden'],), fetch_all=True
+        "SELECT id FROM videos WHERE activo=1 AND orden < ?", (video['orden'],), fetch_all=True
     )
     for va in videos_anteriores:
         visto = execute_query(
-            "SELECT id FROM videos_vistos WHERE tramite_id=%s AND video_id=%s AND visto=1",
+            "SELECT id FROM videos_vistos WHERE tramite_id=? AND video_id=? AND visto=1",
             (tramite_id, va['id']), fetch_one=True
         )
         if not visto:
@@ -406,21 +407,21 @@ def marcar_video_visto():
     # Marcar como visto
     execute_query(
         """INSERT INTO videos_vistos (tramite_id, video_id, visto)
-           VALUES (%s, %s, 1)
-           ON DUPLICATE KEY UPDATE visto=1, fecha_visto=NOW()""",
+           VALUES (?, ?, 1)
+           ON DUPLICATE KEY UPDATE visto=1, fecha_visto=CURRENT_TIMESTAMP""",
         (tramite_id, video_id)
     )
 
     # Verificar si todos están vistos para avanzar paso
     total_videos = execute_query("SELECT COUNT(*) as total FROM videos WHERE activo=1", fetch_one=True)['total']
     total_vistos = execute_query(
-        "SELECT COUNT(*) as total FROM videos_vistos WHERE tramite_id=%s AND visto=1",
+        "SELECT COUNT(*) as total FROM videos_vistos WHERE tramite_id=? AND visto=1",
         (tramite_id,), fetch_one=True
     )['total']
 
     todos_vistos = total_vistos >= total_videos
     if todos_vistos and tramite['paso_actual'] == 'charlas':
-        execute_query("UPDATE tramites SET paso_actual='examen' WHERE id=%s", (tramite_id,))
+        execute_query("UPDATE tramites SET paso_actual='examen' WHERE id=?", (tramite_id,))
 
     return jsonify({'message': 'Video marcado como visto', 'todos_vistos': todos_vistos})
 
@@ -433,14 +434,14 @@ def marcar_video_visto():
 @token_required
 def get_preguntas():
     tramite_id = request.user_data.get('tramite_id')
-    tramite = execute_query("SELECT paso_actual FROM tramites WHERE id=%s", (tramite_id,), fetch_one=True)
+    tramite = execute_query("SELECT paso_actual FROM tramites WHERE id=?", (tramite_id,), fetch_one=True)
 
     if not tramite or not puede_acceder_paso(tramite['paso_actual'], 'examen'):
         return jsonify({'error': 'Debés completar las charlas primero'}), 403
 
     # Verificar si ya rindió
     examen_existente = execute_query(
-        "SELECT id, aprobado, puntaje, total_preguntas FROM examenes_teoricos WHERE tramite_id=%s",
+        "SELECT id, aprobado, puntaje, total_preguntas FROM examenes_teoricos WHERE tramite_id=?",
         (tramite_id,), fetch_one=True
     )
     if examen_existente:
@@ -466,14 +467,14 @@ def get_preguntas():
 @token_required
 def entregar_examen():
     tramite_id = request.user_data.get('tramite_id')
-    tramite = execute_query("SELECT paso_actual FROM tramites WHERE id=%s", (tramite_id,), fetch_one=True)
+    tramite = execute_query("SELECT paso_actual FROM tramites WHERE id=?", (tramite_id,), fetch_one=True)
 
     if not tramite or not puede_acceder_paso(tramite['paso_actual'], 'examen'):
         return jsonify({'error': 'No podés acceder a este paso'}), 403
 
     # Verificar si ya rindió
     existente = execute_query(
-        "SELECT id FROM examenes_teoricos WHERE tramite_id=%s", (tramite_id,), fetch_one=True
+        "SELECT id FROM examenes_teoricos WHERE tramite_id=?", (tramite_id,), fetch_one=True
     )
     if existente:
         return jsonify({'error': 'Ya rendiste el examen. Solo tenés un intento.'}), 400
@@ -487,7 +488,7 @@ def entregar_examen():
     for pid_str, resp in respuestas.items():
         pid = int(pid_str)
         correcta = execute_query(
-            "SELECT respuesta_correcta FROM preguntas_examen WHERE id=%s",
+            "SELECT respuesta_correcta FROM preguntas_examen WHERE id=?",
             (pid,), fetch_one=True
         )
         if correcta and correcta['respuesta_correcta'] == resp:
@@ -497,12 +498,12 @@ def entregar_examen():
 
     execute_query(
         """INSERT INTO examenes_teoricos (tramite_id, respuestas, puntaje, total_preguntas, aprobado)
-           VALUES (%s, %s, %s, %s, %s)""",
+           VALUES (?, ?, ?, ?, ?)""",
         (tramite_id, json.dumps(respuestas), puntaje, total, 1 if aprobado else 0)
     )
 
     if aprobado and tramite['paso_actual'] == 'examen':
-        execute_query("UPDATE tramites SET paso_actual='formularios' WHERE id=%s", (tramite_id,))
+        execute_query("UPDATE tramites SET paso_actual='formularios' WHERE id=?", (tramite_id,))
 
     return jsonify({
         'aprobado': aprobado,
@@ -520,13 +521,13 @@ def entregar_examen():
 @token_required
 def formularios_estado():
     tramite_id = request.user_data.get('tramite_id')
-    tramite = execute_query("SELECT paso_actual FROM tramites WHERE id=%s", (tramite_id,), fetch_one=True)
+    tramite = execute_query("SELECT paso_actual FROM tramites WHERE id=?", (tramite_id,), fetch_one=True)
 
     if not tramite or not puede_acceder_paso(tramite['paso_actual'], 'formularios'):
         return jsonify({'error': 'Debés aprobar el examen teórico primero'}), 403
 
     formulario = execute_query(
-        "SELECT * FROM formularios_salud WHERE tramite_id=%s ORDER BY id DESC LIMIT 1",
+        "SELECT * FROM formularios_salud WHERE tramite_id=? ORDER BY id DESC LIMIT 1",
         (tramite_id,), fetch_one=True
     )
 
@@ -544,13 +545,13 @@ def formularios_estado():
 @token_required
 def enviar_formularios():
     tramite_id = request.user_data.get('tramite_id')
-    tramite = execute_query("SELECT paso_actual FROM tramites WHERE id=%s", (tramite_id,), fetch_one=True)
+    tramite = execute_query("SELECT paso_actual FROM tramites WHERE id=?", (tramite_id,), fetch_one=True)
 
     if not tramite or not puede_acceder_paso(tramite['paso_actual'], 'formularios'):
         return jsonify({'error': 'No podés acceder a este paso'}), 403
 
     existente = execute_query(
-        "SELECT id FROM formularios_salud WHERE tramite_id=%s", (tramite_id,), fetch_one=True
+        "SELECT id FROM formularios_salud WHERE tramite_id=?", (tramite_id,), fetch_one=True
     )
     if existente:
         return jsonify({'error': 'Ya enviaste los formularios de salud'}), 400
@@ -565,7 +566,7 @@ def enviar_formularios():
         """INSERT INTO formularios_salud 
            (tramite_id, grupo_sanguineo, usa_lentes, enfermedad_cronica, medicacion, 
             contacto_emergencia, telefono_emergencia, certificado_archivo)
-           VALUES (%s, %s, %s, %s, %s, %s, %s, %s)""",
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
         (tramite_id, data['grupo_sanguineo'], data['usa_lentes'],
          data.get('enfermedad_cronica', 'Ninguna'), data.get('medicacion', 'Ninguna'),
          data['contacto_emergencia'], data['telefono_emergencia'],
@@ -583,13 +584,13 @@ def enviar_formularios():
 @token_required
 def pagos_info():
     tramite_id = request.user_data.get('tramite_id')
-    tramite = execute_query("SELECT paso_actual FROM tramites WHERE id=%s", (tramite_id,), fetch_one=True)
+    tramite = execute_query("SELECT paso_actual FROM tramites WHERE id=?", (tramite_id,), fetch_one=True)
 
     if not tramite or not puede_acceder_paso(tramite['paso_actual'], 'pago'):
         return jsonify({'error': 'Debés completar los formularios de salud primero'}), 403
 
     pago = execute_query(
-        "SELECT * FROM pagos WHERE tramite_id=%s ORDER BY id DESC LIMIT 1",
+        "SELECT * FROM pagos WHERE tramite_id=? ORDER BY id DESC LIMIT 1",
         (tramite_id,), fetch_one=True
     )
 
@@ -614,13 +615,13 @@ def pagos_info():
 @token_required
 def registrar_pago():
     tramite_id = request.user_data.get('tramite_id')
-    tramite = execute_query("SELECT paso_actual FROM tramites WHERE id=%s", (tramite_id,), fetch_one=True)
+    tramite = execute_query("SELECT paso_actual FROM tramites WHERE id=?", (tramite_id,), fetch_one=True)
 
     if not tramite or not puede_acceder_paso(tramite['paso_actual'], 'pago'):
         return jsonify({'error': 'No podés acceder a este paso'}), 403
 
     existente = execute_query(
-        "SELECT id, estado FROM pagos WHERE tramite_id=%s ORDER BY id DESC LIMIT 1",
+        "SELECT id, estado FROM pagos WHERE tramite_id=? ORDER BY id DESC LIMIT 1",
         (tramite_id,), fetch_one=True
     )
     if existente and existente['estado'] != 'rechazado':
@@ -633,7 +634,7 @@ def registrar_pago():
 
     pago_id = execute_query(
         """INSERT INTO pagos (tramite_id, metodo, monto, comprobante, numero_tarjeta, nombre_titular)
-           VALUES (%s, %s, %s, %s, %s, %s)""",
+           VALUES (?, ?, ?, ?, ?, ?)""",
         (tramite_id, metodo, MONTO_LICENCIA,
          data.get('comprobante'),
          data.get('numero_tarjeta', '')[-4:] if data.get('numero_tarjeta') else None,
@@ -651,7 +652,7 @@ def registrar_pago():
 @token_required
 def turnos_disponibles():
     tramite_id = request.user_data.get('tramite_id')
-    tramite = execute_query("SELECT paso_actual FROM tramites WHERE id=%s", (tramite_id,), fetch_one=True)
+    tramite = execute_query("SELECT paso_actual FROM tramites WHERE id=?", (tramite_id,), fetch_one=True)
 
     if not tramite or not puede_acceder_paso(tramite['paso_actual'], 'practico'):
         return jsonify({'error': 'Debés completar el pago primero'}), 403
@@ -665,7 +666,7 @@ def turnos_disponibles():
             t['created_at'] = str(t['created_at'])
 
     reserva = execute_query(
-        "SELECT rt.*, tp.fecha, tp.horario, tp.ubicacion FROM reservas_turno rt JOIN turnos_practico tp ON rt.turno_id=tp.id WHERE rt.tramite_id=%s ORDER BY rt.id DESC LIMIT 1",
+        "SELECT rt.*, tp.fecha, tp.horario, tp.ubicacion FROM reservas_turno rt JOIN turnos_practico tp ON rt.turno_id=tp.id WHERE rt.tramite_id=? ORDER BY rt.id DESC LIMIT 1",
         (tramite_id,), fetch_one=True
     )
     if reserva:
@@ -681,13 +682,13 @@ def turnos_disponibles():
 @token_required
 def reservar_turno():
     tramite_id = request.user_data.get('tramite_id')
-    tramite = execute_query("SELECT paso_actual FROM tramites WHERE id=%s", (tramite_id,), fetch_one=True)
+    tramite = execute_query("SELECT paso_actual FROM tramites WHERE id=?", (tramite_id,), fetch_one=True)
 
     if not tramite or not puede_acceder_paso(tramite['paso_actual'], 'practico'):
         return jsonify({'error': 'No podés acceder a este paso'}), 403
 
     existente = execute_query(
-        "SELECT id, estado FROM reservas_turno WHERE tramite_id=%s ORDER BY id DESC LIMIT 1",
+        "SELECT id, estado FROM reservas_turno WHERE tramite_id=? ORDER BY id DESC LIMIT 1",
         (tramite_id,), fetch_one=True
     )
     if existente and existente['estado'] not in ('rechazado',):
@@ -698,19 +699,19 @@ def reservar_turno():
         return jsonify({'error': 'turno_id requerido'}), 400
 
     turno = execute_query(
-        "SELECT * FROM turnos_practico WHERE id=%s AND activo=1 AND cupo_actual < cupo_maximo",
+        "SELECT * FROM turnos_practico WHERE id=? AND activo=1 AND cupo_actual < cupo_maximo",
         (turno_id,), fetch_one=True
     )
     if not turno:
         return jsonify({'error': 'Turno no disponible'}), 400
 
     reserva_id = execute_query(
-        "INSERT INTO reservas_turno (tramite_id, turno_id) VALUES (%s, %s)",
+        "INSERT INTO reservas_turno (tramite_id, turno_id) VALUES (?, ?)",
         (tramite_id, turno_id)
     )
 
     execute_query(
-        "UPDATE turnos_practico SET cupo_actual = cupo_actual + 1 WHERE id=%s",
+        "UPDATE turnos_practico SET cupo_actual = cupo_actual + 1 WHERE id=?",
         (turno_id,)
     )
 
@@ -725,13 +726,13 @@ def reservar_turno():
 @token_required
 def entrega_estado():
     tramite_id = request.user_data.get('tramite_id')
-    tramite = execute_query("SELECT paso_actual FROM tramites WHERE id=%s", (tramite_id,), fetch_one=True)
+    tramite = execute_query("SELECT paso_actual FROM tramites WHERE id=?", (tramite_id,), fetch_one=True)
 
     if not tramite or not puede_acceder_paso(tramite['paso_actual'], 'entrega'):
         return jsonify({'error': 'Debés completar el examen práctico primero'}), 403
 
     entrega = execute_query(
-        "SELECT * FROM entregas WHERE tramite_id=%s ORDER BY id DESC LIMIT 1",
+        "SELECT * FROM entregas WHERE tramite_id=? ORDER BY id DESC LIMIT 1",
         (tramite_id,), fetch_one=True
     )
     if entrega and entrega.get('fecha_solicitud'):
@@ -744,13 +745,13 @@ def entrega_estado():
 @token_required
 def solicitar_entrega():
     tramite_id = request.user_data.get('tramite_id')
-    tramite = execute_query("SELECT paso_actual FROM tramites WHERE id=%s", (tramite_id,), fetch_one=True)
+    tramite = execute_query("SELECT paso_actual FROM tramites WHERE id=?", (tramite_id,), fetch_one=True)
 
     if not tramite or not puede_acceder_paso(tramite['paso_actual'], 'entrega'):
         return jsonify({'error': 'No podés acceder a este paso'}), 403
 
     existente = execute_query(
-        "SELECT id FROM entregas WHERE tramite_id=%s", (tramite_id,), fetch_one=True
+        "SELECT id FROM entregas WHERE tramite_id=?", (tramite_id,), fetch_one=True
     )
     if existente:
         return jsonify({'error': 'Ya solicitaste la entrega'}), 400
@@ -765,12 +766,12 @@ def solicitar_entrega():
         return jsonify({'error': 'Dirección requerida para envío a domicilio'}), 400
 
     entrega_id = execute_query(
-        "INSERT INTO entregas (tramite_id, metodo, direccion) VALUES (%s, %s, %s)",
+        "INSERT INTO entregas (tramite_id, metodo, direccion) VALUES (?, ?, ?)",
         (tramite_id, metodo, direccion)
     )
 
     execute_query(
-        "UPDATE tramites SET paso_actual='finalizado', estado='completado' WHERE id=%s",
+        "UPDATE tramites SET paso_actual='finalizado', estado='completado' WHERE id=?",
         (tramite_id,)
     )
 
@@ -801,7 +802,7 @@ def admin_pagos_lista():
                FROM pagos p 
                JOIN tramites t ON p.tramite_id=t.id 
                JOIN usuarios u ON t.usuario_id=u.id 
-               WHERE p.estado=%s
+               WHERE p.estado=?
                ORDER BY p.fecha_pago DESC""",
             (estado,), fetch_all=True
         )
@@ -831,20 +832,20 @@ def admin_revisar_pago(pago_id):
     admin_id = request.admin_data.get('admin_id')
 
     execute_query(
-        """UPDATE pagos SET estado=%s, observaciones_admin=%s, fecha_revision=NOW(), admin_id=%s 
-           WHERE id=%s""",
+        """UPDATE pagos SET estado=?, observaciones_admin=?, fecha_revision=CURRENT_TIMESTAMP, admin_id=? 
+           WHERE id=?""",
         (nuevo_estado, observaciones, admin_id, pago_id)
     )
 
     if nuevo_estado == 'aprobado':
-        pago = execute_query("SELECT tramite_id FROM pagos WHERE id=%s", (pago_id,), fetch_one=True)
+        pago = execute_query("SELECT tramite_id FROM pagos WHERE id=?", (pago_id,), fetch_one=True)
         if pago:
             tramite = execute_query(
-                "SELECT paso_actual FROM tramites WHERE id=%s", (pago['tramite_id'],), fetch_one=True
+                "SELECT paso_actual FROM tramites WHERE id=?", (pago['tramite_id'],), fetch_one=True
             )
             if tramite and tramite['paso_actual'] == 'pago':
                 execute_query(
-                    "UPDATE tramites SET paso_actual='practico' WHERE id=%s",
+                    "UPDATE tramites SET paso_actual='practico' WHERE id=?",
                     (pago['tramite_id'],)
                 )
 
@@ -875,7 +876,7 @@ def admin_salud_lista():
                FROM formularios_salud fs 
                JOIN tramites t ON fs.tramite_id=t.id 
                JOIN usuarios u ON t.usuario_id=u.id 
-               WHERE fs.estado=%s
+               WHERE fs.estado=?
                ORDER BY fs.fecha_envio DESC""",
             (estado,), fetch_all=True
         )
@@ -905,20 +906,20 @@ def admin_revisar_salud(form_id):
     admin_id = request.admin_data.get('admin_id')
 
     execute_query(
-        """UPDATE formularios_salud SET estado=%s, observaciones_admin=%s, fecha_revision=NOW(), admin_id=%s 
-           WHERE id=%s""",
+        """UPDATE formularios_salud SET estado=?, observaciones_admin=?, fecha_revision=CURRENT_TIMESTAMP, admin_id=? 
+           WHERE id=?""",
         (nuevo_estado, observaciones, admin_id, form_id)
     )
 
     if nuevo_estado == 'aprobado':
-        form = execute_query("SELECT tramite_id FROM formularios_salud WHERE id=%s", (form_id,), fetch_one=True)
+        form = execute_query("SELECT tramite_id FROM formularios_salud WHERE id=?", (form_id,), fetch_one=True)
         if form:
             tramite = execute_query(
-                "SELECT paso_actual FROM tramites WHERE id=%s", (form['tramite_id'],), fetch_one=True
+                "SELECT paso_actual FROM tramites WHERE id=?", (form['tramite_id'],), fetch_one=True
             )
             if tramite and tramite['paso_actual'] == 'formularios':
                 execute_query(
-                    "UPDATE tramites SET paso_actual='pago' WHERE id=%s",
+                    "UPDATE tramites SET paso_actual='pago' WHERE id=?",
                     (form['tramite_id'],)
                 )
 
@@ -951,7 +952,7 @@ def admin_turnos_lista():
                JOIN turnos_practico tp ON rt.turno_id=tp.id 
                JOIN tramites t ON rt.tramite_id=t.id 
                JOIN usuarios u ON t.usuario_id=u.id 
-               WHERE rt.estado=%s
+               WHERE rt.estado=?
                ORDER BY rt.fecha_reserva DESC""",
             (estado,), fetch_all=True
         )
@@ -983,20 +984,20 @@ def admin_revisar_turno(reserva_id):
     admin_id = request.admin_data.get('admin_id')
 
     execute_query(
-        """UPDATE reservas_turno SET estado=%s, resultado_examen=%s, observaciones_admin=%s, 
-           fecha_revision=NOW(), admin_id=%s WHERE id=%s""",
+        """UPDATE reservas_turno SET estado=?, resultado_examen=?, observaciones_admin=?, 
+           fecha_revision=CURRENT_TIMESTAMP, admin_id=? WHERE id=?""",
         (nuevo_estado, resultado, observaciones, admin_id, reserva_id)
     )
 
     if nuevo_estado == 'completado' and resultado == 'aprobado':
-        reserva = execute_query("SELECT tramite_id FROM reservas_turno WHERE id=%s", (reserva_id,), fetch_one=True)
+        reserva = execute_query("SELECT tramite_id FROM reservas_turno WHERE id=?", (reserva_id,), fetch_one=True)
         if reserva:
             tramite = execute_query(
-                "SELECT paso_actual FROM tramites WHERE id=%s", (reserva['tramite_id'],), fetch_one=True
+                "SELECT paso_actual FROM tramites WHERE id=?", (reserva['tramite_id'],), fetch_one=True
             )
             if tramite and tramite['paso_actual'] == 'practico':
                 execute_query(
-                    "UPDATE tramites SET paso_actual='entrega' WHERE id=%s",
+                    "UPDATE tramites SET paso_actual='entrega' WHERE id=?",
                     (reserva['tramite_id'],)
                 )
 
@@ -1040,7 +1041,7 @@ def init_admin_passwords():
         for admin in admins:
             hashed = generate_password_hash('admin123')
             execute_query(
-                "UPDATE admins SET password_hash=%s WHERE id=%s",
+                "UPDATE admins SET password_hash=? WHERE id=?",
                 (hashed, admin['id'])
             )
         print("[OK] Passwords de admins actualizados")
@@ -1052,11 +1053,14 @@ def init_admin_passwords():
 # RUN
 # ============================================================
 
+init_db()
+init_admin_passwords()
+
+asgi_app = WSGIMiddleware(app)
+
 if __name__ == '__main__':
     print("=" * 60)
     print("  Sistema de Licencias de Conducir - Baradero")
     print("  Servidor API corriendo en http://localhost:5000")
     print("=" * 60)
-
-    init_admin_passwords()
     app.run(host='0.0.0.0', port=5000, debug=True)

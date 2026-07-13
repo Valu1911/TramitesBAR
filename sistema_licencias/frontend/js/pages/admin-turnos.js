@@ -37,7 +37,7 @@ class AdminTurnosPage {
         <div class="page-content animate-fadeIn">
             <div class="flex-between mb-4">
                 <div>
-                    <h1 style="font-size:1.25rem;font-weight:800">📅 Gestión de Turnos y Exámenes</h1>
+                    <h1 style="font-size:1.25rem;font-weight:800;display:flex;align-items:center;gap:8px">${Icons.calendar} Gestión de Turnos y Exámenes</h1>
                     <p class="text-sm text-muted">Aprobá turnos y registrá resultados de exámenes prácticos</p>
                 </div>
                 <span class="badge badge-pending">${data.pendientes} pendientes</span>
@@ -55,16 +55,16 @@ class AdminTurnosPage {
             <div>
                 ${reservas.length === 0 ? `
                 <div class="empty-state">
-                    <div class="empty-state__icon">📅</div>
+                    <div class="empty-state__icon" style="display:flex;align-items:center;justify-content:center">${Icons.calendar}</div>
                     <h3 class="empty-state__title">Sin reservas</h3>
                     <p class="empty-state__desc">No hay reservas para mostrar con este filtro</p>
                 </div>` : reservas.map(r => {
                     const estadoMap = {
-                        'reservado': { badge: 'badge-pending', text: '⏳ Pendiente' },
-                        'aprobado': { badge: 'badge-info', text: '✅ Confirmado' },
+                        'reservado': { badge: 'badge-pending', text: '<span style="display:flex;align-items:center;gap:4px">' + Icons.clock + ' Pendiente</span>' },
+                        'aprobado': { badge: 'badge-info', text: '<span style="display:flex;align-items:center;gap:4px">' + Icons.check + ' Confirmado</span>' },
                         'completado': { badge: r.resultado_examen === 'aprobado' ? 'badge-success' : 'badge-danger', 
-                                       text: r.resultado_examen === 'aprobado' ? '🎉 Aprobado' : '❌ No aprobado' },
-                        'rechazado': { badge: 'badge-danger', text: '❌ Rechazado' }
+                                       text: r.resultado_examen === 'aprobado' ? '<span style="display:flex;align-items:center;gap:4px">' + Icons.party + ' Aprobado</span>' : '<span style="display:flex;align-items:center;gap:4px">' + Icons.x + ' No aprobado</span>' },
+                        'rechazado': { badge: 'badge-danger', text: '<span style="display:flex;align-items:center;gap:4px">' + Icons.x + ' Rechazado</span>' }
                     };
                     const st = estadoMap[r.estado] || estadoMap['reservado'];
 
@@ -80,10 +80,10 @@ class AdminTurnosPage {
 
                         <div class="glass-card p-3 mb-3" style="background:var(--bg-elevated)">
                             <div style="display:flex;align-items:center;gap:10px">
-                                <span style="font-size:1.25rem">📅</span>
+                                <span style="font-size:1.25rem;display:flex;align-items:center">${Icons.calendar}</span>
                                 <div>
                                     <div class="font-semibold text-sm">${r.fecha} - ${r.horario}</div>
-                                    <div class="text-xs text-muted">📍 ${r.ubicacion}</div>
+                                    <div class="text-xs text-muted" style="display:flex;align-items:center;gap:4px">${Icons.mapPin} ${r.ubicacion}</div>
                                 </div>
                             </div>
                         </div>
@@ -91,11 +91,11 @@ class AdminTurnosPage {
                         ${r.estado === 'reservado' ? `
                         <div class="admin-item__actions">
                             <button class="btn btn-success btn-sm" onclick="AdminTurnosPage.revisar(${r.id}, 'aprobado')">
-                                ✅ Confirmar turno
+                                <span style="display:flex;align-items:center;gap:4px">${Icons.check} Confirmar turno</span>
                             </button>
                             <button class="btn btn-outline btn-sm" style="color:var(--danger);border-color:var(--danger)" 
                                     onclick="AdminTurnosPage.revisar(${r.id}, 'rechazado')">
-                                ❌ Rechazar
+                                <span style="display:flex;align-items:center;gap:4px">${Icons.x} Rechazar</span>
                             </button>
                         </div>` : ''}
 
@@ -105,11 +105,11 @@ class AdminTurnosPage {
                             <div class="admin-item__actions">
                                 <button class="btn btn-success btn-sm" 
                                         onclick="AdminTurnosPage.completar(${r.id}, 'aprobado')">
-                                    🎉 Aprobó examen
+                                    <span style="display:flex;align-items:center;gap:4px">${Icons.party} Aprobó examen</span>
                                 </button>
                                 <button class="btn btn-outline btn-sm" style="color:var(--danger);border-color:var(--danger)" 
                                         onclick="AdminTurnosPage.completar(${r.id}, 'reprobado')">
-                                    ❌ No aprobó
+                                    <span style="display:flex;align-items:center;gap:4px">${Icons.x} No aprobó</span>
                                 </button>
                             </div>
                         </div>` : ''}

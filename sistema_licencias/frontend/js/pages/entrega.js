@@ -24,7 +24,7 @@ class EntregaPage {
             ${renderBackHeader('Entrega de licencia')}
             <div class="page-content container-md">
                 <div class="info-box info-box--warning">
-                    <span>⚠️</span>
+                    <span style="display:flex;align-items:center">${Icons.alert}</span>
                     <span>${err.message}</span>
                 </div>
                 <button class="btn btn-outline btn-block mt-4" onclick="Router.navigate('dashboard')">Volver al panel</button>
@@ -39,7 +39,7 @@ class EntregaPage {
             ${renderBackHeader('Entrega de licencia')}
             <div class="page-content container-md animate-slideUp">
                 <div class="success-screen">
-                    <div class="success-screen__icon">🎉</div>
+                    <div class="success-screen__icon" style="display:flex;align-items:center;justify-content:center">${Icons.party}</div>
                     <h2 class="success-screen__title">¡Solicitud registrada!</h2>
                     <p class="success-screen__desc">
                         ${e.metodo === 'domicilio' 
@@ -47,12 +47,12 @@ class EntregaPage {
                             : 'Retirá tu licencia en la Dirección de Tránsito de Baradero.'}
                     </p>
                     <div class="badge ${e.estado === 'entregado' ? 'badge-success' : 'badge-pending'} mt-3">
-                        ${e.estado === 'entregado' ? '✅ Entregado' : '⏳ ' + (e.estado === 'en_camino' ? 'En camino' : 'Pendiente')}
+                        ${e.estado === 'entregado' ? '<span style="display:flex;align-items:center;gap:4px">' + Icons.check + ' Entregado</span>' : '<span style="display:flex;align-items:center;gap:4px">' + Icons.clock + ' ' + (e.estado === 'en_camino' ? 'En camino' : 'Pendiente') + '</span>'}
                     </div>
                 </div>
 
                 <div class="info-box info-box--success mt-4">
-                    <span>🎉</span>
+                    <span style="display:flex;align-items:center">${Icons.party}</span>
                     <span>¡Felicitaciones! Has completado todo el trámite de tu licencia de conducir.</span>
                 </div>
 
@@ -72,12 +72,12 @@ class EntregaPage {
             <div class="stack mb-4">
                 <div class="payment-method ${this.metodo === 'domicilio' ? 'payment-method--selected' : ''}"
                      onclick="EntregaPage.selectMetodo('domicilio')">
-                    <div class="payment-method__icon">🚚</div>
+                    <div class="payment-method__icon" style="display:flex;align-items:center;justify-content:center">${Icons.truck}</div>
                     <div style="flex:1">
                         <h3 class="font-semibold text-sm">Envío a domicilio</h3>
                         <p class="text-xs text-muted">Recibí tu licencia en tu casa</p>
                     </div>
-                    ${this.metodo === 'domicilio' ? '<span style="color:var(--primary);font-size:1.2rem">✓</span>' : ''}
+                    ${this.metodo === 'domicilio' ? '<span style="color:var(--primary);font-size:1.2rem;display:flex;align-items:center">' + Icons.check + '</span>' : ''}
                 </div>
 
                 ${this.metodo === 'domicilio' ? `
@@ -89,12 +89,12 @@ class EntregaPage {
 
                 <div class="payment-method ${this.metodo === 'presencial' ? 'payment-method--selected' : ''}"
                      onclick="EntregaPage.selectMetodo('presencial')">
-                    <div class="payment-method__icon">🏢</div>
+                    <div class="payment-method__icon" style="display:flex;align-items:center;justify-content:center">${Icons.building}</div>
                     <div style="flex:1">
                         <h3 class="font-semibold text-sm">Retiro presencial</h3>
                         <p class="text-xs text-muted">Dirección de Tránsito, Baradero</p>
                     </div>
-                    ${this.metodo === 'presencial' ? '<span style="color:var(--primary);font-size:1.2rem">✓</span>' : ''}
+                    ${this.metodo === 'presencial' ? '<span style="color:var(--primary);font-size:1.2rem;display:flex;align-items:center">' + Icons.check + '</span>' : ''}
                 </div>
             </div>
 

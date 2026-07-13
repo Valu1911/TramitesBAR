@@ -37,7 +37,7 @@ class AdminPagosPage {
         <div class="page-content animate-fadeIn">
             <div class="flex-between mb-4">
                 <div>
-                    <h1 style="font-size:1.25rem;font-weight:800">💰 Gestión de Pagos</h1>
+                    <h1 style="font-size:1.25rem;font-weight:800;display:flex;align-items:center;gap:8px">${Icons.money} Gestión de Pagos</h1>
                     <p class="text-sm text-muted">Revisá y aprobá los comprobantes de pago</p>
                 </div>
                 <span class="badge badge-pending">${data.pendientes} pendientes</span>
@@ -55,7 +55,7 @@ class AdminPagosPage {
             <div id="pagosLista">
                 ${pagos.length === 0 ? `
                 <div class="empty-state">
-                    <div class="empty-state__icon">📄</div>
+                    <div class="empty-state__icon" style="display:flex;align-items:center;justify-content:center">${Icons.file}</div>
                     <h3 class="empty-state__title">Sin pagos</h3>
                     <p class="empty-state__desc">No hay pagos para mostrar con este filtro</p>
                 </div>` : pagos.map(pago => `
@@ -65,8 +65,8 @@ class AdminPagosPage {
                             <div class="admin-item__user">${pago.nombre} ${pago.apellido}</div>
                             <div class="admin-item__meta">DNI: ${pago.dni} · ${pago.fecha_pago} · Método: ${pago.metodo}</div>
                         </div>
-                        <span class="badge ${pago.estado === 'pendiente' ? 'badge-pending' : pago.estado === 'aprobado' ? 'badge-success' : 'badge-danger'}">
-                            ${pago.estado === 'pendiente' ? '⏳' : pago.estado === 'aprobado' ? '✅' : '❌'} ${pago.estado}
+                        <span class="badge ${pago.estado === 'pendiente' ? 'badge-pending' : pago.estado === 'aprobado' ? 'badge-success' : 'badge-danger'}" style="display:inline-flex;align-items:center;gap:4px">
+                            ${pago.estado === 'pendiente' ? Icons.clock : pago.estado === 'aprobado' ? Icons.check : Icons.x} ${pago.estado}
                         </span>
                     </div>
                     <div class="admin-item__detail">
@@ -77,11 +77,11 @@ class AdminPagosPage {
                     ${pago.estado === 'pendiente' ? `
                     <div class="admin-item__actions">
                         <button class="btn btn-success btn-sm" onclick="AdminPagosPage.revisar(${pago.id}, 'aprobado')">
-                            ✅ Aprobar
+                            <span style="display:flex;align-items:center;gap:4px">${Icons.check} Aprobar</span>
                         </button>
                         <button class="btn btn-outline btn-sm" style="color:var(--danger);border-color:var(--danger)" 
                                 onclick="AdminPagosPage.revisar(${pago.id}, 'rechazado')">
-                            ❌ Rechazar
+                            <span style="display:flex;align-items:center;gap:4px">${Icons.x} Rechazar</span>
                         </button>
                     </div>` : ''}
                 </div>`).join('')}

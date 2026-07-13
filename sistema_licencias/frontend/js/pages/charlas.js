@@ -22,7 +22,7 @@ class CharlasPage {
                 ${renderBackHeader('Charlas en video')}
                 <div class="page-content container-md">
                     <div class="info-box info-box--warning">
-                        <span>⚠️</span>
+                        <span style="display:flex;align-items:center">${Icons.alert}</span>
                         <span>${err.message}</span>
                     </div>
                 </div>`;
@@ -51,13 +51,13 @@ class CharlasPage {
                     <div class="video-card ${video.visto ? 'video-card--watched' : ''}" 
                          id="video-${video.id}"
                          style="${!canWatch && !video.visto ? 'opacity:0.5' : ''}">
-                        <div class="video-card__icon">
-                            ${video.visto ? '✅' : (canWatch ? '▶️' : '🔒')}
+                        <div class="video-card__icon" style="display:flex;align-items:center;justify-content:center">
+                            ${video.visto ? '<span style="color:var(--success);display:flex;align-items:center">' + Icons.check + '</span>' : (canWatch ? '<span style="color:var(--primary);display:flex;align-items:center">' + Icons.play + '</span>' : '<span style="color:var(--text-muted);display:flex;align-items:center">' + Icons.lock + '</span>')}
                         </div>
                         <div class="video-card__info">
                             <div class="video-card__title">${video.titulo}</div>
-                            <div class="video-card__duration">
-                                <span>⏱️</span> ${video.duracion}
+                            <div class="video-card__duration" style="display:flex;align-items:center;gap:4px">
+                                <span style="display:flex;align-items:center">${Icons.clock}</span> ${video.duracion}
                             </div>
                         </div>
                         ${!video.visto && canWatch ? `
@@ -71,7 +71,7 @@ class CharlasPage {
             ${todosVistos ? `
             <div class="mt-4">
                 <div class="info-box info-box--success mb-3">
-                    <span>✅</span>
+                    <span style="display:flex;align-items:center">${Icons.check}</span>
                     <span>¡Completaste todas las charlas! Podés continuar al examen teórico.</span>
                 </div>
                 <button class="btn btn-primary btn-block btn-lg" onclick="Router.navigate('examen')">
@@ -79,7 +79,7 @@ class CharlasPage {
                 </button>
             </div>` : `
             <div class="info-box info-box--info mt-4">
-                <span>ℹ️</span>
+                <span style="display:flex;align-items:center">${Icons.info}</span>
                 <span>Debés ver todos los videos para continuar al examen teórico.</span>
             </div>`}
         </div>`;
@@ -100,7 +100,7 @@ class CharlasPage {
             </div>
             <div class="modal__body" style="padding:0">
                 <div style="aspect-ratio:16/9;background:var(--blue-950);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px">
-                    <div style="font-size:4rem">🎬</div>
+                    <div style="font-size:4rem;color:var(--sky-400);display:flex;align-items:center;justify-content:center">${Icons.video}</div>
                     <p style="color:white;font-size:0.9rem;font-weight:600">${titulo}</p>
                     <p style="color:rgba(255,255,255,0.5);font-size:0.75rem">Simulación de reproducción de video</p>
                     <div id="videoProgress" style="width:80%;height:4px;background:rgba(255,255,255,0.2);border-radius:4px;overflow:hidden">

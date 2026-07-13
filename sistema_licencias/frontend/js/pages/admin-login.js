@@ -6,7 +6,7 @@ class AdminLoginPage {
         app.innerHTML = `
         <div class="admin-login-page">
             <div class="login-logo animate-fadeIn">
-                <div class="login-logo__icon">🔧</div>
+                <div class="login-logo__icon" style="display:flex;align-items:center;justify-content:center;font-size:3rem;margin-bottom:10px">${Icons.settings}</div>
                 <h1 class="login-logo__text">Panel Admin</h1>
                 <p class="login-logo__sub">Sistema de Gestión de Licencias de Conducir</p>
             </div>
@@ -33,7 +33,7 @@ class AdminLoginPage {
                     </form>
 
                     <div class="info-box info-box--info mt-4">
-                        <span>ℹ️</span>
+                        <span style="display:flex;align-items:center">${Icons.info}</span>
                         <div style="font-size:0.75rem">
                             <strong>Usuarios disponibles:</strong><br>
                             admin_pagos · admin_salud · admin_turnos<br>
@@ -43,8 +43,8 @@ class AdminLoginPage {
 
                     <div style="margin-top:16px;text-align:center">
                         <button class="btn btn-ghost btn-sm" onclick="Router.navigate('login')" 
-                                style="font-size:0.75rem;color:var(--text-muted)">
-                            ← Volver al login de usuarios
+                                style="font-size:0.75rem;color:var(--text-muted);display:flex;align-items:center;justify-content:center;gap:4px">
+                            ${Icons.back} Volver al login de usuarios
                         </button>
                     </div>
                 </div>

@@ -33,7 +33,7 @@ class ExamenPage {
             ${renderBackHeader('Examen teórico')}
             <div class="page-content container-md">
                 <div class="info-box info-box--warning">
-                    <span>⚠️</span>
+                        <span style="display:flex;align-items:center">${Icons.alert}</span>
                     <span>${err.message}</span>
                 </div>
                 <button class="btn btn-outline btn-block mt-4" onclick="Router.navigate('dashboard')">Volver al panel</button>
@@ -98,7 +98,7 @@ class ExamenPage {
             </div>
 
             <div class="info-box info-box--info mt-4">
-                <span>ℹ️</span>
+                <span style="display:flex;align-items:center">${Icons.info}</span>
                 <span>Examen de ${this.preguntas.length} preguntas · 1 solo intento · Mínimo 4 correctas para aprobar</span>
             </div>
         </div>`;

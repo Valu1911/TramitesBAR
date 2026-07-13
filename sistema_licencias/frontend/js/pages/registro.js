@@ -8,7 +8,7 @@ class RegistroPage {
         app.innerHTML = `
         <div class="login-page">
             <div class="login-logo animate-fadeIn">
-                <div class="login-logo__icon">📝</div>
+                <div class="login-logo__icon" style="display:flex;align-items:center;justify-content:center;font-size:3rem;margin-bottom:10px">${Icons.edit}</div>
                 <h1 class="login-logo__text">Registro</h1>
                 <p class="login-logo__sub">Completá tus datos para crear tu cuenta</p>
             </div>
@@ -69,8 +69,8 @@ class RegistroPage {
                                 Crear cuenta y comenzar trámite →
                             </button>
 
-                            <button type="button" class="btn btn-ghost btn-block btn-sm" onclick="Router.navigate('login')">
-                                ← Volver al login
+                            <button type="button" class="btn btn-ghost btn-block btn-sm" style="display:flex;align-items:center;justify-content:center;gap:4px" onclick="Router.navigate('login')">
+                                ${Icons.back} Volver al login
                             </button>
                         </div>
                     </form>

@@ -3,17 +3,15 @@
 -- Base de datos MySQL para WAMP Server
 -- ============================================================
 
-CREATE DATABASE IF NOT EXISTS sistema_licencias
-  CHARACTER SET utf8mb4
-  COLLATE utf8mb4_unicode_ci;
 
-USE sistema_licencias;
+
+
 
 -- ============================================================
 -- TABLA: usuarios (login por DNI, sin duplicados)
 -- ============================================================
 CREATE TABLE IF NOT EXISTS usuarios (
-  id            INT AUTO_INCREMENT PRIMARY KEY,
+  id            INTEGER PRIMARY KEY AUTOINCREMENT,
   dni           VARCHAR(10) NOT NULL UNIQUE,
   nombre        VARCHAR(100) NOT NULL DEFAULT '',
   apellido      VARCHAR(100) NOT NULL DEFAULT '',
@@ -21,184 +19,184 @@ CREATE TABLE IF NOT EXISTS usuarios (
   telefono      VARCHAR(30) DEFAULT '',
   fecha_nacimiento DATE DEFAULT NULL,
   direccion     VARCHAR(255) DEFAULT '',
-  dni_frente    LONGTEXT DEFAULT NULL,
-  dni_dorso     LONGTEXT DEFAULT NULL,
-  foto_rostro   LONGTEXT DEFAULT NULL,
+  dni_frente    TEXT DEFAULT NULL,
+  dni_dorso     TEXT DEFAULT NULL,
+  foto_rostro   TEXT DEFAULT NULL,
   created_at    DATETIME DEFAULT CURRENT_TIMESTAMP,
-  updated_at    DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-) ENGINE=InnoDB;
+  updated_at    DATETIME DEFAULT CURRENT_TIMESTAMP 
+);
 
 -- ============================================================
 -- TABLA: admins (panel de administracion, login por usuario+pass)
 -- Roles: pagos, salud, turnos
 -- ============================================================
 CREATE TABLE IF NOT EXISTS admins (
-  id            INT AUTO_INCREMENT PRIMARY KEY,
+  id            INTEGER PRIMARY KEY AUTOINCREMENT,
   usuario       VARCHAR(50) NOT NULL UNIQUE,
   password_hash VARCHAR(255) NOT NULL,
   nombre        VARCHAR(100) NOT NULL,
-  rol           ENUM('pagos','salud','turnos') NOT NULL,
-  activo        TINYINT(1) DEFAULT 1,
+  rol           TEXT NOT NULL,
+  activo        INTEGER DEFAULT 1,
   created_at    DATETIME DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB;
+);
 
 -- ============================================================
 -- TABLA: tramites (un tramite por usuario, controla el flujo)
 -- ============================================================
 CREATE TABLE IF NOT EXISTS tramites (
-  id              INT AUTO_INCREMENT PRIMARY KEY,
-  usuario_id      INT NOT NULL,
-  tipo            ENUM('nueva','renovacion') NOT NULL DEFAULT 'nueva',
-  paso_actual     ENUM('charlas','examen','formularios','pago','practico','entrega','finalizado') NOT NULL DEFAULT 'charlas',
-  estado          ENUM('en_progreso','completado','cancelado') NOT NULL DEFAULT 'en_progreso',
+  id              INTEGER PRIMARY KEY AUTOINCREMENT,
+  usuario_id      INTEGER NOT NULL,
+  tipo            TEXT NOT NULL DEFAULT 'nueva',
+  paso_actual     TEXT NOT NULL DEFAULT 'charlas',
+  estado          TEXT NOT NULL DEFAULT 'en_progreso',
   created_at      DATETIME DEFAULT CURRENT_TIMESTAMP,
-  updated_at      DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  updated_at      DATETIME DEFAULT CURRENT_TIMESTAMP ,
   FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
-) ENGINE=InnoDB;
+);
 
 -- ============================================================
 -- TABLA: videos (charlas de seguridad vial)
 -- ============================================================
 CREATE TABLE IF NOT EXISTS videos (
-  id          INT AUTO_INCREMENT PRIMARY KEY,
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
   titulo      VARCHAR(200) NOT NULL,
   descripcion TEXT DEFAULT '',
   url_video   VARCHAR(500) NOT NULL,
   duracion    VARCHAR(20) DEFAULT '10 min',
-  orden       INT NOT NULL DEFAULT 0,
-  activo      TINYINT(1) DEFAULT 1,
+  orden       INTEGER NOT NULL DEFAULT 0,
+  activo      INTEGER DEFAULT 1,
   created_at  DATETIME DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB;
+);
 
 -- ============================================================
 -- TABLA: videos_vistos (registro de videos vistos por usuario)
 -- ============================================================
 CREATE TABLE IF NOT EXISTS videos_vistos (
-  id          INT AUTO_INCREMENT PRIMARY KEY,
-  tramite_id  INT NOT NULL,
-  video_id    INT NOT NULL,
-  visto       TINYINT(1) DEFAULT 1,
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  tramite_id  INTEGER NOT NULL,
+  video_id    INTEGER NOT NULL,
+  visto       INTEGER DEFAULT 1,
   fecha_visto DATETIME DEFAULT CURRENT_TIMESTAMP,
-  UNIQUE KEY uk_tramite_video (tramite_id, video_id),
+  UNIQUE(tramite_id, video_id),
   FOREIGN KEY (tramite_id) REFERENCES tramites(id) ON DELETE CASCADE,
   FOREIGN KEY (video_id) REFERENCES videos(id) ON DELETE CASCADE
-) ENGINE=InnoDB;
+);
 
 -- ============================================================
 -- TABLA: preguntas_examen
 -- ============================================================
 CREATE TABLE IF NOT EXISTS preguntas_examen (
-  id              INT AUTO_INCREMENT PRIMARY KEY,
+  id              INTEGER PRIMARY KEY AUTOINCREMENT,
   pregunta        TEXT NOT NULL,
   opcion_a        VARCHAR(255) NOT NULL,
   opcion_b        VARCHAR(255) NOT NULL,
   opcion_c        VARCHAR(255) NOT NULL,
   opcion_d        VARCHAR(255) NOT NULL,
-  respuesta_correcta ENUM('a','b','c','d') NOT NULL,
-  activo          TINYINT(1) DEFAULT 1,
+  respuesta_correcta TEXT NOT NULL,
+  activo          INTEGER DEFAULT 1,
   created_at      DATETIME DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB;
+);
 
 -- ============================================================
 -- TABLA: examenes_teoricos (resultado del examen por tramite)
 -- ============================================================
 CREATE TABLE IF NOT EXISTS examenes_teoricos (
-  id              INT AUTO_INCREMENT PRIMARY KEY,
-  tramite_id      INT NOT NULL,
+  id              INTEGER PRIMARY KEY AUTOINCREMENT,
+  tramite_id      INTEGER NOT NULL,
   respuestas      JSON DEFAULT NULL,
-  puntaje         INT DEFAULT 0,
-  total_preguntas INT DEFAULT 0,
-  aprobado        TINYINT(1) DEFAULT 0,
+  puntaje         INTEGER DEFAULT 0,
+  total_preguntas INTEGER DEFAULT 0,
+  aprobado        INTEGER DEFAULT 0,
   fecha_examen    DATETIME DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (tramite_id) REFERENCES tramites(id) ON DELETE CASCADE
-) ENGINE=InnoDB;
+);
 
 -- ============================================================
 -- TABLA: formularios_salud
 -- ============================================================
 CREATE TABLE IF NOT EXISTS formularios_salud (
-  id                  INT AUTO_INCREMENT PRIMARY KEY,
-  tramite_id          INT NOT NULL,
+  id                  INTEGER PRIMARY KEY AUTOINCREMENT,
+  tramite_id          INTEGER NOT NULL,
   grupo_sanguineo     VARCHAR(10) NOT NULL,
   usa_lentes          VARCHAR(5) NOT NULL,
   enfermedad_cronica  VARCHAR(255) DEFAULT 'Ninguna',
   medicacion          VARCHAR(255) DEFAULT 'Ninguna',
   contacto_emergencia VARCHAR(100) NOT NULL,
   telefono_emergencia VARCHAR(30) NOT NULL,
-  certificado_archivo LONGTEXT DEFAULT NULL,
-  estado              ENUM('pendiente','aprobado','rechazado') DEFAULT 'pendiente',
+  certificado_archivo TEXT DEFAULT NULL,
+  estado              TEXT DEFAULT 'pendiente',
   observaciones_admin TEXT DEFAULT '',
   fecha_envio         DATETIME DEFAULT CURRENT_TIMESTAMP,
   fecha_revision      DATETIME DEFAULT NULL,
-  admin_id            INT DEFAULT NULL,
+  admin_id            INTEGER DEFAULT NULL,
   FOREIGN KEY (tramite_id) REFERENCES tramites(id) ON DELETE CASCADE,
   FOREIGN KEY (admin_id) REFERENCES admins(id) ON DELETE SET NULL
-) ENGINE=InnoDB;
+);
 
 -- ============================================================
 -- TABLA: pagos
 -- ============================================================
 CREATE TABLE IF NOT EXISTS pagos (
-  id                INT AUTO_INCREMENT PRIMARY KEY,
-  tramite_id        INT NOT NULL,
-  metodo            ENUM('transferencia','debito') NOT NULL,
+  id                INTEGER PRIMARY KEY AUTOINCREMENT,
+  tramite_id        INTEGER NOT NULL,
+  metodo            TEXT NOT NULL,
   monto             DECIMAL(10,2) NOT NULL DEFAULT 12500.00,
-  comprobante       LONGTEXT DEFAULT NULL,
+  comprobante       TEXT DEFAULT NULL,
   numero_tarjeta    VARCHAR(20) DEFAULT NULL,
   nombre_titular    VARCHAR(100) DEFAULT NULL,
-  estado            ENUM('pendiente','aprobado','rechazado') DEFAULT 'pendiente',
+  estado            TEXT DEFAULT 'pendiente',
   observaciones_admin TEXT DEFAULT '',
   fecha_pago        DATETIME DEFAULT CURRENT_TIMESTAMP,
   fecha_revision    DATETIME DEFAULT NULL,
-  admin_id          INT DEFAULT NULL,
+  admin_id          INTEGER DEFAULT NULL,
   FOREIGN KEY (tramite_id) REFERENCES tramites(id) ON DELETE CASCADE,
   FOREIGN KEY (admin_id) REFERENCES admins(id) ON DELETE SET NULL
-) ENGINE=InnoDB;
+);
 
 -- ============================================================
 -- TABLA: turnos_practico
 -- ============================================================
 CREATE TABLE IF NOT EXISTS turnos_practico (
-  id              INT AUTO_INCREMENT PRIMARY KEY,
+  id              INTEGER PRIMARY KEY AUTOINCREMENT,
   fecha           VARCHAR(100) NOT NULL,
   horario         VARCHAR(20) NOT NULL,
   ubicacion       VARCHAR(255) NOT NULL DEFAULT 'Circuito Municipal de Baradero',
-  cupo_maximo     INT DEFAULT 10,
-  cupo_actual     INT DEFAULT 0,
-  activo          TINYINT(1) DEFAULT 1,
+  cupo_maximo     INTEGER DEFAULT 10,
+  cupo_actual     INTEGER DEFAULT 0,
+  activo          INTEGER DEFAULT 1,
   created_at      DATETIME DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB;
+);
 
 -- ============================================================
 -- TABLA: reservas_turno (reservas de turnos por tramite)
 -- ============================================================
 CREATE TABLE IF NOT EXISTS reservas_turno (
-  id              INT AUTO_INCREMENT PRIMARY KEY,
-  tramite_id      INT NOT NULL,
-  turno_id        INT NOT NULL,
-  estado          ENUM('reservado','aprobado','rechazado','completado') DEFAULT 'reservado',
-  resultado_examen ENUM('pendiente','aprobado','reprobado') DEFAULT 'pendiente',
+  id              INTEGER PRIMARY KEY AUTOINCREMENT,
+  tramite_id      INTEGER NOT NULL,
+  turno_id        INTEGER NOT NULL,
+  estado          TEXT DEFAULT 'reservado',
+  resultado_examen TEXT DEFAULT 'pendiente',
   observaciones_admin TEXT DEFAULT '',
   fecha_reserva   DATETIME DEFAULT CURRENT_TIMESTAMP,
   fecha_revision  DATETIME DEFAULT NULL,
-  admin_id        INT DEFAULT NULL,
+  admin_id        INTEGER DEFAULT NULL,
   FOREIGN KEY (tramite_id) REFERENCES tramites(id) ON DELETE CASCADE,
   FOREIGN KEY (turno_id) REFERENCES turnos_practico(id) ON DELETE CASCADE,
   FOREIGN KEY (admin_id) REFERENCES admins(id) ON DELETE SET NULL
-) ENGINE=InnoDB;
+);
 
 -- ============================================================
 -- TABLA: entregas (metodo de entrega de licencia)
 -- ============================================================
 CREATE TABLE IF NOT EXISTS entregas (
-  id              INT AUTO_INCREMENT PRIMARY KEY,
-  tramite_id      INT NOT NULL,
-  metodo          ENUM('domicilio','presencial') NOT NULL,
+  id              INTEGER PRIMARY KEY AUTOINCREMENT,
+  tramite_id      INTEGER NOT NULL,
+  metodo          TEXT NOT NULL,
   direccion       VARCHAR(255) DEFAULT '',
-  estado          ENUM('pendiente','en_camino','entregado') DEFAULT 'pendiente',
+  estado          TEXT DEFAULT 'pendiente',
   fecha_solicitud DATETIME DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (tramite_id) REFERENCES tramites(id) ON DELETE CASCADE
-) ENGINE=InnoDB;
+);
 
 
 -- ============================================================

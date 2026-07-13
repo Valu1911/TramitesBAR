@@ -6,7 +6,7 @@ class LoginPage {
         app.innerHTML = `
         <div class="login-page">
             <div class="login-logo animate-fadeIn">
-                <div class="login-logo__icon">🚗</div>
+                <div class="login-logo__icon" style="display:flex;align-items:center;justify-content:center;font-size:3rem;margin-bottom:10px">${Icons.car}</div>
                 <h1 class="login-logo__text">Muni Digital</h1>
                 <p class="login-logo__sub">Sistema de Licencias de Conducir · Municipalidad de Baradero</p>
             </div>
@@ -14,7 +14,7 @@ class LoginPage {
             <div class="login-card animate-slideUp">
                 <div class="glass-card p-6">
                     <div style="display:flex;align-items:center;gap:8px;color:var(--primary);margin-bottom:16px">
-                        <span>🛡️</span>
+                        <span style="display:flex;align-items:center;justify-content:center">${Icons.shield}</span>
                         <span class="font-semibold text-sm">Verificación de identidad</span>
                     </div>
 
@@ -33,8 +33,8 @@ class LoginPage {
 
                     <div style="margin-top:16px;text-align:center">
                         <button class="btn btn-ghost btn-sm" onclick="Router.navigate('admin-login')" 
-                                style="font-size:0.75rem;color:var(--text-muted)">
-                            🔧 Acceso administrador
+                                style="font-size:0.75rem;color:var(--text-muted);display:flex;align-items:center;justify-content:center;gap:4px">
+                            ${Icons.settings} Acceso administrador
                         </button>
                     </div>
                 </div>

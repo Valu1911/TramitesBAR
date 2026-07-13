@@ -37,7 +37,7 @@ class AdminSaludPage {
         <div class="page-content animate-fadeIn">
             <div class="flex-between mb-4">
                 <div>
-                    <h1 style="font-size:1.25rem;font-weight:800">🏥 Verificación de Certificados de Salud</h1>
+                    <h1 style="font-size:1.25rem;font-weight:800;display:flex;align-items:center;gap:8px">${Icons.heart} Verificación de Certificados de Salud</h1>
                     <p class="text-sm text-muted">Revisá los formularios médicos de los ciudadanos</p>
                 </div>
                 <span class="badge badge-pending">${data.pendientes} pendientes</span>
@@ -55,7 +55,7 @@ class AdminSaludPage {
             <div>
                 ${formularios.length === 0 ? `
                 <div class="empty-state">
-                    <div class="empty-state__icon">📄</div>
+                    <div class="empty-state__icon" style="display:flex;align-items:center;justify-content:center">${Icons.file}</div>
                     <h3 class="empty-state__title">Sin formularios</h3>
                     <p class="empty-state__desc">No hay formularios para mostrar con este filtro</p>
                 </div>` : formularios.map(f => `
@@ -65,8 +65,8 @@ class AdminSaludPage {
                             <div class="admin-item__user">${f.nombre} ${f.apellido}</div>
                             <div class="admin-item__meta">DNI: ${f.dni} · Enviado: ${f.fecha_envio}</div>
                         </div>
-                        <span class="badge ${f.estado === 'pendiente' ? 'badge-pending' : f.estado === 'aprobado' ? 'badge-success' : 'badge-danger'}">
-                            ${f.estado === 'pendiente' ? '⏳' : f.estado === 'aprobado' ? '✅' : '❌'} ${f.estado}
+                        <span class="badge ${f.estado === 'pendiente' ? 'badge-pending' : f.estado === 'aprobado' ? 'badge-success' : 'badge-danger'}" style="display:inline-flex;align-items:center;gap:4px">
+                            ${f.estado === 'pendiente' ? Icons.clock : f.estado === 'aprobado' ? Icons.check : Icons.x} ${f.estado}
                         </span>
                     </div>
                     
@@ -82,20 +82,20 @@ class AdminSaludPage {
                         </div>
                         ${f.certificado_archivo ? `
                         <div class="mt-2">
-                            <button class="btn btn-ghost btn-sm" onclick="AdminSaludPage.verCertificado('${f.id}')">
-                                📎 Ver certificado adjunto
-                            </button>
+                            <a href="javascript:void(0)" onclick="AdminSaludPage.verCertificado('${f.id}')" style="color:var(--primary);font-weight:600;display:inline-flex;align-items:center;gap:4px">
+                                ${Icons.paperclip} Ver certificado adjunto
+                            </a>
                         </div>` : '<p class="text-xs text-muted mt-2">Sin certificado adjunto</p>'}
                     </div>
 
                     ${f.estado === 'pendiente' ? `
                     <div class="admin-item__actions">
                         <button class="btn btn-success btn-sm" onclick="AdminSaludPage.revisar(${f.id}, 'aprobado')">
-                            ✅ Aprobar
+                            <span style="display:flex;align-items:center;gap:4px">${Icons.check} Aprobar</span>
                         </button>
                         <button class="btn btn-outline btn-sm" style="color:var(--danger);border-color:var(--danger)" 
                                 onclick="AdminSaludPage.revisar(${f.id}, 'rechazado')">
-                            ❌ Rechazar
+                            <span style="display:flex;align-items:center;gap:4px">${Icons.x} Rechazar</span>
                         </button>
                     </div>` : `
                     ${f.observaciones_admin ? `<p class="text-xs text-muted">Obs: ${f.observaciones_admin}</p>` : ''}`}

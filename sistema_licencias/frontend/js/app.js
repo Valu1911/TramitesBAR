@@ -22,14 +22,14 @@ class Toast {
         toast.className = `toast toast--${type} animate-slideUp`;
 
         const icons = {
-            success: '✓',
-            error: '✕',
-            warning: '⚠',
-            info: 'ℹ'
+            success: Icons.check,
+            error: Icons.x,
+            warning: Icons.alert,
+            info: Icons.info
         };
 
         toast.innerHTML = `
-            <span style="font-size:1.1rem;flex-shrink:0">${icons[type] || 'ℹ'}</span>
+            <span style="font-size:1.1rem;flex-shrink:0;display:flex;align-items:center">${icons[type] || Icons.info}</span>
             <span class="toast__message">${message}</span>
             <button class="toast__close" onclick="this.parentElement.remove()">×</button>
         `;
@@ -134,7 +134,7 @@ class Router {
             default:
                 app.innerHTML = `
                     <div class="page-content text-center" style="padding-top:100px">
-                        <div class="empty-state__icon">❓</div>
+                        <div class="empty-state__icon" style="display:flex;align-items:center;justify-content:center">${Icons.help}</div>
                         <h2>Página no encontrada</h2>
                         <p class="text-muted mt-2">La página que buscás no existe</p>
                         <button class="btn btn-primary mt-4" onclick="Router.navigate('login')">Volver al inicio</button>
@@ -151,16 +151,16 @@ function renderNavbar(user) {
     <nav class="navbar">
         <div class="navbar__inner">
             <a class="navbar__brand" href="#dashboard" onclick="Router.navigate('dashboard')">
-                <div class="navbar__brand-icon">🚗</div>
+                <div class="navbar__brand-icon" style="display:flex;align-items:center;justify-content:center">${Icons.car}</div>
                 <span>Muni Digital</span>
             </a>
             <div class="navbar__actions">
                 <div class="navbar__user">
-                    <span>👤</span>
+                    <span style="display:flex;align-items:center">${Icons.user}</span>
                     <span>${user?.nombre || 'Usuario'} ${user?.apellido || ''}</span>
                 </div>
                 <button class="btn btn-ghost btn-sm" onclick="logout()" title="Cerrar sesión">
-                    🚪 Salir
+                    <span style="display:flex;align-items:center;gap:4px">${Icons.logout} Salir</span>
                 </button>
             </div>
         </div>
@@ -172,18 +172,18 @@ function renderAdminNavbar(admin) {
     <nav class="navbar" style="background:rgba(23,37,84,0.95);border-bottom-color:rgba(255,255,255,0.1)">
         <div class="navbar__inner">
             <a class="navbar__brand" style="color:white" href="#admin-pagos">
-                <div class="navbar__brand-icon" style="background:rgba(255,255,255,0.15)">🔧</div>
+                <div class="navbar__brand-icon" style="background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center">${Icons.settings}</div>
                 <span>Admin Panel</span>
             </a>
             <div class="navbar__actions">
-                <button class="btn btn-ghost btn-sm" style="color:${admin?.rol==='pagos'?'#38bdf8':'rgba(255,255,255,0.6)'}" onclick="Router.navigate('admin-pagos')">💰 Pagos</button>
-                <button class="btn btn-ghost btn-sm" style="color:${admin?.rol==='salud'?'#38bdf8':'rgba(255,255,255,0.6)'}" onclick="Router.navigate('admin-salud')">🏥 Salud</button>
-                <button class="btn btn-ghost btn-sm" style="color:${admin?.rol==='turnos'?'#38bdf8':'rgba(255,255,255,0.6)'}" onclick="Router.navigate('admin-turnos')">📅 Turnos</button>
+                <button class="btn btn-ghost btn-sm" style="color:${admin?.rol==='pagos'?'#38bdf8':'rgba(255,255,255,0.6)'}; display:flex;align-items:center;gap:4px" onclick="Router.navigate('admin-pagos')">${Icons.money} Pagos</button>
+                <button class="btn btn-ghost btn-sm" style="color:${admin?.rol==='salud'?'#38bdf8':'rgba(255,255,255,0.6)'}; display:flex;align-items:center;gap:4px" onclick="Router.navigate('admin-salud')">${Icons.heart} Salud</button>
+                <button class="btn btn-ghost btn-sm" style="color:${admin?.rol==='turnos'?'#38bdf8':'rgba(255,255,255,0.6)'}; display:flex;align-items:center;gap:4px" onclick="Router.navigate('admin-turnos')">${Icons.calendar} Turnos</button>
                 <div class="navbar__user" style="background:rgba(255,255,255,0.1);color:white">
                     ${admin?.nombre || 'Admin'}
                 </div>
                 <button class="btn btn-ghost btn-sm" style="color:rgba(255,255,255,0.6)" onclick="adminLogout()">
-                    🚪
+                    <span style="display:flex;align-items:center">${Icons.logout}</span>
                 </button>
             </div>
         </div>
@@ -196,7 +196,7 @@ function renderBackHeader(title, backTo = 'dashboard') {
     ${renderNavbar(user)}
     <div style="background:white;border-bottom:1px solid var(--border);padding:12px 20px">
         <div style="max-width:1200px;margin:0 auto;display:flex;align-items:center;gap:12px">
-            <button class="btn btn-ghost btn-sm" onclick="Router.navigate('${backTo}')">← Volver</button>
+            <button class="btn btn-ghost btn-sm" style="display:flex;align-items:center;gap:4px" onclick="Router.navigate('${backTo}')">${Icons.back} Volver</button>
             <h1 style="font-size:1rem;font-weight:700">${title}</h1>
         </div>
     </div>`;

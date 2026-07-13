@@ -26,7 +26,7 @@ class PagoPage {
             ${renderBackHeader('Pago del arancel')}
             <div class="page-content container-md">
                 <div class="info-box info-box--warning">
-                    <span>⚠️</span>
+                    <span style="display:flex;align-items:center">${Icons.alert}</span>
                     <span>${err.message}</span>
                 </div>
                 <button class="btn btn-outline btn-block mt-4" onclick="Router.navigate('dashboard')">Volver al panel</button>
@@ -38,9 +38,9 @@ class PagoPage {
         if (data.pago) {
             const p = data.pago;
             const statusMap = {
-                'pendiente': { icon: '⏳', title: 'Pago en revisión', desc: 'Tu comprobante fue enviado. Un administrador lo validará a la brevedad.', badge: 'badge-pending' },
-                'aprobado': { icon: '✅', title: '¡Pago confirmado!', desc: 'Tu pago fue aprobado. Podés continuar con el trámite.', badge: 'badge-success' },
-                'rechazado': { icon: '❌', title: 'Pago rechazado', desc: 'Motivo: ' + (p.observaciones_admin || 'Sin observaciones'), badge: 'badge-danger' }
+                'pendiente': { icon: Icons.clock, title: 'Pago en revisión', desc: 'Tu comprobante fue enviado. Un administrador lo validará a la brevedad.', badge: 'badge-pending' },
+                'aprobado': { icon: Icons.check, title: '¡Pago confirmado!', desc: 'Tu pago fue aprobado. Podés continuar con el trámite.', badge: 'badge-success' },
+                'rechazado': { icon: Icons.x, title: 'Pago rechazado', desc: 'Motivo: ' + (p.observaciones_admin || 'Sin observaciones'), badge: 'badge-danger' }
             };
             const st = statusMap[p.estado] || statusMap['pendiente'];
 
@@ -48,7 +48,7 @@ class PagoPage {
             ${renderBackHeader('Pago del arancel')}
             <div class="page-content container-md animate-slideUp">
                 <div class="waiting-status ${p.estado === 'pendiente' ? 'waiting-status--pending' : ''}">
-                    <div class="waiting-status__icon">${st.icon}</div>
+                    <div class="waiting-status__icon" style="display:flex;align-items:center;justify-content:center">${st.icon}</div>
                     <h2 class="font-bold" style="font-size:1.25rem;margin-bottom:8px">${st.title}</h2>
                     <span class="badge ${st.badge}">${p.estado.charAt(0).toUpperCase() + p.estado.slice(1)}</span>
                     <p class="text-muted text-sm mt-3">${st.desc}</p>
@@ -65,7 +65,7 @@ class PagoPage {
         ${renderBackHeader('Pago del arancel')}
         <div class="page-content container-md animate-slideUp">
             <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px">
-                <span style="font-size:1.5rem">💳</span>
+                <span style="font-size:1.5rem;color:var(--primary);display:flex;align-items:center">${Icons.card}</span>
                 <div>
                     <h1 style="font-size:1.1rem;font-weight:700">Centro de Comercio</h1>
                     <p class="text-sm text-muted">Aboná el arancel de tu licencia de conducir</p>
@@ -84,7 +84,7 @@ class PagoPage {
             <div class="stack mb-4" id="payMethods">
                 <div class="payment-method ${this.metodoSeleccionado === 'transferencia' ? 'payment-method--selected' : ''}"
                      onclick="PagoPage.selectMethod('transferencia')">
-                    <div class="payment-method__icon">🏦</div>
+                    <div class="payment-method__icon" style="display:flex;align-items:center;justify-content:center">${Icons.bank}</div>
                     <div style="flex:1">
                         <h3 class="font-semibold text-sm">Transferencia bancaria</h3>
                         <p class="text-xs text-muted">Pagá con alias, CBU o QR interoperable</p>
@@ -92,7 +92,7 @@ class PagoPage {
                 </div>
                 <div class="payment-method ${this.metodoSeleccionado === 'debito' ? 'payment-method--selected' : ''}"
                      onclick="PagoPage.selectMethod('debito')">
-                    <div class="payment-method__icon">💳</div>
+                    <div class="payment-method__icon" style="display:flex;align-items:center;justify-content:center">${Icons.card}</div>
                     <div style="flex:1">
                         <h3 class="font-semibold text-sm">Tarjeta de débito</h3>
                         <p class="text-xs text-muted">Ingresá los datos de tu tarjeta</p>
@@ -129,19 +129,19 @@ class PagoPage {
                             <div class="copy-box__label">Alias</div>
                             <div class="copy-box__value">${data.alias}</div>
                         </div>
-                        <button class="btn btn-ghost btn-sm" onclick="PagoPage.copyText('${data.alias}')">📋</button>
+                        <button class="btn btn-ghost btn-sm" style="display:flex;align-items:center" onclick="PagoPage.copyText('${data.alias}')">${Icons.copy}</button>
                     </div>
                     <div class="copy-box">
                         <div>
                             <div class="copy-box__label">CBU</div>
                             <div class="copy-box__value">${data.cbu}</div>
                         </div>
-                        <button class="btn btn-ghost btn-sm" onclick="PagoPage.copyText('${data.cbu}')">📋</button>
+                        <button class="btn btn-ghost btn-sm" style="display:flex;align-items:center" onclick="PagoPage.copyText('${data.cbu}')">${Icons.copy}</button>
                     </div>
 
                     <div class="text-center p-4">
                         <div style="width:160px;height:160px;margin:0 auto;background:var(--bg);border-radius:var(--radius-lg);border:2px dashed var(--border);display:flex;align-items:center;justify-content:center">
-                            <span style="font-size:3rem;color:var(--text-muted)">📱</span>
+                            <span style="font-size:3rem;color:var(--text-muted);display:flex;align-items:center;justify-content:center">${Icons.smartphone}</span>
                         </div>
                         <p class="text-xs text-muted mt-2">Escaneá el QR desde tu app bancaria</p>
                     </div>
@@ -202,7 +202,7 @@ class PagoPage {
             
             <div id="receiptPreviewArea">
                 <div class="file-upload" onclick="document.getElementById('receiptFile').click()">
-                    <div class="file-upload__icon">📤</div>
+                    <div class="file-upload__icon" style="display:flex;align-items:center;justify-content:center">${Icons.upload}</div>
                     <div class="file-upload__text">Subir comprobante</div>
                 </div>
             </div>
@@ -237,7 +237,7 @@ class PagoPage {
         const preview = document.getElementById('receiptPreviewArea');
         preview.innerHTML = `
         <div class="file-upload" onclick="document.getElementById('receiptFile').click()">
-            <div class="file-upload__icon">📤</div>
+            <div class="file-upload__icon" style="display:flex;align-items:center;justify-content:center">${Icons.upload}</div>
             <div class="file-upload__text">Subir comprobante</div>
         </div>`;
         document.getElementById('submitReceiptBtn').disabled = true;

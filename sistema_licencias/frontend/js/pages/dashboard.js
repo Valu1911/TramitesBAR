@@ -37,18 +37,18 @@ class DashboardPage {
 
     static renderContent(app, data, user) {
         const stepIcons = {
-            charlas: '🎬',
-            examen: '📝',
-            formularios: '🏥',
-            pago: '💳',
-            practico: '🚗',
-            entrega: '📦'
+            charlas: Icons.video,
+            examen: Icons.edit,
+            formularios: Icons.heart,
+            pago: Icons.card,
+            practico: Icons.car,
+            entrega: Icons.box
         };
 
         const statusIcons = {
-            completed: '✅',
-            current: '⏳',
-            locked: '🔒'
+            completed: '<span style="color:var(--success);display:flex;align-items:center">' + Icons.check + '</span>',
+            current: '<span style="color:var(--primary);display:flex;align-items:center">' + Icons.clock + '</span>',
+            locked: '<span style="color:var(--text-muted);display:flex;align-items:center">' + Icons.lock + '</span>'
         };
 
         const currentStep = data.pasos.find(p => p.status === 'current');
@@ -59,7 +59,7 @@ class DashboardPage {
             <!-- HERO -->
             <section class="hero gradient-hero">
                 <div style="position:relative;z-index:1">
-                    <div class="hero__badge">✨ Hacelo en 3 clicks</div>
+                    <div class="hero__badge"><span style="display:flex;align-items:center;color:var(--warning)">${Icons.sparkles}</span> Hacelo en 3 clicks</div>
                     <h1 class="hero__title">
                         Tu licencia de conducir, <span>sin filas</span>
                     </h1>
@@ -83,7 +83,7 @@ class DashboardPage {
             <div class="glass-card p-5">
                 <div class="flex-between mb-3">
                     <div style="display:flex;align-items:center;gap:10px">
-                        <div style="width:40px;height:40px;border-radius:var(--radius-md);background:var(--primary-soft);display:flex;align-items:center;justify-content:center;font-size:1.2rem">🪪</div>
+                        <div style="width:40px;height:40px;border-radius:var(--radius-md);background:var(--primary-soft);display:flex;align-items:center;justify-content:center;font-size:1.2rem;color:var(--primary)">${Icons.id}</div>
                         <div>
                             <div class="font-bold text-sm">Tu progreso</div>
                             <div class="text-xs text-muted">${data.pasos.filter(p => p.status === 'completed').length} de ${data.pasos.length} pasos completados</div>
@@ -101,19 +101,19 @@ class DashboardPage {
                 <h2 class="section-title mb-3">Acceso rápido</h2>
                 <div class="quick-grid">
                     <button class="quick-action" onclick="Router.navigate('charlas')">
-                        <div class="quick-action__icon" style="background:var(--primary-soft);color:var(--primary)">🎬</div>
+                        <div class="quick-action__icon" style="background:var(--primary-soft);color:var(--primary)">${Icons.video}</div>
                         <span class="quick-action__label">Charlas</span>
                     </button>
                     <button class="quick-action" onclick="Router.navigate('examen')">
-                        <div class="quick-action__icon" style="background:var(--accent-light);color:var(--accent)">📝</div>
+                        <div class="quick-action__icon" style="background:var(--accent-light);color:var(--accent)">${Icons.edit}</div>
                         <span class="quick-action__label">Examen</span>
                     </button>
                     <button class="quick-action" onclick="Router.navigate('pago')">
-                        <div class="quick-action__icon" style="background:var(--primary-soft);color:var(--primary)">💳</div>
+                        <div class="quick-action__icon" style="background:var(--primary-soft);color:var(--primary)">${Icons.card}</div>
                         <span class="quick-action__label">Pagar</span>
                     </button>
                     <button class="quick-action" onclick="Router.navigate('practico')">
-                        <div class="quick-action__icon" style="background:var(--accent-light);color:var(--accent)">🚗</div>
+                        <div class="quick-action__icon" style="background:var(--accent-light);color:var(--accent)">${Icons.car}</div>
                         <span class="quick-action__label">Práctico</span>
                     </button>
                 </div>
@@ -127,7 +127,7 @@ class DashboardPage {
                     <div class="step-card step-card--${paso.status}" 
                          onclick="${paso.status !== 'locked' ? `Router.navigate('${paso.id}')` : 'Toast.warning(\"Debés completar los pasos anteriores\")'}"
                          style="animation-delay:${i * 0.05}s">
-                        <div class="step-card__icon">${stepIcons[paso.id] || '📄'}</div>
+                        <div class="step-card__icon">${stepIcons[paso.id] || Icons.file}</div>
                         <div class="step-card__content">
                             <div class="step-card__step-label">Paso ${i + 1}</div>
                             <div class="step-card__title">${paso.title}</div>
