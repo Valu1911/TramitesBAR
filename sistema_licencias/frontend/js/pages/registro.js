@@ -1,0 +1,130 @@
+/**
+ * Página de Registro - Nuevo usuario por DNI
+ */
+class RegistroPage {
+    static render(app) {
+        const dni = sessionStorage.getItem('registro_dni') || '';
+
+        app.innerHTML = `
+        <div class="login-page">
+            <div class="login-logo animate-fadeIn">
+                <div class="login-logo__icon">📝</div>
+                <h1 class="login-logo__text">Registro</h1>
+                <p class="login-logo__sub">Completá tus datos para crear tu cuenta</p>
+            </div>
+
+            <div class="login-card animate-slideUp" style="max-width:460px">
+                <div class="glass-card p-6">
+                    <form id="registroForm" onsubmit="RegistroPage.handleSubmit(event)">
+                        <div class="stack">
+                            <div class="form-group">
+                                <label class="form-label">DNI</label>
+                                <input type="text" id="regDni" class="form-input" value="${dni}" 
+                                       ${dni ? 'readonly style="background:var(--bg);opacity:0.7"' : ''}
+                                       placeholder="Tu DNI" inputmode="numeric" maxlength="10">
+                            </div>
+
+                            <div class="grid-2">
+                                <div class="form-group">
+                                    <label class="form-label">Nombre *</label>
+                                    <input type="text" id="regNombre" class="form-input" placeholder="Tu nombre" required>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Apellido *</label>
+                                    <input type="text" id="regApellido" class="form-input" placeholder="Tu apellido" required>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Email</label>
+                                <input type="email" id="regEmail" class="form-input" placeholder="ejemplo@mail.com">
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Teléfono</label>
+                                <input type="tel" id="regTelefono" class="form-input" placeholder="Ej: 3329-123456">
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Fecha de nacimiento</label>
+                                <input type="date" id="regFechaNac" class="form-input">
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Dirección</label>
+                                <input type="text" id="regDireccion" class="form-input" placeholder="Tu dirección">
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Tipo de trámite</label>
+                                <select id="regTipo" class="form-input">
+                                    <option value="nueva">Licencia nueva</option>
+                                    <option value="renovacion">Renovación</option>
+                                </select>
+                            </div>
+
+                            <div id="regError" class="form-error" style="display:none"></div>
+
+                            <button type="submit" class="btn btn-primary btn-block btn-lg" id="regBtn">
+                                Crear cuenta y comenzar trámite →
+                            </button>
+
+                            <button type="button" class="btn btn-ghost btn-block btn-sm" onclick="Router.navigate('login')">
+                                ← Volver al login
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <p class="login-footer">Muni Digital · Municipalidad de Baradero © 2026</p>
+        </div>`;
+    }
+
+    static async handleSubmit(e) {
+        e.preventDefault();
+        const btn = document.getElementById('regBtn');
+        const errorEl = document.getElementById('regError');
+
+        const formData = {
+            dni: document.getElementById('regDni').value.trim().replace(/\D/g, ''),
+            nombre: document.getElementById('regNombre').value.trim(),
+            apellido: document.getElementById('regApellido').value.trim(),
+            email: document.getElementById('regEmail').value.trim(),
+            telefono: document.getElementById('regTelefono').value.trim(),
+            fecha_nacimiento: document.getElementById('regFechaNac').value || null,
+            direccion: document.getElementById('regDireccion').value.trim(),
+            tipo_tramite: document.getElementById('regTipo').value
+        };
+
+        if (!formData.nombre || !formData.apellido) {
+            errorEl.textContent = 'Nombre y apellido son obligatorios';
+            errorEl.style.display = 'block';
+            return;
+        }
+
+        if (formData.dni.length < 7 || formData.dni.length > 8) {
+            errorEl.textContent = 'DNI inválido (7 u 8 dígitos)';
+            errorEl.style.display = 'block';
+            return;
+        }
+
+        errorEl.style.display = 'none';
+        btn.disabled = true;
+        btn.textContent = 'Registrando...';
+
+        try {
+            const result = await ApiService.registro(formData);
+            sessionStorage.removeItem('registro_dni');
+            Toast.success(`¡Bienvenido/a, ${result.usuario.nombre}! Tu trámite fue creado.`);
+            Router.navigate('dashboard');
+        } catch (err) {
+            errorEl.textContent = err.message || 'Error al registrar';
+            errorEl.style.display = 'block';
+            Toast.error(err.message);
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Crear cuenta y comenzar trámite →';
+        }
+    }
+}
