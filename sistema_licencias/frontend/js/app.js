@@ -155,6 +155,9 @@ function renderNavbar(user) {
                 <span>Muni Digital</span>
             </a>
             <div class="navbar__actions">
+                <button class="btn btn-primary btn-sm tutorial-pulse-btn" onclick="if(window.Tutorial) window.Tutorial.startTutorialWithContext(window.location.hash.replace('#', '') || 'dashboard', true)" title="Ver tutorial">
+                    <span style="display:flex;align-items:center;gap:4px">Ayuda</span>
+                </button>
                 <div class="navbar__user">
                     <span style="display:flex;align-items:center">${Icons.user}</span>
                     <span>${user?.nombre || 'Usuario'} ${user?.apellido || ''}</span>

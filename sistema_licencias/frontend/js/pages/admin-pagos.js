@@ -87,6 +87,10 @@ class AdminPagosPage {
                 </div>`).join('')}
             </div>
         </div>`;
+
+        if (window.Tutorial) {
+            setTimeout(() => window.Tutorial.startTutorialWithContext('admin-pagos'), 300);
+        }
     }
 
     static setFiltro(filtro) {

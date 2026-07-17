@@ -104,9 +104,10 @@ class EntregaPage {
                 Confirmar método de entrega
             </button>
         </div>`;
+        if (window.Tutorial) setTimeout(() => window.Tutorial.startTutorialWithContext('entrega'), 300);
     }
 
-    static selectMetodo(metodo) {
+    staticic selectMetodo(metodo) {
         this.metodo = metodo;
         this.render(document.getElementById('app'));
     }

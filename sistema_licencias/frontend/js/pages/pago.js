@@ -106,6 +106,7 @@ class PagoPage {
         if (this.metodoSeleccionado) {
             this.renderPayDetails(data);
         }
+        if (window.Tutorial) setTimeout(() => window.Tutorial.startTutorialWithContext('pago'), 300);
     }
 
     static selectMethod(method) {

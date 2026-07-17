@@ -102,9 +102,10 @@ class ExamenPage {
                 <span>Examen de ${this.preguntas.length} preguntas · 1 solo intento · Mínimo 4 correctas para aprobar</span>
             </div>
         </div>`;
+        if (window.Tutorial) setTimeout(() => window.Tutorial.startTutorialWithContext('examen'), 300);
     }
 
-    static selectAnswer(questionId, answer) {
+    staticic selectAnswer(questionId, answer) {
         this.answers[questionId] = answer;
         this.renderExam(document.getElementById('app'));
     }

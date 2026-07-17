@@ -408,7 +408,7 @@ def marcar_video_visto():
     execute_query(
         """INSERT INTO videos_vistos (tramite_id, video_id, visto)
            VALUES (?, ?, 1)
-           ON DUPLICATE KEY UPDATE visto=1, fecha_visto=CURRENT_TIMESTAMP""",
+           ON CONFLICT(tramite_id, video_id) DO UPDATE SET visto=1, fecha_visto=CURRENT_TIMESTAMP""",
         (tramite_id, video_id)
     )
 

@@ -47,7 +47,7 @@ class RegistroPage {
 
                             <div class="form-group">
                                 <label class="form-label">Fecha de nacimiento</label>
-                                <input type="date" id="regFechaNac" class="form-input">
+                                <input type="text" id="regFechaNac" class="form-input" placeholder="DD/MM/AAAA" maxlength="10" oninput="this.value=this.value.replace(/^(\\d\\d)(\\d)$/g,'$1/$2').replace(/^(\\d\\d\\/\\d\\d)(\\d+)$/g,'$1/$2').replace(/[^\\d\\/]/g,'')">
                             </div>
 
                             <div class="form-group">
@@ -86,13 +86,22 @@ class RegistroPage {
         const btn = document.getElementById('regBtn');
         const errorEl = document.getElementById('regError');
 
+        let fechaFormateada = null;
+        const fechaRaw = document.getElementById('regFechaNac').value || '';
+        if (fechaRaw.length === 10) {
+            const parts = fechaRaw.split('/');
+            if (parts.length === 3) {
+                fechaFormateada = `${parts[2]}-${parts[1]}-${parts[0]}`; // YYYY-MM-DD
+            }
+        }
+
         const formData = {
             dni: document.getElementById('regDni').value.trim().replace(/\D/g, ''),
             nombre: document.getElementById('regNombre').value.trim(),
             apellido: document.getElementById('regApellido').value.trim(),
             email: document.getElementById('regEmail').value.trim(),
             telefono: document.getElementById('regTelefono').value.trim(),
-            fecha_nacimiento: document.getElementById('regFechaNac').value || null,
+            fecha_nacimiento: fechaFormateada,
             direccion: document.getElementById('regDireccion').value.trim(),
             tipo_tramite: document.getElementById('regTipo').value
         };

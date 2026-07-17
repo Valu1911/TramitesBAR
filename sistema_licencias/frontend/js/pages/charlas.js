@@ -83,6 +83,10 @@ class CharlasPage {
                 <span>Debés ver todos los videos para continuar al examen teórico.</span>
             </div>`}
         </div>`;
+        
+        if (window.Tutorial) {
+            setTimeout(() => window.Tutorial.startTutorialWithContext('charlas'), 300);
+        }
     }
 
     static async watchVideo(videoId, titulo) {

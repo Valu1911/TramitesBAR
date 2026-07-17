@@ -102,6 +102,10 @@ class AdminSaludPage {
                 </div>`).join('')}
             </div>
         </div>`;
+
+        if (window.Tutorial) {
+            setTimeout(() => window.Tutorial.startTutorialWithContext('admin-salud'), 300);
+        }
     }
 
     static setFiltro(filtro) {

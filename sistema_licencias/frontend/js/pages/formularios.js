@@ -137,9 +137,10 @@ class FormulariosPage {
                 </button>
             </form>
         </div>`;
+        if (window.Tutorial) setTimeout(() => window.Tutorial.startTutorialWithContext('formularios'), 300);
     }
 
-    static handleFile(e) {
+    staticic handleFile(e) {
         const file = e.target.files[0];
         const preview = document.getElementById('certPreview');
         if (!file) { preview.innerHTML = ''; return; }

@@ -112,9 +112,10 @@ class PracticoPage {
                 Confirmar turno
             </button>` : ''}
         </div>`;
+        if (window.Tutorial) setTimeout(() => window.Tutorial.startTutorialWithContext('practico'), 300);
     }
 
-    static selectTurno(id) {
+    staticic selectTurno(id) {
         this.turnoSeleccionado = id;
         this.render(document.getElementById('app'));
     }

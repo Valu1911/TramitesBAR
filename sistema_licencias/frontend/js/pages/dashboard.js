@@ -141,5 +141,10 @@ class DashboardPage {
                 </div>
             </section>
         </div>`;
+
+        // Lanzar tutorial si corresponde
+        if (window.Tutorial) {
+            setTimeout(() => window.Tutorial.startTutorialWithContext('dashboard'), 300);
+        }
     }
 }
