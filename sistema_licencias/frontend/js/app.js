@@ -155,6 +155,9 @@ function renderNavbar(user) {
                 <span>Muni Digital</span>
             </a>
             <div class="navbar__actions">
+                <button class="btn btn-ghost btn-sm" onclick="toggleDarkMode()" title="Cambiar tema" id="darkModeBtn">
+                    <span style="display:flex;align-items:center">${document.body.classList.contains('dark') ? Icons.sun : Icons.moon}</span>
+                </button>
                 <button class="btn btn-primary btn-sm tutorial-pulse-btn" onclick="if(window.Tutorial) window.Tutorial.startTutorialWithContext(window.location.hash.replace('#', '') || 'dashboard', true)" title="Ver tutorial">
                     <span style="display:flex;align-items:center;gap:4px">Ayuda</span>
                 </button>
@@ -179,6 +182,9 @@ function renderAdminNavbar(admin) {
                 <span>Admin Panel</span>
             </a>
             <div class="navbar__actions">
+                <button class="btn btn-ghost btn-sm" onclick="toggleDarkMode()" title="Cambiar tema" style="color:rgba(255,255,255,0.6)" id="darkModeAdminBtn">
+                    <span style="display:flex;align-items:center">${document.body.classList.contains('dark') ? Icons.sun : Icons.moon}</span>
+                </button>
                 <button class="btn btn-ghost btn-sm" style="color:${admin?.rol==='pagos'?'#38bdf8':'rgba(255,255,255,0.6)'}; display:flex;align-items:center;gap:4px" onclick="Router.navigate('admin-pagos')">${Icons.money} Pagos</button>
                 <button class="btn btn-ghost btn-sm" style="color:${admin?.rol==='salud'?'#38bdf8':'rgba(255,255,255,0.6)'}; display:flex;align-items:center;gap:4px" onclick="Router.navigate('admin-salud')">${Icons.heart} Salud</button>
                 <button class="btn btn-ghost btn-sm" style="color:${admin?.rol==='turnos'?'#38bdf8':'rgba(255,255,255,0.6)'}; display:flex;align-items:center;gap:4px" onclick="Router.navigate('admin-turnos')">${Icons.calendar} Turnos</button>
@@ -197,7 +203,7 @@ function renderBackHeader(title, backTo = 'dashboard') {
     const user = ApiService.getUsuario();
     return `
     ${renderNavbar(user)}
-    <div style="background:white;border-bottom:1px solid var(--border);padding:12px 20px">
+    <div style="background:var(--bg-card);border-bottom:1px solid var(--border);padding:12px 20px">
         <div style="max-width:1200px;margin:0 auto;display:flex;align-items:center;gap:12px">
             <button class="btn btn-ghost btn-sm" style="display:flex;align-items:center;gap:4px" onclick="Router.navigate('${backTo}')">${Icons.back} Volver</button>
             <h1 style="font-size:1rem;font-weight:700">${title}</h1>
@@ -221,8 +227,29 @@ function adminLogout() {
 }
 
 // ============================================================
+// DARK MODE
+// ============================================================
+function toggleDarkMode() {
+    const isDark = document.body.classList.toggle('dark');
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    const icon = isDark ? Icons.sun : Icons.moon;
+    const btn = document.getElementById('darkModeBtn');
+    const adminBtn = document.getElementById('darkModeAdminBtn');
+    if (btn) btn.innerHTML = `<span style="display:flex;align-items:center">${icon}</span>`;
+    if (adminBtn) adminBtn.innerHTML = `<span style="display:flex;align-items:center">${icon}</span>`;
+}
+
+function initTheme() {
+    const theme = localStorage.getItem('theme');
+    if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.body.classList.add('dark');
+    }
+}
+
+// ============================================================
 // INITIALIZE
 // ============================================================
 document.addEventListener('DOMContentLoaded', () => {
+    initTheme();
     Router.init();
 });

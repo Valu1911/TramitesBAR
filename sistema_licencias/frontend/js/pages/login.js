@@ -24,10 +24,18 @@ class LoginPage {
                             <input type="text" id="loginDni" class="form-input" 
                                    placeholder="Ej: 35123456" inputmode="numeric" maxlength="10"
                                    autocomplete="off">
+                        </div>
+                        <div class="form-group mb-4">
+                            <label class="form-label">Contraseña</label>
+                            <input type="password" id="loginPassword" class="form-input" 
+                                   placeholder="Tu contraseña" required>
                             <div id="loginError" class="form-error" style="display:none"></div>
                         </div>
                         <button type="submit" class="btn btn-primary btn-block btn-lg" id="loginBtn">
                             Continuar →
+                        </button>
+                        <button type="button" class="btn btn-ghost btn-block btn-lg" style="margin-top: 12px; font-weight: 500;" onclick="Router.navigate('registro')">
+                            Crear nueva cuenta
                         </button>
                     </form>
 
@@ -48,11 +56,18 @@ class LoginPage {
         e.preventDefault();
         const dniRaw = document.getElementById('loginDni').value.trim();
         const dni = dniRaw.replace(/\D/g, '');
+        const password = document.getElementById('loginPassword').value.trim();
         const errorEl = document.getElementById('loginError');
         const btn = document.getElementById('loginBtn');
 
         if (dni.length < 7 || dni.length > 8) {
             errorEl.textContent = 'Ingresá un DNI válido (7 u 8 dígitos)';
+            errorEl.style.display = 'block';
+            return;
+        }
+
+        if (!password) {
+            errorEl.textContent = 'Ingresá tu contraseña';
             errorEl.style.display = 'block';
             return;
         }
@@ -66,7 +81,7 @@ class LoginPage {
 
             if (checkResult.exists) {
                 // Login directo
-                const loginResult = await ApiService.login(dni);
+                const loginResult = await ApiService.login(dni, password);
                 Toast.success(`¡Bienvenido/a, ${loginResult.usuario.nombre}!`);
                 Router.navigate('dashboard');
             } else {

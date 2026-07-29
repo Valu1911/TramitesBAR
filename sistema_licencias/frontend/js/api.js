@@ -88,10 +88,10 @@ class ApiService {
         });
     }
 
-    static async login(dni) {
+    static async login(dni, password) {
         const data = await this.request('/auth/login', {
             method: 'POST',
-            body: { dni }
+            body: { dni, password }
         });
         this.setToken(data.token);
         this.setUsuario(data.usuario);

@@ -3,7 +3,8 @@
 -- Base de datos MySQL para WAMP Server
 -- ============================================================
 
-
+CREATE DATABASE IF NOT EXISTS `sistema_licencias` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE `sistema_licencias`;
 
 
 
@@ -11,10 +12,11 @@
 -- TABLA: usuarios (login por DNI, sin duplicados)
 -- ============================================================
 CREATE TABLE IF NOT EXISTS usuarios (
-  id            INTEGER PRIMARY KEY AUTOINCREMENT,
+  id            INTEGER PRIMARY KEY AUTO_INCREMENT,
   dni           VARCHAR(10) NOT NULL UNIQUE,
   nombre        VARCHAR(100) NOT NULL DEFAULT '',
   apellido      VARCHAR(100) NOT NULL DEFAULT '',
+  password_hash VARCHAR(255) NOT NULL DEFAULT '',
   email         VARCHAR(150) DEFAULT '',
   telefono      VARCHAR(30) DEFAULT '',
   fecha_nacimiento DATE DEFAULT NULL,
@@ -31,7 +33,7 @@ CREATE TABLE IF NOT EXISTS usuarios (
 -- Roles: pagos, salud, turnos
 -- ============================================================
 CREATE TABLE IF NOT EXISTS admins (
-  id            INTEGER PRIMARY KEY AUTOINCREMENT,
+  id            INTEGER PRIMARY KEY AUTO_INCREMENT,
   usuario       VARCHAR(50) NOT NULL UNIQUE,
   password_hash VARCHAR(255) NOT NULL,
   nombre        VARCHAR(100) NOT NULL,
@@ -44,11 +46,11 @@ CREATE TABLE IF NOT EXISTS admins (
 -- TABLA: tramites (un tramite por usuario, controla el flujo)
 -- ============================================================
 CREATE TABLE IF NOT EXISTS tramites (
-  id              INTEGER PRIMARY KEY AUTOINCREMENT,
+  id              INTEGER PRIMARY KEY AUTO_INCREMENT,
   usuario_id      INTEGER NOT NULL,
-  tipo            TEXT NOT NULL DEFAULT 'nueva',
-  paso_actual     TEXT NOT NULL DEFAULT 'charlas',
-  estado          TEXT NOT NULL DEFAULT 'en_progreso',
+  tipo            VARCHAR(50) NOT NULL DEFAULT 'nueva',
+  paso_actual     VARCHAR(50) NOT NULL DEFAULT 'charlas',
+  estado          VARCHAR(50) NOT NULL DEFAULT 'en_progreso',
   created_at      DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at      DATETIME DEFAULT CURRENT_TIMESTAMP ,
   FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
@@ -58,9 +60,9 @@ CREATE TABLE IF NOT EXISTS tramites (
 -- TABLA: videos (charlas de seguridad vial)
 -- ============================================================
 CREATE TABLE IF NOT EXISTS videos (
-  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  id          INTEGER PRIMARY KEY AUTO_INCREMENT,
   titulo      VARCHAR(200) NOT NULL,
-  descripcion TEXT DEFAULT '',
+  descripcion TEXT,
   url_video   VARCHAR(500) NOT NULL,
   duracion    VARCHAR(20) DEFAULT '10 min',
   orden       INTEGER NOT NULL DEFAULT 0,
@@ -72,7 +74,7 @@ CREATE TABLE IF NOT EXISTS videos (
 -- TABLA: videos_vistos (registro de videos vistos por usuario)
 -- ============================================================
 CREATE TABLE IF NOT EXISTS videos_vistos (
-  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  id          INTEGER PRIMARY KEY AUTO_INCREMENT,
   tramite_id  INTEGER NOT NULL,
   video_id    INTEGER NOT NULL,
   visto       INTEGER DEFAULT 1,
@@ -86,7 +88,7 @@ CREATE TABLE IF NOT EXISTS videos_vistos (
 -- TABLA: preguntas_examen
 -- ============================================================
 CREATE TABLE IF NOT EXISTS preguntas_examen (
-  id              INTEGER PRIMARY KEY AUTOINCREMENT,
+  id              INTEGER PRIMARY KEY AUTO_INCREMENT,
   pregunta        TEXT NOT NULL,
   opcion_a        VARCHAR(255) NOT NULL,
   opcion_b        VARCHAR(255) NOT NULL,
@@ -101,7 +103,7 @@ CREATE TABLE IF NOT EXISTS preguntas_examen (
 -- TABLA: examenes_teoricos (resultado del examen por tramite)
 -- ============================================================
 CREATE TABLE IF NOT EXISTS examenes_teoricos (
-  id              INTEGER PRIMARY KEY AUTOINCREMENT,
+  id              INTEGER PRIMARY KEY AUTO_INCREMENT,
   tramite_id      INTEGER NOT NULL,
   respuestas      JSON DEFAULT NULL,
   puntaje         INTEGER DEFAULT 0,
@@ -115,7 +117,7 @@ CREATE TABLE IF NOT EXISTS examenes_teoricos (
 -- TABLA: formularios_salud
 -- ============================================================
 CREATE TABLE IF NOT EXISTS formularios_salud (
-  id                  INTEGER PRIMARY KEY AUTOINCREMENT,
+  id                  INTEGER PRIMARY KEY AUTO_INCREMENT,
   tramite_id          INTEGER NOT NULL,
   grupo_sanguineo     VARCHAR(10) NOT NULL,
   usa_lentes          VARCHAR(5) NOT NULL,
@@ -124,8 +126,8 @@ CREATE TABLE IF NOT EXISTS formularios_salud (
   contacto_emergencia VARCHAR(100) NOT NULL,
   telefono_emergencia VARCHAR(30) NOT NULL,
   certificado_archivo TEXT DEFAULT NULL,
-  estado              TEXT DEFAULT 'pendiente',
-  observaciones_admin TEXT DEFAULT '',
+  estado              VARCHAR(50) DEFAULT 'pendiente',
+  observaciones_admin TEXT,
   fecha_envio         DATETIME DEFAULT CURRENT_TIMESTAMP,
   fecha_revision      DATETIME DEFAULT NULL,
   admin_id            INTEGER DEFAULT NULL,
@@ -137,15 +139,15 @@ CREATE TABLE IF NOT EXISTS formularios_salud (
 -- TABLA: pagos
 -- ============================================================
 CREATE TABLE IF NOT EXISTS pagos (
-  id                INTEGER PRIMARY KEY AUTOINCREMENT,
+  id                INTEGER PRIMARY KEY AUTO_INCREMENT,
   tramite_id        INTEGER NOT NULL,
   metodo            TEXT NOT NULL,
   monto             DECIMAL(10,2) NOT NULL DEFAULT 12500.00,
   comprobante       TEXT DEFAULT NULL,
   numero_tarjeta    VARCHAR(20) DEFAULT NULL,
   nombre_titular    VARCHAR(100) DEFAULT NULL,
-  estado            TEXT DEFAULT 'pendiente',
-  observaciones_admin TEXT DEFAULT '',
+  estado            VARCHAR(50) DEFAULT 'pendiente',
+  observaciones_admin TEXT,
   fecha_pago        DATETIME DEFAULT CURRENT_TIMESTAMP,
   fecha_revision    DATETIME DEFAULT NULL,
   admin_id          INTEGER DEFAULT NULL,
@@ -157,7 +159,7 @@ CREATE TABLE IF NOT EXISTS pagos (
 -- TABLA: turnos_practico
 -- ============================================================
 CREATE TABLE IF NOT EXISTS turnos_practico (
-  id              INTEGER PRIMARY KEY AUTOINCREMENT,
+  id              INTEGER PRIMARY KEY AUTO_INCREMENT,
   fecha           VARCHAR(100) NOT NULL,
   horario         VARCHAR(20) NOT NULL,
   ubicacion       VARCHAR(255) NOT NULL DEFAULT 'Circuito Municipal de Baradero',
@@ -171,12 +173,12 @@ CREATE TABLE IF NOT EXISTS turnos_practico (
 -- TABLA: reservas_turno (reservas de turnos por tramite)
 -- ============================================================
 CREATE TABLE IF NOT EXISTS reservas_turno (
-  id              INTEGER PRIMARY KEY AUTOINCREMENT,
+  id              INTEGER PRIMARY KEY AUTO_INCREMENT,
   tramite_id      INTEGER NOT NULL,
   turno_id        INTEGER NOT NULL,
-  estado          TEXT DEFAULT 'reservado',
-  resultado_examen TEXT DEFAULT 'pendiente',
-  observaciones_admin TEXT DEFAULT '',
+  estado          VARCHAR(50) DEFAULT 'reservado',
+  resultado_examen VARCHAR(50) DEFAULT 'pendiente',
+  observaciones_admin TEXT,
   fecha_reserva   DATETIME DEFAULT CURRENT_TIMESTAMP,
   fecha_revision  DATETIME DEFAULT NULL,
   admin_id        INTEGER DEFAULT NULL,
@@ -189,11 +191,11 @@ CREATE TABLE IF NOT EXISTS reservas_turno (
 -- TABLA: entregas (metodo de entrega de licencia)
 -- ============================================================
 CREATE TABLE IF NOT EXISTS entregas (
-  id              INTEGER PRIMARY KEY AUTOINCREMENT,
+  id              INTEGER PRIMARY KEY AUTO_INCREMENT,
   tramite_id      INTEGER NOT NULL,
   metodo          TEXT NOT NULL,
   direccion       VARCHAR(255) DEFAULT '',
-  estado          TEXT DEFAULT 'pendiente',
+  estado          VARCHAR(50) DEFAULT 'pendiente',
   fecha_solicitud DATETIME DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (tramite_id) REFERENCES tramites(id) ON DELETE CASCADE
 );

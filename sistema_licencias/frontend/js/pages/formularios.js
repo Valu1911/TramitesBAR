@@ -123,10 +123,10 @@ class FormulariosPage {
                         </div>
 
                         <div class="form-group">
-                            <label class="form-label">Certificado médico (opcional)</label>
+                            <label class="form-label">Certificado del Médico *</label>
                             <input type="file" id="fCertificado" accept="image/*,.pdf" 
                                    class="form-input" style="padding:10px 16px;height:auto"
-                                   onchange="FormulariosPage.handleFile(event)">
+                                   required onchange="FormulariosPage.handleFile(event)">
                             <div id="certPreview"></div>
                         </div>
                     </div>

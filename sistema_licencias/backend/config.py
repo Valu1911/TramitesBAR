@@ -24,8 +24,8 @@ ALIAS_BANCARIO = 'MUNICIPIO.BARADERO.LICENCIAS'
 CBU_BANCARIO = '0110012330001234567890'
 
 # Pasos del trámite en orden secuencial
-PASOS_TRAMITE = ['charlas', 'examen', 'formularios', 'pago', 'practico', 'entrega', 'finalizado']
+PASOS_TRAMITE = ['charlas', 'formularios', 'examen', 'pago', 'practico', 'entrega', 'finalizado']
 
 # Número mínimo de respuestas correctas para aprobar
-MINIMO_APROBACION_EXAMEN = 4
-TOTAL_PREGUNTAS_EXAMEN = 5
+MINIMO_APROBACION_EXAMEN = 2
+TOTAL_PREGUNTAS_EXAMEN = 3

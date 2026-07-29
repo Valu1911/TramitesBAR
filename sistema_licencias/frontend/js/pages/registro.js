@@ -63,6 +63,11 @@ class RegistroPage {
                                 </select>
                             </div>
 
+                            <div class="form-group">
+                                <label class="form-label">Contraseña *</label>
+                                <input type="password" id="regPassword" class="form-input" placeholder="Mínimo 6 caracteres" required>
+                            </div>
+
                             <div id="regError" class="form-error" style="display:none"></div>
 
                             <button type="submit" class="btn btn-primary btn-block btn-lg" id="regBtn">
@@ -103,11 +108,18 @@ class RegistroPage {
             telefono: document.getElementById('regTelefono').value.trim(),
             fecha_nacimiento: fechaFormateada,
             direccion: document.getElementById('regDireccion').value.trim(),
-            tipo_tramite: document.getElementById('regTipo').value
+            tipo_tramite: document.getElementById('regTipo').value,
+            password: document.getElementById('regPassword').value.trim()
         };
 
         if (!formData.nombre || !formData.apellido) {
             errorEl.textContent = 'Nombre y apellido son obligatorios';
+            errorEl.style.display = 'block';
+            return;
+        }
+
+        if (!formData.password || formData.password.length < 6) {
+            errorEl.textContent = 'La contraseña debe tener al menos 6 caracteres';
             errorEl.style.display = 'block';
             return;
         }

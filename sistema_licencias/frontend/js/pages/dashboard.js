@@ -68,11 +68,11 @@ class DashboardPage {
                     </p>
                     <div class="hero__actions">
                         ${currentStep ? `
-                        <button class="btn btn-lg" style="background:white;color:var(--primary);font-weight:700;box-shadow:var(--shadow-lg)" 
+                        <button class="btn btn-lg" style="background:var(--bg-card);color:var(--primary);font-weight:700;box-shadow:var(--shadow-lg)" 
                                 onclick="Router.navigate('${currentStep.id}')">
                             Continuar trámite →
                         </button>` : `
-                        <button class="btn btn-lg" style="background:white;color:var(--primary);font-weight:700" disabled>
+                        <button class="btn btn-lg" style="background:var(--bg-card);color:var(--primary);font-weight:700" disabled>
                             ¡Trámite completado! ✓
                         </button>`}
                     </div>
@@ -104,16 +104,20 @@ class DashboardPage {
                         <div class="quick-action__icon" style="background:var(--primary-soft);color:var(--primary)">${Icons.video}</div>
                         <span class="quick-action__label">Charlas</span>
                     </button>
+                    <button class="quick-action" onclick="Router.navigate('formularios')">
+                        <div class="quick-action__icon" style="background:var(--accent-light);color:var(--accent)">${Icons.heart}</div>
+                        <span class="quick-action__label">Salud</span>
+                    </button>
                     <button class="quick-action" onclick="Router.navigate('examen')">
-                        <div class="quick-action__icon" style="background:var(--accent-light);color:var(--accent)">${Icons.edit}</div>
+                        <div class="quick-action__icon" style="background:var(--primary-soft);color:var(--primary)">${Icons.edit}</div>
                         <span class="quick-action__label">Examen</span>
                     </button>
                     <button class="quick-action" onclick="Router.navigate('pago')">
-                        <div class="quick-action__icon" style="background:var(--primary-soft);color:var(--primary)">${Icons.card}</div>
+                        <div class="quick-action__icon" style="background:var(--accent-light);color:var(--accent)">${Icons.card}</div>
                         <span class="quick-action__label">Pagar</span>
                     </button>
                     <button class="quick-action" onclick="Router.navigate('practico')">
-                        <div class="quick-action__icon" style="background:var(--accent-light);color:var(--accent)">${Icons.car}</div>
+                        <div class="quick-action__icon" style="background:var(--primary-soft);color:var(--primary)">${Icons.car}</div>
                         <span class="quick-action__label">Práctico</span>
                     </button>
                 </div>

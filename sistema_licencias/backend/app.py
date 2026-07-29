@@ -132,13 +132,20 @@ def registro():
     fecha_nac = data.get('fecha_nacimiento', None)
     direccion = data.get('direccion', '').strip()
 
+    password = data.get('password', '').strip()
+
     if not nombre or not apellido:
         return jsonify({'error': 'Nombre y apellido son requeridos'}), 400
+        
+    if len(password) < 6:
+        return jsonify({'error': 'La contraseña debe tener al menos 6 caracteres'}), 400
+        
+    password_hash = generate_password_hash(password)
 
     user_id = execute_query(
-        """INSERT INTO usuarios (dni, nombre, apellido, email, telefono, fecha_nacimiento, direccion)
-           VALUES (?, ?, ?, ?, ?, ?, ?)""",
-        (dni, nombre, apellido, email, telefono, fecha_nac, direccion)
+        """INSERT INTO usuarios (dni, nombre, apellido, email, telefono, fecha_nacimiento, direccion, password_hash)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+        (dni, nombre, apellido, email, telefono, fecha_nac, direccion, password_hash)
     )
 
     # Crear trámite automáticamente
@@ -167,16 +174,28 @@ def login():
     data = request.json
     dni = data.get('dni', '').strip().replace('.', '').replace('-', '')
 
+    password = data.get('password', '').strip()
+
     if not dni or len(dni) < 7 or len(dni) > 8 or not dni.isdigit():
         return jsonify({'error': 'DNI inválido'}), 400
 
+    if not password:
+        return jsonify({'error': 'Contraseña requerida'}), 400
+
     user = execute_query(
-        "SELECT id, dni, nombre, apellido FROM usuarios WHERE dni=?",
+        "SELECT id, dni, nombre, apellido, password_hash FROM usuarios WHERE dni=?",
         (dni,), fetch_one=True
     )
 
     if not user:
         return jsonify({'error': 'No existe cuenta con este DNI. Registrate primero.', 'needs_register': True}), 404
+
+    # The user might have been created before the password system. Let them login and set a password later? 
+    # Or just enforce password if password_hash exists. 
+    # Wait, the prompt says "necesito que le agregues un sistema de contraseñas super seguro para cada usuario nuevo... y q en el login dsp de poner el dni pida contraseña". 
+    # Let's enforce it.
+    if not user.get('password_hash') or not check_password_hash(user['password_hash'], password):
+        return jsonify({'error': 'Contraseña incorrecta'}), 401
 
     # Buscar trámite activo
     tramite = execute_query(
@@ -421,7 +440,7 @@ def marcar_video_visto():
 
     todos_vistos = total_vistos >= total_videos
     if todos_vistos and tramite['paso_actual'] == 'charlas':
-        execute_query("UPDATE tramites SET paso_actual='examen' WHERE id=?", (tramite_id,))
+        execute_query("UPDATE tramites SET paso_actual='formularios' WHERE id=?", (tramite_id,))
 
     return jsonify({'message': 'Video marcado como visto', 'todos_vistos': todos_vistos})
 
@@ -437,7 +456,7 @@ def get_preguntas():
     tramite = execute_query("SELECT paso_actual FROM tramites WHERE id=?", (tramite_id,), fetch_one=True)
 
     if not tramite or not puede_acceder_paso(tramite['paso_actual'], 'examen'):
-        return jsonify({'error': 'Debés completar las charlas primero'}), 403
+        return jsonify({'error': 'Debés completar los formularios de salud primero'}), 403
 
     # Verificar si ya rindió
     examen_existente = execute_query(
@@ -503,7 +522,7 @@ def entregar_examen():
     )
 
     if aprobado and tramite['paso_actual'] == 'examen':
-        execute_query("UPDATE tramites SET paso_actual='formularios' WHERE id=?", (tramite_id,))
+        execute_query("UPDATE tramites SET paso_actual='pago' WHERE id=?", (tramite_id,))
 
     return jsonify({
         'aprobado': aprobado,
@@ -524,7 +543,7 @@ def formularios_estado():
     tramite = execute_query("SELECT paso_actual FROM tramites WHERE id=?", (tramite_id,), fetch_one=True)
 
     if not tramite or not puede_acceder_paso(tramite['paso_actual'], 'formularios'):
-        return jsonify({'error': 'Debés aprobar el examen teórico primero'}), 403
+        return jsonify({'error': 'Debés completar las charlas primero'}), 403
 
     formulario = execute_query(
         "SELECT * FROM formularios_salud WHERE tramite_id=? ORDER BY id DESC LIMIT 1",
@@ -587,7 +606,7 @@ def pagos_info():
     tramite = execute_query("SELECT paso_actual FROM tramites WHERE id=?", (tramite_id,), fetch_one=True)
 
     if not tramite or not puede_acceder_paso(tramite['paso_actual'], 'pago'):
-        return jsonify({'error': 'Debés completar los formularios de salud primero'}), 403
+        return jsonify({'error': 'Debés aprobar el examen teórico primero'}), 403
 
     pago = execute_query(
         "SELECT * FROM pagos WHERE tramite_id=? ORDER BY id DESC LIMIT 1",
@@ -919,7 +938,7 @@ def admin_revisar_salud(form_id):
             )
             if tramite and tramite['paso_actual'] == 'formularios':
                 execute_query(
-                    "UPDATE tramites SET paso_actual='pago' WHERE id=?",
+                    "UPDATE tramites SET paso_actual='examen' WHERE id=?",
                     (form['tramite_id'],)
                 )
 
