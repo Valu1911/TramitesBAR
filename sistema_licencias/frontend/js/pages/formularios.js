@@ -49,7 +49,7 @@ class FormulariosPage {
                     <span class="badge ${st.badge}">${st.text}</span>
                     <p class="text-muted text-sm mt-3">
                         ${f.estado === 'pendiente' ? 'Un administrador revisará tus datos médicos a la brevedad.' : 
-                          f.estado === 'aprobado' ? 'Podés continuar con el pago del arancel.' :
+                          f.estado === 'aprobado' ? 'Podés continuar con el examen teórico.' :
                           'Motivo: ' + (f.observaciones_admin || 'Sin observaciones')}
                     </p>
                 </div>
@@ -140,7 +140,7 @@ class FormulariosPage {
         if (window.Tutorial) setTimeout(() => window.Tutorial.startTutorialWithContext('formularios'), 300);
     }
 
-    staticic handleFile(e) {
+    static handleFile(e) {
         const file = e.target.files[0];
         const preview = document.getElementById('certPreview');
         if (!file) { preview.innerHTML = ''; return; }

@@ -18,6 +18,6 @@ echo   Frontend: http://localhost:5000
 echo   API:      http://localhost:5000/api
 echo.
 
-python -m uvicorn app:asgi_app --host 0.0.0.0 --port 5000
+python app.py
 
 pause

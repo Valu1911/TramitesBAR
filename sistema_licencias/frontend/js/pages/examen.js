@@ -6,7 +6,7 @@ class ExamenPage {
     static currentQ = 0;
     static answers = {};
 
-    static async render(app) {
+    static async render(app, force = false) {
         app.innerHTML = `
         ${renderBackHeader('Examen teórico')}
         <div class="page-content container-md">
@@ -17,9 +17,9 @@ class ExamenPage {
         </div>`;
 
         try {
-            const data = await ApiService.getPreguntas();
+            const data = await ApiService.getPreguntas(force);
 
-            if (data.ya_rendido) {
+            if (data.ya_rendido && !force) {
                 this.renderResult(app, data);
                 return;
             }
@@ -33,7 +33,7 @@ class ExamenPage {
             ${renderBackHeader('Examen teórico')}
             <div class="page-content container-md">
                 <div class="info-box info-box--warning">
-                        <span style="display:flex;align-items:center">${Icons.alert}</span>
+                    <span style="display:flex;align-items:center">${Icons.alert}</span>
                     <span>${err.message}</span>
                 </div>
                 <button class="btn btn-outline btn-block mt-4" onclick="Router.navigate('dashboard')">Volver al panel</button>
@@ -63,7 +63,10 @@ class ExamenPage {
                 </div>`).join('')}
             </div>
 
-            <div style="text-align:right;margin-bottom:12px">
+            <div class="flex-between mb-3">
+                <button class="btn btn-sm" style="background:var(--warning-bg);color:#b45309;border:1px dashed var(--warning);font-size:0.75rem;font-weight:700;display:inline-flex;align-items:center;gap:4px" onclick="ExamenPage.autoCompletarCorrectas()">
+                    ⚡ Modo Demo: Responder todas bien
+                </button>
                 <span class="text-xs text-muted font-semibold">${this.currentQ + 1}/${this.preguntas.length}</span>
             </div>
 
@@ -99,13 +102,24 @@ class ExamenPage {
 
             <div class="info-box info-box--info mt-4">
                 <span style="display:flex;align-items:center">${Icons.info}</span>
-                <span>Examen de ${this.preguntas.length} preguntas · 1 solo intento · Mínimo 4 correctas para aprobar</span>
+                <span>Examen de ${this.preguntas.length} preguntas · Podés reintentar las veces que quieras · Mínimo 4 correctas para aprobar</span>
             </div>
         </div>`;
         if (window.Tutorial) setTimeout(() => window.Tutorial.startTutorialWithContext('examen'), 300);
     }
 
-    staticic selectAnswer(questionId, answer) {
+    static autoCompletarCorrectas() {
+        this.preguntas.forEach(q => {
+            if (q.respuesta_correcta) {
+                this.answers[q.id] = q.respuesta_correcta;
+            }
+        });
+        this.currentQ = this.preguntas.length - 1;
+        Toast.success('⚡ Modo Demo: Respuestas correctas seleccionadas');
+        this.renderExam(document.getElementById('app'));
+    }
+
+    static selectAnswer(questionId, answer) {
         this.answers[questionId] = answer;
         this.renderExam(document.getElementById('app'));
     }
@@ -125,8 +139,6 @@ class ExamenPage {
     }
 
     static async submitExam() {
-        if (!confirm('¿Estás seguro? Solo tenés un intento para rendir el examen.')) return;
-
         const app = document.getElementById('app');
         app.innerHTML = `
         ${renderBackHeader('Examen teórico')}
@@ -157,22 +169,37 @@ class ExamenPage {
                 ${passed ? '¡Aprobaste!' : 'No aprobaste'}
             </h2>
             <p class="text-muted">
-                Respondiste correctamente ${result.puntaje} de ${result.total} preguntas.
+                Respondiste correctamente ${result.puntaje} de ${result.total} preguntas. (Mínimo necesario: 4)
             </p>
 
             ${!passed ? `
             <div class="info-box info-box--warning mt-4" style="text-align:left">
                 <span>⚠️</span>
-                <span>Solo tenías un intento. Contactá a la municipalidad para más información.</span>
+                <span>No alcanzaste el mínimo. Podés volver a intentar el examen todas las veces que desees.</span>
             </div>` : `
             <div class="info-box info-box--success mt-4" style="text-align:left">
                 <span>✅</span>
-                <span>¡Excelente! Podés continuar con los formularios de salud.</span>
+                <span>¡Excelente! Podés continuar con el pago del arancel.</span>
             </div>`}
 
-            <button class="btn btn-primary btn-block btn-lg mt-4" onclick="Router.navigate('dashboard')">
-                Volver al panel
-            </button>
+            <div class="stack mt-4">
+                <button class="btn btn-outline btn-block btn-lg" onclick="ExamenPage.reintentarExamen()">
+                    🔄 Rendir examen nuevamente
+                </button>
+                <button class="btn btn-primary btn-block btn-lg" onclick="Router.navigate('dashboard')">
+                    Volver al panel
+                </button>
+            </div>
         </div>`;
+    }
+
+    static async reintentarExamen() {
+        try {
+            await ApiService.reiniciarExamen();
+            Toast.info('Examen reiniciado. Podés volver a responder.');
+            this.render(document.getElementById('app'), true);
+        } catch (err) {
+            Toast.error(err.message);
+        }
     }
 }

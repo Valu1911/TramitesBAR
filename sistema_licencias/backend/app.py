@@ -13,7 +13,6 @@ from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 from werkzeug.security import generate_password_hash, check_password_hash
 import jwt
-from a2wsgi import WSGIMiddleware
 
 from config import (
     SECRET_KEY, JWT_EXPIRATION_HOURS, ADMIN_JWT_EXPIRATION_HOURS,
@@ -33,8 +32,8 @@ CORS(app)
 # ============================================================
 
 def create_token(payload, hours=JWT_EXPIRATION_HOURS):
-    payload['exp'] = datetime.datetime.utcnow() + datetime.timedelta(hours=hours)
-    payload['iat'] = datetime.datetime.utcnow()
+    payload['exp'] = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=hours)
+    payload['iat'] = datetime.datetime.now(datetime.timezone.utc)
     return jwt.encode(payload, SECRET_KEY, algorithm='HS256')
 
 
@@ -87,9 +86,8 @@ def get_paso_index(paso):
 
 
 def puede_acceder_paso(paso_actual, paso_solicitado):
-    idx_actual = get_paso_index(paso_actual)
-    idx_solicitado = get_paso_index(paso_solicitado)
-    return idx_solicitado <= idx_actual
+    # Permite navegación libre a cualquier sección para pruebas manuales y modo demo
+    return True
 
 
 # ============================================================
@@ -169,6 +167,27 @@ def registro():
     }), 201
 
 
+def get_user_tramite_id(user_data):
+    if not user_data:
+        return None
+    tramite_id = user_data.get('tramite_id')
+    if tramite_id:
+        return tramite_id
+    usuario_id = user_data.get('usuario_id')
+    if usuario_id:
+        tramite = execute_query(
+            "SELECT id FROM tramites WHERE usuario_id=? AND estado='en_progreso' ORDER BY id DESC LIMIT 1",
+            (usuario_id,), fetch_one=True
+        )
+        if tramite:
+            return tramite['id']
+        return execute_query(
+            "INSERT INTO tramites (usuario_id, tipo, paso_actual) VALUES (?, 'nueva', 'charlas')",
+            (usuario_id,)
+        )
+    return None
+
+
 @app.route('/api/auth/login', methods=['POST'])
 def login():
     data = request.json
@@ -190,22 +209,22 @@ def login():
     if not user:
         return jsonify({'error': 'No existe cuenta con este DNI. Registrate primero.', 'needs_register': True}), 404
 
-    # The user might have been created before the password system. Let them login and set a password later? 
-    # Or just enforce password if password_hash exists. 
-    # Wait, the prompt says "necesito que le agregues un sistema de contraseñas super seguro para cada usuario nuevo... y q en el login dsp de poner el dni pida contraseña". 
-    # Let's enforce it.
     if not user.get('password_hash') or not check_password_hash(user['password_hash'], password):
         return jsonify({'error': 'Contraseña incorrecta'}), 401
 
-    # Buscar trámite activo
+    # Buscar o crear trámite activo
     tramite = execute_query(
         "SELECT id, paso_actual, tipo, estado FROM tramites WHERE usuario_id=? AND estado='en_progreso' ORDER BY id DESC LIMIT 1",
         (user['id'],), fetch_one=True
     )
 
-    tramite_id = None
-    paso_actual = 'charlas'
-    if tramite:
+    if not tramite:
+        tramite_id = execute_query(
+            "INSERT INTO tramites (usuario_id, tipo, paso_actual) VALUES (?, 'nueva', 'charlas')",
+            (user['id'],)
+        )
+        paso_actual = 'charlas'
+    else:
         tramite_id = tramite['id']
         paso_actual = tramite['paso_actual']
 
@@ -320,8 +339,8 @@ def get_progreso():
     pasos_info = []
     labels = {
         'charlas': {'title': 'Charlas en video', 'desc': 'Capacitación obligatoria sobre seguridad vial'},
-        'examen': {'title': 'Examen teórico', 'desc': '5 preguntas de múltiple opción'},
         'formularios': {'title': 'Formularios de salud', 'desc': 'Certificados y datos médicos'},
+        'examen': {'title': 'Examen teórico', 'desc': '5 preguntas de múltiple opción'},
         'pago': {'title': 'Pago del arancel', 'desc': 'Pago del arancel de licencia'},
         'practico': {'title': 'Examen práctico', 'desc': 'Presencial · Agendar turno'},
         'entrega': {'title': 'Entrega de licencia', 'desc': 'Domicilio o retiro presencial'},
@@ -358,6 +377,58 @@ def get_progreso():
         'usuario': usuario,
         'progreso_porcentaje': round((idx_actual / len(PASOS_TRAMITE[:-1])) * 100)
     })
+
+
+@app.route('/api/tramite/saltar-paso', methods=['POST'])
+@token_required
+def saltar_paso():
+    tramite_id = get_user_tramite_id(request.user_data)
+    if not tramite_id:
+        return jsonify({'error': 'Trámite no encontrado'}), 404
+
+    data = request.json or {}
+    nuevo_paso = data.get('paso')
+
+    if not nuevo_paso or nuevo_paso not in PASOS_TRAMITE:
+        tramite = execute_query("SELECT paso_actual FROM tramites WHERE id=?", (tramite_id,), fetch_one=True)
+        paso_actual = tramite['paso_actual'] if tramite else 'charlas'
+        idx = get_paso_index(paso_actual)
+        if idx < len(PASOS_TRAMITE) - 1:
+            nuevo_paso = PASOS_TRAMITE[idx + 1]
+        else:
+            nuevo_paso = 'finalizado'
+
+    idx_nuevo = get_paso_index(nuevo_paso)
+
+    if idx_nuevo >= get_paso_index('formularios'):
+        videos = execute_query("SELECT id FROM videos", fetch_all=True)
+        for v in videos:
+            execute_query("INSERT OR IGNORE INTO videos_vistos (tramite_id, video_id, visto) VALUES (?, ?, 1)", (tramite_id, v['id']))
+
+    if idx_nuevo >= get_paso_index('examen'):
+        execute_query("DELETE FROM formularios_salud WHERE tramite_id=?", (tramite_id,))
+        execute_query(
+            """INSERT INTO formularios_salud (tramite_id, grupo_sanguineo, usa_lentes, contacto_emergencia, telefono_emergencia, estado)
+               VALUES (?, 'A+', 'No', 'Familiar Demo', '3329000000', 'aprobado')""",
+            (tramite_id,)
+        )
+
+    if idx_nuevo >= get_paso_index('pago'):
+        execute_query("DELETE FROM examenes_teoricos WHERE tramite_id=?", (tramite_id,))
+        execute_query(
+            "INSERT INTO examenes_teoricos (tramite_id, respuestas, puntaje, total_preguntas, aprobado) VALUES (?, '{}', 5, 5, 1)",
+            (tramite_id,)
+        )
+
+    if idx_nuevo >= get_paso_index('practico'):
+        execute_query("DELETE FROM pagos WHERE tramite_id=?", (tramite_id,))
+        execute_query(
+            "INSERT INTO pagos (tramite_id, metodo, monto, estado) VALUES (?, 'demo', 12500.00, 'aprobado')",
+            (tramite_id,)
+        )
+
+    execute_query("UPDATE tramites SET paso_actual=? WHERE id=?", (nuevo_paso, tramite_id))
+    return jsonify({'message': f'Paso actualizado a {nuevo_paso}', 'paso_actual': nuevo_paso})
 
 
 # ============================================================
@@ -456,14 +527,18 @@ def get_preguntas():
     tramite = execute_query("SELECT paso_actual FROM tramites WHERE id=?", (tramite_id,), fetch_one=True)
 
     if not tramite or not puede_acceder_paso(tramite['paso_actual'], 'examen'):
-        return jsonify({'error': 'Debés completar los formularios de salud primero'}), 403
+        return jsonify({'error': 'Debés completar los pasos anteriores primero'}), 403
+
+    force = request.args.get('force', '0') == '1'
+    if force:
+        execute_query("DELETE FROM examenes_teoricos WHERE tramite_id=?", (tramite_id,))
 
     # Verificar si ya rindió
     examen_existente = execute_query(
         "SELECT id, aprobado, puntaje, total_preguntas FROM examenes_teoricos WHERE tramite_id=?",
         (tramite_id,), fetch_one=True
     )
-    if examen_existente:
+    if examen_existente and not force:
         return jsonify({
             'ya_rendido': True,
             'aprobado': bool(examen_existente['aprobado']),
@@ -472,7 +547,7 @@ def get_preguntas():
         })
 
     todas = execute_query(
-        "SELECT id, pregunta, opcion_a, opcion_b, opcion_c, opcion_d FROM preguntas_examen WHERE activo=1",
+        "SELECT id, pregunta, opcion_a, opcion_b, opcion_c, opcion_d, respuesta_correcta FROM preguntas_examen WHERE activo=1",
         fetch_all=True
     )
 
@@ -480,6 +555,14 @@ def get_preguntas():
     preguntas = random.sample(todas, min(TOTAL_PREGUNTAS_EXAMEN, len(todas)))
 
     return jsonify({'preguntas': preguntas, 'ya_rendido': False})
+
+
+@app.route('/api/examen/reiniciar', methods=['POST'])
+@token_required
+def reiniciar_examen():
+    tramite_id = request.user_data.get('tramite_id')
+    execute_query("DELETE FROM examenes_teoricos WHERE tramite_id=?", (tramite_id,))
+    return jsonify({'message': 'Examen reiniciado correctamente'})
 
 
 @app.route('/api/examen/entregar', methods=['POST'])
@@ -491,15 +574,10 @@ def entregar_examen():
     if not tramite or not puede_acceder_paso(tramite['paso_actual'], 'examen'):
         return jsonify({'error': 'No podés acceder a este paso'}), 403
 
-    # Verificar si ya rindió
-    existente = execute_query(
-        "SELECT id FROM examenes_teoricos WHERE tramite_id=?", (tramite_id,), fetch_one=True
-    )
-    if existente:
-        return jsonify({'error': 'Ya rendiste el examen. Solo tenés un intento.'}), 400
+    # Permitir reintentos eliminando intento previo
+    execute_query("DELETE FROM examenes_teoricos WHERE tramite_id=?", (tramite_id,))
 
     respuestas = request.json.get('respuestas', {})
-    # respuestas = {"pregunta_id": "a/b/c/d", ...}
 
     puntaje = 0
     total = len(respuestas)
@@ -578,7 +656,8 @@ def enviar_formularios():
     data = request.json
     required = ['grupo_sanguineo', 'usa_lentes', 'contacto_emergencia', 'telefono_emergencia']
     for field in required:
-        if not data.get(field, '').strip():
+        val = data.get(field)
+        if val is None or (isinstance(val, str) and not val.strip()):
             return jsonify({'error': f'Campo {field} es requerido'}), 400
 
     form_id = execute_query(
@@ -606,7 +685,7 @@ def pagos_info():
     tramite = execute_query("SELECT paso_actual FROM tramites WHERE id=?", (tramite_id,), fetch_one=True)
 
     if not tramite or not puede_acceder_paso(tramite['paso_actual'], 'pago'):
-        return jsonify({'error': 'Debés aprobar el examen teórico primero'}), 403
+        return jsonify({'error': 'Debés completar los pasos anteriores primero'}), 403
 
     pago = execute_query(
         "SELECT * FROM pagos WHERE tramite_id=? ORDER BY id DESC LIMIT 1",
@@ -630,37 +709,59 @@ def pagos_info():
     })
 
 
+@app.route('/api/pagos/reiniciar', methods=['POST'])
+@token_required
+def reiniciar_pago():
+    tramite_id = request.user_data.get('tramite_id')
+    execute_query("DELETE FROM pagos WHERE tramite_id=?", (tramite_id,))
+    return jsonify({'message': 'Pago reiniciado correctamente'})
+
+
 @app.route('/api/pagos/registrar', methods=['POST'])
 @token_required
 def registrar_pago():
-    tramite_id = request.user_data.get('tramite_id')
+    tramite_id = get_user_tramite_id(request.user_data)
     tramite = execute_query("SELECT paso_actual FROM tramites WHERE id=?", (tramite_id,), fetch_one=True)
 
     if not tramite or not puede_acceder_paso(tramite['paso_actual'], 'pago'):
         return jsonify({'error': 'No podés acceder a este paso'}), 403
 
+    data = request.json
+    metodo = data.get('metodo', 'transferencia')
+    if metodo not in ('transferencia', 'debito', 'demo'):
+        return jsonify({'error': 'Método de pago inválido'}), 400
+
+    auto_aprobar = data.get('auto_aprobar') or metodo == 'demo'
+    estado = 'aprobado' if auto_aprobar else 'pendiente'
+
+    if auto_aprobar:
+        execute_query("DELETE FROM pagos WHERE tramite_id=?", (tramite_id,))
+
     existente = execute_query(
         "SELECT id, estado FROM pagos WHERE tramite_id=? ORDER BY id DESC LIMIT 1",
         (tramite_id,), fetch_one=True
     )
-    if existente and existente['estado'] != 'rechazado':
+    if existente and existente['estado'] != 'rechazado' and not auto_aprobar:
         return jsonify({'error': 'Ya registraste un pago'}), 400
 
-    data = request.json
-    metodo = data.get('metodo')
-    if metodo not in ('transferencia', 'debito'):
-        return jsonify({'error': 'Método de pago inválido'}), 400
-
     pago_id = execute_query(
-        """INSERT INTO pagos (tramite_id, metodo, monto, comprobante, numero_tarjeta, nombre_titular)
-           VALUES (?, ?, ?, ?, ?, ?)""",
+        """INSERT INTO pagos (tramite_id, metodo, monto, comprobante, numero_tarjeta, nombre_titular, estado)
+           VALUES (?, ?, ?, ?, ?, ?, ?)""",
         (tramite_id, metodo, MONTO_LICENCIA,
-         data.get('comprobante'),
-         data.get('numero_tarjeta', '')[-4:] if data.get('numero_tarjeta') else None,
-         data.get('nombre_titular'))
+         data.get('comprobante', 'comprobante_simulado.png'),
+         data.get('numero_tarjeta', '')[-4:] if data.get('numero_tarjeta') else '4532',
+         data.get('nombre_titular', 'Ciudadano Demo'),
+         estado)
     )
 
-    return jsonify({'message': 'Pago registrado correctamente', 'id': pago_id})
+    if auto_aprobar and tramite['paso_actual'] == 'pago':
+        execute_query("UPDATE tramites SET paso_actual='practico' WHERE id=?", (tramite_id,))
+
+    return jsonify({
+        'message': '¡Pago registrado correctamente! Se envió la confirmación al sistema.',
+        'id': pago_id,
+        'estado': estado
+    })
 
 
 # ============================================================
@@ -674,7 +775,7 @@ def turnos_disponibles():
     tramite = execute_query("SELECT paso_actual FROM tramites WHERE id=?", (tramite_id,), fetch_one=True)
 
     if not tramite or not puede_acceder_paso(tramite['paso_actual'], 'practico'):
-        return jsonify({'error': 'Debés completar el pago primero'}), 403
+        return jsonify({'error': 'Debés completar los pasos anteriores primero'}), 403
 
     turnos = execute_query(
         "SELECT * FROM turnos_practico WHERE activo=1 AND cupo_actual < cupo_maximo ORDER BY id ASC",
@@ -748,7 +849,7 @@ def entrega_estado():
     tramite = execute_query("SELECT paso_actual FROM tramites WHERE id=?", (tramite_id,), fetch_one=True)
 
     if not tramite or not puede_acceder_paso(tramite['paso_actual'], 'entrega'):
-        return jsonify({'error': 'Debés completar el examen práctico primero'}), 403
+        return jsonify({'error': 'Debés completar los pasos anteriores primero'}), 403
 
     entrega = execute_query(
         "SELECT * FROM entregas WHERE tramite_id=? ORDER BY id DESC LIMIT 1",
@@ -808,19 +909,19 @@ def admin_pagos_lista():
 
     if estado == 'todos':
         pagos = execute_query(
-            """SELECT p.*, u.dni, u.nombre, u.apellido 
+            """SELECT p.*, COALESCE(u.dni, 'N/A') as dni, COALESCE(u.nombre, 'Ciudadano') as nombre, COALESCE(u.apellido, '') as apellido 
                FROM pagos p 
-               JOIN tramites t ON p.tramite_id=t.id 
-               JOIN usuarios u ON t.usuario_id=u.id 
+               LEFT JOIN tramites t ON p.tramite_id=t.id 
+               LEFT JOIN usuarios u ON t.usuario_id=u.id 
                ORDER BY p.fecha_pago DESC""",
             fetch_all=True
         )
     else:
         pagos = execute_query(
-            """SELECT p.*, u.dni, u.nombre, u.apellido 
+            """SELECT p.*, COALESCE(u.dni, 'N/A') as dni, COALESCE(u.nombre, 'Ciudadano') as nombre, COALESCE(u.apellido, '') as apellido 
                FROM pagos p 
-               JOIN tramites t ON p.tramite_id=t.id 
-               JOIN usuarios u ON t.usuario_id=u.id 
+               LEFT JOIN tramites t ON p.tramite_id=t.id 
+               LEFT JOIN usuarios u ON t.usuario_id=u.id 
                WHERE p.estado=?
                ORDER BY p.fecha_pago DESC""",
             (estado,), fetch_all=True
@@ -882,19 +983,19 @@ def admin_salud_lista():
 
     if estado == 'todos':
         formularios = execute_query(
-            """SELECT fs.*, u.dni, u.nombre, u.apellido 
+            """SELECT fs.*, COALESCE(u.dni, 'N/A') as dni, COALESCE(u.nombre, 'Ciudadano') as nombre, COALESCE(u.apellido, '') as apellido 
                FROM formularios_salud fs 
-               JOIN tramites t ON fs.tramite_id=t.id 
-               JOIN usuarios u ON t.usuario_id=u.id 
+               LEFT JOIN tramites t ON fs.tramite_id=t.id 
+               LEFT JOIN usuarios u ON t.usuario_id=u.id 
                ORDER BY fs.fecha_envio DESC""",
             fetch_all=True
         )
     else:
         formularios = execute_query(
-            """SELECT fs.*, u.dni, u.nombre, u.apellido 
+            """SELECT fs.*, COALESCE(u.dni, 'N/A') as dni, COALESCE(u.nombre, 'Ciudadano') as nombre, COALESCE(u.apellido, '') as apellido 
                FROM formularios_salud fs 
-               JOIN tramites t ON fs.tramite_id=t.id 
-               JOIN usuarios u ON t.usuario_id=u.id 
+               LEFT JOIN tramites t ON fs.tramite_id=t.id 
+               LEFT JOIN usuarios u ON t.usuario_id=u.id 
                WHERE fs.estado=?
                ORDER BY fs.fecha_envio DESC""",
             (estado,), fetch_all=True
@@ -956,21 +1057,21 @@ def admin_turnos_lista():
 
     if estado == 'todos':
         reservas = execute_query(
-            """SELECT rt.*, tp.fecha, tp.horario, tp.ubicacion, u.dni, u.nombre, u.apellido 
+            """SELECT rt.*, tp.fecha, tp.horario, tp.ubicacion, COALESCE(u.dni, 'N/A') as dni, COALESCE(u.nombre, 'Ciudadano') as nombre, COALESCE(u.apellido, '') as apellido 
                FROM reservas_turno rt 
-               JOIN turnos_practico tp ON rt.turno_id=tp.id 
-               JOIN tramites t ON rt.tramite_id=t.id 
-               JOIN usuarios u ON t.usuario_id=u.id 
+               LEFT JOIN turnos_practico tp ON rt.turno_id=tp.id 
+               LEFT JOIN tramites t ON rt.tramite_id=t.id 
+               LEFT JOIN usuarios u ON t.usuario_id=u.id 
                ORDER BY rt.fecha_reserva DESC""",
             fetch_all=True
         )
     else:
         reservas = execute_query(
-            """SELECT rt.*, tp.fecha, tp.horario, tp.ubicacion, u.dni, u.nombre, u.apellido 
+            """SELECT rt.*, tp.fecha, tp.horario, tp.ubicacion, COALESCE(u.dni, 'N/A') as dni, COALESCE(u.nombre, 'Ciudadano') as nombre, COALESCE(u.apellido, '') as apellido 
                FROM reservas_turno rt 
-               JOIN turnos_practico tp ON rt.turno_id=tp.id 
-               JOIN tramites t ON rt.tramite_id=t.id 
-               JOIN usuarios u ON t.usuario_id=u.id 
+               LEFT JOIN turnos_practico tp ON rt.turno_id=tp.id 
+               LEFT JOIN tramites t ON rt.tramite_id=t.id 
+               LEFT JOIN usuarios u ON t.usuario_id=u.id 
                WHERE rt.estado=?
                ORDER BY rt.fecha_reserva DESC""",
             (estado,), fetch_all=True
@@ -1075,7 +1176,6 @@ def init_admin_passwords():
 init_db()
 init_admin_passwords()
 
-asgi_app = WSGIMiddleware(app)
 
 if __name__ == '__main__':
     print("=" * 60)

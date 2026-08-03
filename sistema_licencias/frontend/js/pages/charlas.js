@@ -72,15 +72,15 @@ class CharlasPage {
             <div class="mt-4">
                 <div class="info-box info-box--success mb-3">
                     <span style="display:flex;align-items:center">${Icons.check}</span>
-                    <span>¡Completaste todas las charlas! Podés continuar al examen teórico.</span>
+                    <span>¡Completaste todas las charlas! Podés continuar con los formularios de salud.</span>
                 </div>
-                <button class="btn btn-primary btn-block btn-lg" onclick="Router.navigate('examen')">
-                    Continuar al examen teórico →
+                <button class="btn btn-primary btn-block btn-lg" onclick="Router.navigate('formularios')">
+                    Continuar a formularios de salud →
                 </button>
             </div>` : `
             <div class="info-box info-box--info mt-4">
                 <span style="display:flex;align-items:center">${Icons.info}</span>
-                <span>Debés ver todos los videos para continuar al examen teórico.</span>
+                <span>Debés ver todos los videos para continuar a los formularios de salud.</span>
             </div>`}
         </div>`;
         

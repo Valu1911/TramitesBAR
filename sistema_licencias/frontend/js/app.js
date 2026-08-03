@@ -155,6 +155,15 @@ function renderNavbar(user) {
                 <span>Muni Digital</span>
             </a>
             <div class="navbar__actions">
+                <select class="form-input" style="height:32px;padding:0 8px;font-size:0.75rem;background:var(--warning-bg);color:#b45309;border:1px dashed var(--warning);font-weight:700;cursor:pointer" onchange="saltarDemoPaso(this.value); this.value='';" title="Navegar a cualquier sección (Modo Demo)">
+                    <option value="" disabled selected>⚡ Saltear a...</option>
+                    <option value="charlas">1. 🎬 Charlas en video</option>
+                    <option value="formularios">2. 🏥 Formularios de Salud</option>
+                    <option value="examen">3. 📝 Examen Teórico</option>
+                    <option value="pago">4. 💳 Pago del Arancel</option>
+                    <option value="practico">5. 🚗 Examen Práctico</option>
+                    <option value="entrega">6. 📦 Entrega de Licencia</option>
+                </select>
                 <button class="btn btn-ghost btn-sm" onclick="toggleDarkMode()" title="Cambiar tema" id="darkModeBtn">
                     <span style="display:flex;align-items:center">${document.body.classList.contains('dark') ? Icons.sun : Icons.moon}</span>
                 </button>
@@ -171,6 +180,17 @@ function renderNavbar(user) {
             </div>
         </div>
     </nav>`;
+}
+
+async function saltarDemoPaso(paso) {
+    if (!paso) return;
+    try {
+        await ApiService.saltarPaso(paso);
+        Toast.success(`⚡ Modo Demo: Se avanzó a la sección de ${paso.toUpperCase()}`);
+        Router.navigate(paso);
+    } catch (err) {
+        Toast.error(err.message);
+    }
 }
 
 function renderAdminNavbar(admin) {

@@ -107,7 +107,7 @@ class EntregaPage {
         if (window.Tutorial) setTimeout(() => window.Tutorial.startTutorialWithContext('entrega'), 300);
     }
 
-    staticic selectMetodo(metodo) {
+    static selectMetodo(metodo) {
         this.metodo = metodo;
         this.render(document.getElementById('app'));
     }

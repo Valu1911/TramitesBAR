@@ -123,6 +123,13 @@ class ApiService {
         return this.request('/tramite/progreso');
     }
 
+    static async saltarPaso(paso) {
+        return this.request('/tramite/saltar-paso', {
+            method: 'POST',
+            body: { paso }
+        });
+    }
+
     // ---- CHARLAS ----
     static async getVideos() {
         return this.request('/charlas/videos');
@@ -136,8 +143,12 @@ class ApiService {
     }
 
     // ---- EXAMEN ----
-    static async getPreguntas() {
-        return this.request('/examen/preguntas');
+    static async getPreguntas(force = false) {
+        return this.request(`/examen/preguntas${force ? '?force=1' : ''}`);
+    }
+
+    static async reiniciarExamen() {
+        return this.request('/examen/reiniciar', { method: 'POST' });
     }
 
     static async entregarExamen(respuestas) {
@@ -168,6 +179,12 @@ class ApiService {
         return this.request('/pagos/registrar', {
             method: 'POST',
             body: pagoData
+        });
+    }
+
+    static async reiniciarPago() {
+        return this.request('/pagos/reiniciar', {
+            method: 'POST'
         });
     }
 

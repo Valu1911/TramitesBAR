@@ -53,7 +53,15 @@ class PagoPage {
                     <span class="badge ${st.badge}">${p.estado.charAt(0).toUpperCase() + p.estado.slice(1)}</span>
                     <p class="text-muted text-sm mt-3">${st.desc}</p>
                 </div>
-                <button class="btn btn-primary btn-block mt-4" onclick="Router.navigate('dashboard')">Volver al panel</button>
+                <div class="stack mt-4">
+                    <button class="btn btn-primary btn-block" onclick="saltarDemoPaso('practico')">
+                        ⚡ Saltear Pago y Avanzar a Examen Práctico →
+                    </button>
+                    <button class="btn btn-outline btn-block" onclick="PagoPage.reiniciarPago()">
+                        🔄 Cambiar método / Reintentar pago (Modo Demo)
+                    </button>
+                    <button class="btn btn-ghost btn-block" onclick="Router.navigate('dashboard')">Volver al panel</button>
+                </div>
             </div>`;
             return;
         }
@@ -82,6 +90,15 @@ class PagoPage {
             <!-- Métodos -->
             <h2 class="section-title mb-3">Elegí cómo pagar</h2>
             <div class="stack mb-4" id="payMethods">
+                <div class="payment-method ${this.metodoSeleccionado === 'demo' ? 'payment-method--selected' : ''}"
+                     style="border: 1px dashed var(--warning); background: var(--warning-bg);"
+                     onclick="PagoPage.selectMethod('demo')">
+                    <div class="payment-method__icon" style="background:#fef3c7;color:#b45309;display:flex;align-items:center;justify-content:center;font-weight:bold">⚡</div>
+                    <div style="flex:1">
+                        <h3 class="font-semibold text-sm" style="color:#b45309">Pago Instantáneo (Modo Demo)</h3>
+                        <p class="text-xs" style="color:#92400e">Aprobación automática e inmediata para pruebas</p>
+                    </div>
+                </div>
                 <div class="payment-method ${this.metodoSeleccionado === 'transferencia' ? 'payment-method--selected' : ''}"
                      onclick="PagoPage.selectMethod('transferencia')">
                     <div class="payment-method__icon" style="display:flex;align-items:center;justify-content:center">${Icons.bank}</div>
@@ -120,7 +137,21 @@ class PagoPage {
         const container = document.getElementById('payDetails');
         if (!container) return;
 
-        if (this.metodoSeleccionado === 'transferencia') {
+        if (this.metodoSeleccionado === 'demo') {
+            container.innerHTML = `
+            <div class="glass-card p-5 animate-slideUp text-center">
+                <h3 class="font-semibold text-sm mb-2" style="color:#b45309">⚡ Simular Pago (Modo Demo)</h3>
+                <p class="text-xs text-muted mb-4">Elegí cómo querés probar el sistema de pago:</p>
+                <div class="stack">
+                    <button class="btn btn-primary btn-block btn-lg" id="demoAdminBtn" onclick="PagoPage.handleDemoAdminPay()">
+                        📥 Enviar pago a Admin Pagos (Probar verificación real)
+                    </button>
+                    <button class="btn btn-outline btn-block" style="border-color:#b45309;color:#b45309" id="demoPayBtn" onclick="PagoPage.handleDemoPay()">
+                        ⚡ Aprobar instantáneamente (Avanzar directo)
+                    </button>
+                </div>
+            </div>`;
+        } else if (this.metodoSeleccionado === 'transferencia') {
             container.innerHTML = `
             <div class="glass-card p-5 animate-slideUp">
                 <h3 class="font-semibold text-sm mb-3">Datos para transferir</h3>
@@ -182,6 +213,49 @@ class PagoPage {
                     </div>
                 </form>
             </div>`;
+        }
+    }
+
+    static async handleDemoAdminPay() {
+        const btn = document.getElementById('demoAdminBtn');
+        if (btn) { btn.disabled = true; btn.textContent = 'Enviando comprobante a Admin Pagos...'; }
+
+        try {
+            await ApiService.registrarPago({
+                metodo: 'transferencia',
+                monto: 12500.00,
+                comprobante: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
+                auto_aprobar: false
+            });
+            Toast.warning('⚡ Pago enviado. Ingresá al Panel Admin (usuario: admin_pagos / clave: admin123) para verificar y aprobar.');
+            this.render(document.getElementById('app'));
+        } catch (err) {
+            Toast.error(err.message);
+            if (btn) { btn.disabled = false; btn.textContent = '📥 Enviar pago a Admin Pagos (Probar verificación real)'; }
+        }
+    }
+
+    static async handleDemoPay() {
+        const btn = document.getElementById('demoPayBtn');
+        if (btn) { btn.disabled = true; btn.textContent = 'Procesando pago demo...'; }
+
+        try {
+            await ApiService.registrarPago({ metodo: 'demo', auto_aprobar: true });
+            Toast.success('⚡ Modo Demo: ¡Pago aprobado automáticamente!');
+            this.render(document.getElementById('app'));
+        } catch (err) {
+            Toast.error(err.message);
+            if (btn) { btn.disabled = false; btn.textContent = '⚡ Aprobar pago instantáneo →'; }
+        }
+    }
+
+    static async reiniciarPago() {
+        try {
+            await ApiService.reiniciarPago();
+            Toast.info('Se restablecieron las opciones de pago');
+            this.render(document.getElementById('app'));
+        } catch (err) {
+            Toast.error(err.message);
         }
     }
 

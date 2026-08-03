@@ -115,7 +115,7 @@ class PracticoPage {
         if (window.Tutorial) setTimeout(() => window.Tutorial.startTutorialWithContext('practico'), 300);
     }
 
-    staticic selectTurno(id) {
+    static selectTurno(id) {
         this.turnoSeleccionado = id;
         this.render(document.getElementById('app'));
     }

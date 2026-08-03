@@ -72,7 +72,7 @@ class AdminPagosPage {
                     <div class="admin-item__detail">
                         Monto: $${Number(pago.monto).toLocaleString('es-AR')} · 
                         ${pago.metodo === 'transferencia' ? 'Transferencia bancaria' : 'Tarjeta de débito'}
-                        ${pago.comprobante ? ' · <a href="javascript:void(0)" onclick="AdminPagosPage.verComprobante(\'' + pago.id + '\')" style="color:var(--primary)">Ver comprobante</a>' : ''}
+                        ${pago.comprobante ? ` · <a href="javascript:void(0)" onclick="AdminPagosPage.verComprobante('${pago.id}', '${pago.nombre} ${pago.apellido}', '${pago.dni}', '${pago.monto}', '${pago.metodo}')" style="color:var(--primary);font-weight:600">Ver comprobante</a>` : ''}
                     </div>
                     ${pago.estado === 'pendiente' ? `
                     <div class="admin-item__actions">
@@ -98,9 +98,39 @@ class AdminPagosPage {
         this.render(document.getElementById('app'));
     }
 
-    static verComprobante(pagoId) {
-        // En un sistema real se mostraría la imagen
-        Toast.info('Función de visualización de comprobante');
+    static verComprobante(pagoId, usuarioNombre, dni, monto, metodo) {
+        const overlay = document.createElement('div');
+        overlay.className = 'modal-overlay';
+        overlay.id = 'receiptModal';
+        overlay.innerHTML = `
+        <div class="modal" style="max-width:480px">
+            <div class="modal__header">
+                <div class="flex-between">
+                    <h2 class="modal__title" style="font-size:0.95rem;display:flex;align-items:center;gap:6px">${Icons.card} Comprobante de Pago #${pagoId}</h2>
+                    <button class="btn btn-ghost btn-sm" onclick="document.getElementById('receiptModal').remove()">✕</button>
+                </div>
+            </div>
+            <div class="modal__body p-4">
+                <div class="glass-card p-4 mb-3" style="background:var(--bg-elevated);border-left:4px solid var(--primary)">
+                    <div class="font-bold text-sm">${usuarioNombre}</div>
+                    <div class="text-xs text-muted">DNI: ${dni}</div>
+                    <div class="text-sm font-bold text-primary mt-2">Monto abonado: $${Number(monto).toLocaleString('es-AR')}</div>
+                    <div class="text-xs text-muted">Método: ${metodo === 'transferencia' ? 'Transferencia Bancaria (Alias/CBU)' : 'Tarjeta de Débito'}</div>
+                </div>
+
+                <div class="text-center p-4" style="background:var(--bg);border-radius:12px;border:2px dashed var(--border)">
+                    <div style="font-size:2.5rem;color:var(--primary);margin-bottom:8px">🏛️</div>
+                    <div class="font-semibold text-sm">Comprobante Oficial de Transferencia</div>
+                    <div class="text-xs text-muted mt-1">CBU Destino: 0110012330001234567890</div>
+                    <div class="text-xs text-muted">Alias: MUNICIPIO.BARADERO.LICENCIAS</div>
+                    <span class="badge badge-pending mt-3">Estado: Pendiente de Auditoría Municipal</span>
+                </div>
+            </div>
+            <div class="modal__footer">
+                <button class="btn btn-primary btn-block" onclick="document.getElementById('receiptModal').remove()">Cerrar previsualización</button>
+            </div>
+        </div>`;
+        document.body.appendChild(overlay);
     }
 
     static async revisar(pagoId, estado) {

@@ -47,7 +47,7 @@ class DashboardPage {
 
         const statusIcons = {
             completed: '<span style="color:var(--success);display:flex;align-items:center">' + Icons.check + '</span>',
-            current: '<span style="color:var(--primary);display:flex;align-items:center">' + Icons.clock + '</span>',
+            current: '<span style="color:#d97706;display:flex;align-items:center" title="Pendiente de verificación / acción">' + Icons.clock + '</span>',
             locked: '<span style="color:var(--text-muted);display:flex;align-items:center">' + Icons.lock + '</span>'
         };
 

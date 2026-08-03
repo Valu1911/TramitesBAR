@@ -1,0 +1,162 @@
+INFORME PROYECTO INTEGRADOR: MUNI-DIGITAL
+MuniDigital: Plataforma de Digitalización y Gestión de Trámites Municipales
+Repositorio de Código Fuente(repo publico): https://github.com/Valu1911/TramitesBAR
+Institución Educativa: Escuela de Educación Secundaria Técnica N° 1 "Batalla de la Vuelta de Obligado" (Baradero)
+Curso y Turno: 7° Año 4° División — Tecnicatura en Programación (Turno Vespertino, Ciclo Lectivo 2026)
+Espacio Curricular: Proy. y Dis. Sist. Comp. (PDISC)
+Docente a Cargo: Prof. Azul Saladín
+Integrantes del Equipo
+Valentin Lucero: Principal desarrollador de software.
+Facundo Orqueida: Desarrollador de software y principal encargado del feedback visual en el equipo.
+Ignacio Pignat: Encargado de todo el marco teórico que compone el proyecto.
+SECCIÓN 1: INTRODUCCIÓN Y FUNDAMENTACIÓN 
+1.1 Contexto Institucional y Marco Pedagógico
+El presente documento constituye la memoria técnica, el análisis de factibilidad y la bitácora de ejecución del proyecto de software denominado MuniDigital, desarrollado dentro del marco del espacio curricular Proy. y Dis. Sist. Comp. (PDISC) correspondiente al último año de la Tecnicatura en Programación de la Escuela de Educación Secundaria Técnica N° 1 "Batalla de la Vuelta de Obligado", ubicada en la ciudad de Baradero, Provincia de Buenos Aires.
+La formación técnico-profesional en nivel secundario exige la integración transversal de saberes vinculados con el diseño de bases de datos, desarrollo de lógica de programación, construcción de interfaces web responsivas y, fundamentalmente, la capacidad de evaluar la viabilidad social, económica y operativa de una solución tecnológica frente a un problema real de la comunidad. En este sentido, la propuesta no solo persigue un objetivo académico, sino que busca ofrecer una respuesta concreta y transferible a las necesidades de modernización del Estado municipal.
+1.2 Formulación de la Problemática Territorial
+La administración pública de Baradero, al igual que sucede en diversos municipios de escala intermedia dentro de la Provincia de Buenos Aires, enfrenta tensiones estructurales en sus dinámicas de atención al vecino. La presencialidad absoluta como requisito indispensable para iniciar, tramitar y hacer seguimiento de expedientes genera un circuito obsoleto caracterizado por tres factores clave:
+Ineficiencia en el uso del tiempo ciudadano: Los vecinos deben disponer de múltiples jornadas laborables para concurrir a la Dirección de Tránsito y Control Urbano con el objetivo de consultar requisitos, solicitar turnos, entregar documentación y rendir exámenes. Esto impacta directamente en la productividad de la comunidad y genera un malestar extendido con la gestión pública.
+Congestión y sobrecarga operativa municipal: Las dependencias físicas receptan una demanda constante que desborda la capacidad edilicia y de atención en mostrador. Gran parte del tiempo del personal se consume en la revisión manual de fotocopias que sufren rechazos por no cumplir las especificaciones (DNI sin domicilio actualizado, falta del pago del CEPAM/CENAT, certificados médicos incompletos).
+Costos ocultos y huella ecológica: El uso intensivo del expediente en formato papel representa una erogación presupuestaria continua en insumos de librería, impresoras, cartuchos de tóner y espacio físico para almacenamiento en biblioratos. Asimismo, contradice los estándares modernos de sostenibilidad medioambiental.
+1.3 Justificación y Propuesta de Valor de MuniDigital
+Para solucionar de manera estructural este escenario, el equipo de trabajo definió el desarrollo de la plataforma web MuniDigital (cuyo código fuente se aloja en el repositorio público TramitesBAR). El alcance inicial del sistema se delimitó intencionalmente a la gestión integral de la **Licencia Nacional de Conducir** (abarca la obtención por primera vez y el proceso de renovación periódica), identificada de manera unánime como el trámite administrativo de mayor concurrencia y criticidad en el municipio.
+La propuesta de valor radica en la construcción de una arquitectura web ágil, segura y escalable que permite descentralizar el primer contacto entre el ciudadano y la municipalidad. El sistema ofrece un entorno donde el usuario realiza el registro, sube la documentación requerida escaneada o fotografiada desde su teléfono móvil y reserva su turno de examen una vez que sus papeles fueron pre-aprobados digitalmente por un operador municipal.
+SECCIÓN 2: ESPECIFICACIÓN TÉCNICA Y REQUERIMIENTOS DEL SISTEMA
+2.1 Requerimientos Funcionales (RF)
+A partir del relevamiento realizado sobre el flujo administrativo de la ciudad de Baradero, se establecieron los siguientes requerimientos funcionales del sistema:
+RF-01 (Módulo de Autenticación): El sistema debe permitir el registro e inicio de sesión seguro de los vecinos mediante la validación de su CUIL/DNI, dirección de correo electrónico y un número telefónico de contacto.
+RF-02 (Categorización del Trámite): La interfaz debe presentar un selector intuitivo que diferencie entre trámites de Primera Vez y Renovación, derivando al usuario al formulario de requisitos correspondiente según la clase de vehículo (A, B, C, D, E o F).
+RF-03 (Módulo de Carga Documental - Upload Center): El sistema debe permitir adjuntar archivos digitales en formatos PDF, JPG y PNG con un límite de peso determinado por archivo. Los campos deben exigir: frente y dorso de DNI, grupo sanguíneo, curso de educación vial aprobado y comprobantes de tasas abonadas.
+RF-04 (Módulo de Asignación de Turnos): La plataforma debe integrar un calendario interactivo que deshabilite automáticamente los días no laborables, feriados nacionales y franjas horarias que hayan agotado su cupo operativo preconfigurado.
+RF-05 (Backoffice para Operadores Municipales): Debe proveer una vista de administración restringida que liste las solicitudes entrantes, permitiendo al agente público revisar la documentación subida, aprobarla o rebotarla especificando el motivo (por ejemplo: "Imagen ilegible").
+RF-06 (Sistema de Notificaciones): La plataforma debe actualizar el estado del trámite en la vista del ciudadano y enviar correos electrónicos automatizados en cada cambio de estado (Documentación en revisión, Observada, Aprobada, Turno Confirmado, Licencia lista para retirar).
+2.2 Requerimientos No Funcionales (RNF)
+RNF-01 (Usabilidad y Accesibilidad - UX/UI): La interfaz debe ser completamente adaptable a dispositivos móviles (diseño responsivo Mobile-First) y cumplir con contrastes cromáticos y tipográficos acordes a los estándares WCAG 2.1 para adultos mayores.
+RNF-02 (Seguridad y Privacidad de Datos): El tratamiento de los datos personales ingresados en el repositorio debe cumplir estrictamente con los marcos normativos de la Ley Nacional N° 25.326 de Protección de Datos Personales.
+RNF-03 (Rendimiento): La aplicación debe garantizar tiempos de respuesta en carga de páginas inferiores a 2.5 segundos en conexiones estándar de datos móviles de 3G/4G.
+2.3 Diagrama del Modelo Entidad-Relación Conceptual
+
+2.4 Representación De Funcionamiento 
+
+SECCIÓN 3: ESTUDIO FINANCIERO Y PRESUPUESTO PROYECTADO
+3.1 Criterio de Formulación Económica (Caso Hipotético)
+Dado que el desarrollo de un activo digital carece de costos variables de materias primas o insumos físicos de producción masiva, el análisis económico dentro de la materia Proy. y Dis. Sist. Comp. (PDISC) se planteó bajo un modelo de presupuestación hipotética por proyecto en pesos argentinos (ARS). Este esquema simula la contratación del equipo técnico por parte del Estado municipal para el desarrollo, puesta en marcha e infraestructura del primer año de funcionamiento.
+3.2 Desglose del Presupuesto de Inversión
+A continuación se detalla la estructura de costos proyectada para la implementación formal de la plataforma MuniDigital en el municipio:
+Código
+Rubro / Concepto de Trabajo
+Descripción y Horas Estimadas
+Costo Proyectado (ARS)
+ 
+C-01
+Diseño UX/UI y Maquetación Web
+Investigación de usuarios, diseño de alambre (wireframes), diseño responsivo móvil y maquetación de interfaces en cliente (60 hs).
+$288.000 ARS
+C-02
+Programación Frontend / Backend
+Desarrollo de lógica de negocios, arquitectura de base de datos, módulos de turnos y vinculación con repositorio GitHub (140 hs).
+$840.000 ARS
+C-03
+Control de Calidad y Pruebas (QA)
+Validación de formularios, pruebas de integración, testing de seguridad y corrección de bugs en entorno de staging (40 hs).
+$192.000 ARS
+C-04
+Infraestructura Cloud y Servidores
+Alquiler anual de Servidor Cloud VPS (Ubuntu Server), certificado SSL Wildcard, respaldo diario y gestión de dominio .gob.ar.
+$108.000 ARS / año
+C-05
+Capacitación al Personal Municipal
+Talleres teórico-prácticos para agentes administrativos de la Dirección de Tránsito de Baradero y confección de manuales de uso.
+$84.000 ARS
+C-06
+Soporte Técnico y Mantenimiento
+Atención de incidencias, parches de seguridad, optimización de base de datos y backups externos durante 12 meses.
+$438.000 ARS / año
+PRESUPUESTO TOTAL ESTIMADO (AÑO 1):
+$1.950.000 ARS
+3.2.1 Análisis de Rentabilidad vs. Insumos Tradicionales
+La inversión inicial de aproximadamente $1.950.000 ARS resulta altamente rentable al contrastarla con los costos operativos anuales de la gestión analógica. Los gastos recurrentes en papelería, tóner, mantenimiento de archivos físicos y, fundamentalmente, el costo en horas hombre de atención presencial, superan ampliamente esta cifra en un solo año de gestión municipal. Al digitalizar el flujo de trabajo, MuniDigital garantiza un retorno de inversión (ROI) positivo en el corto plazo, optimizando los recursos públicos de manera sostenible.
+3.3 Evaluación de Retorno Social de la Inversión (RSI)
+Aunque la plataforma no persigue fines de lucro por tratarse de un servicio público, el proyecto genera un retorno cuantitativo y cualitativo de gran impacto:
+Reducción de consumo de papel: Se estima la eliminación de 85.000 impresiones anuales entre formularios de solicitud, carpetas de cartulina y comprobantes de turno.
+Redireccionamiento de horas-hombre: Los agentes administrativos ahorran aproximadamente 1.500 horas anuales de atención presencial en ventanilla, pudiendo volcar ese tiempo a la fiscalización vial y toma de exámenes.
+SECCIÓN 4: BITÁCORA DETALLADA DE CURSADA DE EVALUACIÓN DE PROYECTOS
+A continuación se presenta el registro secuencial de la materia Proy. y Dis. Sist. Comp. (PDISC), a cargo de la profesora Azul Saladín, dictada para la división de 7° 4° de la E.E.S.T. N° 1 "Batalla de la Vuelta de Obligado". El registro abarca desde el 16 de marzo de 2026 hasta el 3 de agosto de 2026, habiéndose excluido los feriados nacionales y las semanas de receso invernal.
+MES DE MARZO DE 2026
+Día 1 — Lunes 16/03/2026:
+Conformación del equipo de trabajo y primera sesión de intercambio de ideas (brainstorming). Se analizaron distintas opciones de software municipal y se aprobó por unanimidad la creación de MuniDigital, una plataforma orientada a simplificar los trámites locales.
+Día 2 — Martes 17/03/2026:
+Delimitación del alcance técnico inicial. Tras debatir la amplitud de trámites que contempla una comuna, se resolvió acotar el prototipo del proyecto a la Licencia Nacional de Conducir (trámites de primera vez y renovación) por constituir el flujo con mayor volumen de demandas en la ciudad.
+Día 3 — Lunes 23/03/2026:
+Identificación y mapeo de actores clave (stakeholders). Se caracterizaron los perfiles de usuario que interactuarán con la plataforma: vecinos solicitantes de primera vez, conductores en proceso de renovación, personal administrativo de la Dirección de Tránsito y administradores informáticos.
+Día 4 — Martes 24/03/2026:
+Elaboración del análisis FODA (Fortalezas, Oportunidades, Debilidades y Amenazas) correspondiente a la digitalización de trámites en Baradero. Se identificó la alfabetización digital de la comunidad y la estabilidad de la conectividad edilicia como factores críticos a contemplar.
+MES DE ABRIL DE 2026
+
+Día 5 — Lunes 30/03/2026:
+Relevamiento exhaustivo del procedimiento para la obtención de la Licencia de Conducir por Primera Vez. Se enumeraron los requisitos exigidos por la Ley Nacional de Tránsito N° 24.449: aprobación del curso de seguridad vial, examen psicofísico, examen teórico y prueba práctica de manejo.
+Día 6 — Martes 31/03/2026:
+Estudio y especificación del flujo de Renovación de Licencia. Se definieron las simplificaciones del procedimiento en casos donde no existan vencimientos prolongados o faltas graves en el historial del conductor.
+Día 7 — Miércoles 01/04/2026:
+Análisis operativo del circuito actual en la sede de Tránsito de Baradero. Se relevaron las causas principales de retraso en la entrega de turnos y la pérdida de turnos presenciales debido a la falta de documentación válida.
+Día 8 — Lunes 06/04/2026:
+Creación del repositorio público en GitHub denominado TramitesBAR. Organización de la estructura interna del código, pautas de versionado y distribución de tareas de maquetación entre los integrantes del grupo.
+Día 9 — Martes 07/04/2026:
+Modelado de procesos mediante diagramas. Se definió el ciclo de vida de la solicitud: Estado Pendiente -> En Revisión -> Observado (con requerimiento de re-subida) -> Aprobado -> Turno Asignado -> En Impresión -> Finalizado.
+
+Día 10 — Miércoles 08/04/2026:
+Estructuración del estudio de costos. Se elaboró la propuesta presupuestaria hipotética en pesos, dividiendo las fases en desarrollo visual, programación lógica, testing, capacitación e infraestructura cloud.
+Día 11 — Lunes 13/04/2026:
+Análisis de factibilidad técnica e infraestructura web. Se debatió la conveniencia de utilizar tecnologías livianas para el frontend para garantizar una navegación fluida desde celulares de gama baja o conexiones débiles.
+Día 12 — Martes 14/04/2026:
+Inicio de la etapa de maquetación (UX/UI). Se bosquejaron los bocetos iniciales de la pantalla de bienvenida y el portal de inicio de sesión para los contribuyentes de Baradero.
+EVENTO IMPORTANTE  —  22/04/2026:
+Presentación al curso de la idea, se comenta brevemente la problemática planteada y la solución que buscamos darle a la misma en nuestro proyecto.
+MES DE MAYO DE 2026
+Día 13 — Miércoles 15/04/2026:
+Desarrollo de las interfaces para la selección de trámites. Programación lógica que adapta los campos exigidos según la categoría de vehículo seleccionada por el usuario.
+Día 14 — Lunes 20/04/2026:
+Revisión estética con la profesora sobre la interfaz de usuario, paleta de colores, etc.
+Día 15 — Martes 21/04/2026:
+Modelado conceptual y relacional de la base de datos del sistema. Diseño de tablas interconectadas para almacenar registros de ciudadanos, solicitudes activas, archivos adjuntos y turnos de examen.
+Día 16 — Miércoles 22/04/2026:
+Desarrollo del marco de evaluación de impacto cualitativo. Medición proyectada de la reducción de huella de carbono y ahorro de horas administrativas en el municipio.
+Día 17 — Lunes 27/04/2026:
+Compilando los avances en el repositorio TramitesBAR asegurándonos de evitar cualquier tipo de conflicto en las relaciones de los archivos.
+Día 18 — Martes 28/04/2026:
+Programación del gestor de subida de archivos (Upload Center). Implementación de controles en el lado del cliente para verificar que los archivos no superen el límite permitido.
+Día 19 — Miércoles 29/04/2026:
+Análisis del marco normativo y legal sobre tratamiento de datos públicos en Argentina (Ley 25.326). Se incluyeron cláusulas de términos y condiciones de uso en la interfaz.
+MES DE JUNIO DE 2026
+Día 20 — Lunes 04/05/2026:
+Programación del algoritmo de reserva de turnos. Definición de la lógica que inhabilita días no laborables y franjas con cupos completos.
+Día 21 — Martes 05/05/2026:
+Elaboración de la matriz de riesgos del proyecto. Planteamiento de planes de contingencia ante caída de conectividad en las oficinas municipales o re-subida persistente de archivos erróneos.
+Día 22 — Miércoles 06/05/2026:
+Desarrollo de las pantallas del Panel de Administración (Backoffice). Diseño de listas de control para que los agentes revisen, aprueben o rechacen solicitudes.
+Día 23 — Lunes 11/05/2026:
+Pruebas de usabilidad y accesibilidad (WCAG 2.1). Corrección de contrastes de color y tamaño de letra pensando en adultos mayores que deben renovar el carnet.
+Día 24 — Martes 12/05/2026:
+Diseño del módulo de notificaciones. Creación de las plantillas de correos automatizados que alertan al usuario sobre cambios en su expediente.
+Día 25 — Miércoles 13/05/2026:
+Pruebas de integración entre los módulos de carga documental, turnero y las vistas administrativas en el entorno de desarrollo local.
+Día 26 — Lunes 18/05/2026:
+Jornada de QA y Testing simulado. Se ejecutaron casos de prueba representando cargas completas de solicitudes de carnet por primera vez.
+Día 27 — Martes 19/05/2026:
+Revisión de avance cuatrimestral con la docente Saladín. Verificación del estado de avance en el repositorio.
+MES DE JULIO DE 2026
+Día 28 — Miércoles 20/05/2026:
+Optimización de hojas de estilo (CSS) y scripts del cliente para asegurar un procesamiento fluido en navegadores de dispositivos móviles.
+Día 29 — Martes 26/05/2026:
+Refactorización de código, ordenamiento de comentarios técnicos y actualización de la documentación interna en el repositorio TramitesBAR.
+Día 30 — Miércoles 27/05/2026:
+Trabajo intensivo en la gestión de código backend, implementación de mejoras en la lógica del sistema y revisión del flujo de trabajo con Python.
+Día 31 — Lunes 01/06/2026:
+Testing del backend manualmente simulando el comportamiento de un usuario final, verificando el flujo completo de las funciones implementadas.
+[Del Lunes 20/07/2026 al Viernes 31/07/2026 — RECESO ESCOLAR DE INVIERNO]: Período oficial de Vacaciones de Invierno (Sin actividad lectiva en la Provincia de Buenos Aires).
+MES DE AGOSTO DE 2026
+Día 32 — Lunes 03/08/2026:
+Avance en horario extraescolar enfocándonos en detallar la documentación del apartado técnico de programación, la cual teníamos atrasada.
+SECCIÓN 5: CONCLUSIONES Y PERSPECTIVAS DE IMPLEMENTACIÓN
+El desarrollo del proyecto MuniDigital a lo largo del ciclo lectivo 2026 demuestra la viabilidad técnica, operativa y social de reemplazar los flujos burocráticos tradicionales por plataformas web centralizadas. La solución proyectada para el municipio de Baradero ataca directamente los cuellos de botella existentes en la gestión de licencias de conducir, garantizando un servicio más ágil, sustentable y transparente.
+Como perspectiva futura, la arquitectura del sistema ha sido diseñada de manera modular, permitiendo en fases posteriores la incorporación de nuevos trámites municipales (tales como la solicitud de Habilitaciones Comerciales, el pago de Tasas de Red Viaria o la gestión de Libre Deuda de Faltas) bajo una misma identidad digital para todos los vecinos del partido.

@@ -15,7 +15,7 @@ class TutorialSystem {
             <defs>
                 <linearGradient id="bodyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
                     <stop offset="0%" stop-color="#ffffff"/>
-                    <stop offset="100%\" stop-color="#d1d5db"/>
+                    <stop offset="100%" stop-color="#d1d5db"/>
                 </linearGradient>
                 <linearGradient id="visorGrad" x1="0%" y1="0%" x2="100%" y2="100%">
                     <stop offset="0%" stop-color="#3b82f6"/>

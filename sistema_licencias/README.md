@@ -8,8 +8,8 @@ Sistema web completo para automatizar el proceso de obtención y renovación de 
 - **Login por DNI** (cuentas únicas, sin duplicados)
 - **Proceso secuencial** obligatorio (no se pueden saltear pasos):
   1. 🎬 **Charlas en video** - Videos de seguridad vial (deben verse en orden)
-  2. 📝 **Examen teórico** - 5 preguntas aleatorias, un solo intento
-  3. 🏥 **Formularios de salud** - Datos médicos y certificados
+  2. 🏥 **Formularios de salud** - Datos médicos y certificados
+  3. 📝 **Examen teórico** - 5 preguntas aleatorias, un solo intento
   4. 💳 **Pago del arancel** - Transferencia bancaria o tarjeta de débito
   5. 🚗 **Examen práctico** - Selección y reserva de turno
   6. 📦 **Entrega** - Domicilio o retiro presencial
@@ -25,28 +25,22 @@ Sistema web completo para automatizar el proceso de obtención y renovación de 
 |-----------|-----------|
 | Frontend  | HTML5, CSS3 (vanilla), JavaScript (ES6+) |
 | Backend   | Python 3 + Flask |
-| Base de datos | MySQL (WAMP Server) |
+| Base de datos | SQLite (integrada, sin configuración) |
 | Auth      | JWT (JSON Web Tokens) |
 
 ## 🚀 Instalación y Ejecución
 
 ### Requisitos previos
-- **WAMP Server** instalado y corriendo
 - **Python 3.8+** instalado
 - **pip** (gestor de paquetes de Python)
 
-### Paso 1: Base de datos
-1. Abrí **phpMyAdmin** (http://localhost/phpmyadmin)
-2. Importá el archivo `database/schema.sql`
-3. Esto creará la base de datos `sistema_licencias` con todas las tablas y datos iniciales
-
-### Paso 2: Dependencias Python
+### Paso 1: Dependencias Python
 ```bash
 cd sistema_licencias/backend
 pip install -r requirements.txt
 ```
 
-### Paso 3: Ejecutar
+### Paso 2: Ejecutar
 **Opción A** - Doble clic en `iniciar.bat`
 
 **Opción B** - Manual:
@@ -55,7 +49,7 @@ cd sistema_licencias/backend
 python app.py
 ```
 
-### Paso 4: Acceder
+### Paso 3: Acceder
 - **Frontend**: http://localhost:5000
 - **API**: http://localhost:5000/api
 
