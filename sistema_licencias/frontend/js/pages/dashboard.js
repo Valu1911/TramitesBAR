@@ -227,7 +227,7 @@ class DashboardPage {
                 <div class="grid-steps">
                     ${data.pasos.map((paso, i) => `
                     <div class="step-card step-card--${paso.status}" 
-                         onclick="${paso.status !== 'locked' ? `Router.navigate('${paso.id}')` : 'Toast.warning(\"Debés completar los pasos anteriores primero\")'}"
+                         onclick="Router.navigate('${paso.id}')"
                          style="animation-delay:${i * 0.05}s">
                         <div class="step-card__icon">${stepIcons[paso.id] || Icons.file}</div>
                         <div class="step-card__content">

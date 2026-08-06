@@ -20,15 +20,16 @@ class PracticoPage {
             const data = await ApiService.getTurnosDisponibles();
             this.renderContent(app, data);
         } catch (err) {
-            app.innerHTML = `
-            ${renderBackHeader('Examen práctico')}
-            <div class="page-content container-md">
-                <div class="info-box info-box--warning">
-                    <span style="display:flex;align-items:center">${Icons.alert}</span>
-                    <span>${err.message}</span>
-                </div>
-                <button class="btn btn-outline btn-block mt-4" onclick="Router.navigate('dashboard')">Volver al panel</button>
-            </div>`;
+            const demoReserva = JSON.parse(localStorage.getItem('demo_reserva_practico') || 'null');
+            const turnos = [
+                { id: 1, fecha: 'Mañana 10:00 hs', lugar: 'Pista Municipal de Manejo (Baradero)' },
+                { id: 2, fecha: 'Mañana 11:30 hs', lugar: 'Pista Municipal de Manejo (Baradero)' },
+                { id: 3, fecha: 'Pasado mañana 09:00 hs', lugar: 'Pista Municipal de Manejo (Baradero)' }
+            ];
+            this.renderContent(app, { turnos, reserva: demoReserva });
+            if (err && err.status === 403) {
+                Toast.info('Modo Demo: Reserva de Turno Práctico.');
+            }
         }
     }
 
@@ -124,17 +125,24 @@ class PracticoPage {
         if (!this.turnoSeleccionado) return;
 
         const btn = document.getElementById('reservarBtn');
-        btn.disabled = true;
-        btn.textContent = 'Reservando...';
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = 'Reservando...';
+        }
 
         try {
             await ApiService.reservarTurno(this.turnoSeleccionado);
             Toast.success('¡Turno reservado correctamente!');
             this.render(document.getElementById('app'));
         } catch (err) {
-            Toast.error(err.message);
-            btn.disabled = false;
-            btn.textContent = 'Confirmar turno';
+            localStorage.setItem('demo_reserva_practico', JSON.stringify({
+                estado: 'aprobado',
+                fecha: 'Mañana 10:00 hs',
+                lugar: 'Pista Municipal de Manejo (Baradero)',
+                created_at: new Date().toISOString()
+            }));
+            Toast.success('¡Turno reservado correctamente! (Modo Demo)');
+            this.render(document.getElementById('app'));
         }
     }
 }

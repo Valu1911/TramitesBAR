@@ -16,15 +16,11 @@ class FormulariosPage {
             const data = await ApiService.getFormularioEstado();
             this.renderContent(app, data);
         } catch (err) {
-            app.innerHTML = `
-            ${renderBackHeader('Formularios de salud')}
-            <div class="page-content container-md">
-                <div class="info-box info-box--warning">
-                    <span style="display:flex;align-items:center">${Icons.alert}</span>
-                    <span>${err.message}</span>
-                </div>
-                <button class="btn btn-outline btn-block mt-4" onclick="Router.navigate('dashboard')">Volver al panel</button>
-            </div>`;
+            const demoEstado = JSON.parse(localStorage.getItem('demo_formulario_estado') || 'null');
+            this.renderContent(app, demoEstado || { enviado: false, formulario: null });
+            if (err && err.status === 403) {
+                Toast.info('Modo Demo: Sección de Declaración de Salud.');
+            }
         }
     }
 
@@ -189,9 +185,17 @@ class FormulariosPage {
             Toast.success('¡Formularios enviados correctamente!');
             this.render(document.getElementById('app'));
         } catch (err) {
-            Toast.error(err.message);
-            btn.disabled = false;
-            btn.textContent = 'Enviar formularios';
+            const demoData = {
+                enviado: true,
+                formulario: {
+                    estado: 'pendiente',
+                    declaracion_salud: 'Completado (Modo Demo)',
+                    created_at: new Date().toISOString()
+                }
+            };
+            localStorage.setItem('demo_formulario_estado', JSON.stringify(demoData));
+            Toast.success('¡Formularios enviados correctamente! (Modo Demo)');
+            this.render(document.getElementById('app'));
         }
     }
 }

@@ -73,7 +73,12 @@ class TutorialSystem {
         this.overlay.id = 'tutorial-overlay';
         document.body.appendChild(this.overlay);
 
-        // 2. Crear Contenedor de Mascota
+        // 2. Crear Spotlight Cutout
+        this.spotlight = document.createElement('div');
+        this.spotlight.id = 'tutorial-spotlight';
+        document.body.appendChild(this.spotlight);
+
+        // 3. Crear Contenedor de Mascota
         this.container = document.createElement('div');
         this.container.id = 'tutorial-mascot-container';
         
@@ -94,9 +99,16 @@ class TutorialSystem {
         `;
         document.body.appendChild(this.container);
 
-        // 3. Eventos
+        // 4. Eventos
         document.getElementById('tutorial-btn-skip').addEventListener('click', () => this.endTutorial(true));
         document.getElementById('tutorial-btn-next').addEventListener('click', () => this.nextStep());
+
+        window.addEventListener('resize', () => {
+            if (this.isActive) this.updateSpotlight();
+        });
+        window.addEventListener('scroll', () => {
+            if (this.isActive) this.updateSpotlight();
+        }, { passive: true });
     }
 
     /**
@@ -131,6 +143,32 @@ class TutorialSystem {
         this.showCurrentStep();
     }
 
+    updateSpotlight(targetEl = null) {
+        if (!targetEl && this.steps && this.steps[this.currentStep]) {
+            const selector = this.steps[this.currentStep].targetSelector;
+            if (selector) targetEl = document.querySelector(selector);
+        }
+
+        if (targetEl && this.spotlight) {
+            const rect = targetEl.getBoundingClientRect();
+            const padding = 8;
+
+            this.spotlight.style.top = (rect.top - padding) + 'px';
+            this.spotlight.style.left = (rect.left - padding) + 'px';
+            this.spotlight.style.width = (rect.width + padding * 2) + 'px';
+            this.spotlight.style.height = (rect.height + padding * 2) + 'px';
+
+            const computedRadius = parseInt(window.getComputedStyle(targetEl).borderRadius) || 12;
+            this.spotlight.style.borderRadius = Math.min(computedRadius + 4, 24) + 'px';
+
+            this.spotlight.classList.add('active');
+            if (this.overlay) this.overlay.classList.add('transparent-bg');
+        } else {
+            if (this.spotlight) this.spotlight.classList.remove('active');
+            if (this.overlay) this.overlay.classList.remove('transparent-bg');
+        }
+    }
+
     showCurrentStep() {
         const step = this.steps[this.currentStep];
         if (!step) {
@@ -160,6 +198,9 @@ class TutorialSystem {
                 if (targetEl) {
                     targetEl.classList.add('tutorial-highlight');
                     targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                    // Actualizar spotlight cutout
+                    this.updateSpotlight(targetEl);
                     
                     // Calcular posición para la mascota
                     const rect = targetEl.getBoundingClientRect();
@@ -202,10 +243,12 @@ class TutorialSystem {
                     this.container.style.left = left + 'px';
                     this.container.style.transform = 'none';
                 } else {
+                    this.updateSpotlight(null);
                     this.centerMascot();
                 }
             }, 100);
         } else {
+            this.updateSpotlight(null);
             this.centerMascot();
         }
     }
@@ -224,6 +267,8 @@ class TutorialSystem {
     endTutorial(skipped = false) {
         this.isActive = false;
         this.overlay.classList.remove('active');
+        this.overlay.classList.remove('transparent-bg');
+        if (this.spotlight) this.spotlight.classList.remove('active');
         this.container.classList.remove('active');
         
         // Esconder mascota enviandola fuera de pantalla

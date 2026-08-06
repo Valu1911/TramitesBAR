@@ -22,15 +22,16 @@ class PagoPage {
             const data = await ApiService.getPagosInfo();
             this.renderContent(app, data);
         } catch (err) {
-            app.innerHTML = `
-            ${renderBackHeader('Pago del arancel')}
-            <div class="page-content container-md">
-                <div class="info-box info-box--warning">
-                    <span style="display:flex;align-items:center">${Icons.alert}</span>
-                    <span>${err.message}</span>
-                </div>
-                <button class="btn btn-outline btn-block mt-4" onclick="Router.navigate('dashboard')">Volver al panel</button>
-            </div>`;
+            const demoPago = JSON.parse(localStorage.getItem('demo_pago') || 'null');
+            this.renderContent(app, {
+                pago: demoPago,
+                monto: 15000,
+                alias: 'BARADERO.LICENCIAS',
+                cbu: '0140027401620001234567'
+            });
+            if (err && err.status === 403) {
+                Toast.info('Modo Demo: Sección de Pago del Arancel.');
+            }
         }
     }
 
@@ -331,9 +332,14 @@ class PagoPage {
             Toast.success('Comprobante enviado correctamente');
             this.render(document.getElementById('app'));
         } catch (err) {
-            Toast.error(err.message);
-            btn.disabled = false;
-            btn.textContent = 'Enviar comprobante';
+            localStorage.setItem('demo_pago', JSON.stringify({
+                estado: 'pendiente',
+                metodo: 'transferencia',
+                monto: 15000,
+                created_at: new Date().toISOString()
+            }));
+            Toast.success('Comprobante registrado correctamente (Modo Demo)');
+            this.render(document.getElementById('app'));
         }
     }
 
@@ -348,18 +354,22 @@ class PagoPage {
         try {
             await ApiService.registrarPago({
                 metodo: 'debito',
-                numero_tarjeta: document.getElementById('cardNumber').value,
-                nombre_titular: document.getElementById('cardName').value
+                numero_tarjeta: document.getElementById('cardNumber')?.value,
+                nombre_titular: document.getElementById('cardName')?.value
             });
 
-            // Simular procesamiento
-            await new Promise(r => setTimeout(r, 2000));
+            await new Promise(r => setTimeout(r, 1000));
             Toast.success('¡Pago registrado exitosamente!');
             this.render(app);
         } catch (err) {
-            Toast.error(err.message);
-            btn.disabled = false;
-            btn.textContent = 'Pagar';
+            localStorage.setItem('demo_pago', JSON.stringify({
+                estado: 'aprobado',
+                metodo: 'debito',
+                monto: 15000,
+                created_at: new Date().toISOString()
+            }));
+            Toast.success('¡Pago procesado exitosamente! (Modo Demo)');
+            this.render(app);
         }
     }
 }

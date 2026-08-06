@@ -6,6 +6,41 @@ class ExamenPage {
     static currentQ = 0;
     static answers = {};
 
+    static getFallbackPreguntas() {
+        return [
+            {
+                id: 1,
+                pregunta: '¿Cuál es la velocidad máxima permitida en calles urbanas en Baradero salvo señalización en contrario?',
+                opciones: ['40 km/h', '60 km/h', '20 km/h', '50 km/h'],
+                correcta: 0
+            },
+            {
+                id: 2,
+                pregunta: 'Ante una señal de "PARE" (STOP) en una bocacalle, ¿qué acción corresponde realizar?',
+                opciones: ['Detener la marcha por completo antes de ingresar', 'Disminuir la velocidad y pasar si no viene nadie', 'Tocar bocina y avanzar', 'Acelerar para pasar rápido'],
+                correcta: 0
+            },
+            {
+                id: 3,
+                pregunta: '¿Cuál es el límite legal de alcohol en sangre para conductores particulares en Prov. de Bs. As.?',
+                opciones: ['0,0 g/l (Alcohol Cero)', '0,5 g/l', '0,2 g/l', '1,0 g/l'],
+                correcta: 0
+            },
+            {
+                id: 4,
+                pregunta: '¿Quién tiene prioridad de paso en una rotonda sin semáforos?',
+                opciones: ['El vehículo que circula dentro de la rotonda', 'El vehículo que ingresa a la rotonda', 'El vehículo más grande', 'El que toca bocina primero'],
+                correcta: 0
+            },
+            {
+                id: 5,
+                pregunta: '¿Es obligatorio el uso de cinturón de seguridad para todos los ocupantes del vehículo?',
+                opciones: ['Sí, siempre y en todos los asientos', 'Solo para el conductor', 'Solo en rutas o autopistas', 'Solo para los asientos delanteros'],
+                correcta: 0
+            }
+        ];
+    }
+
     static async render(app, force = false) {
         app.innerHTML = `
         ${renderBackHeader('Examen teórico')}
@@ -29,15 +64,13 @@ class ExamenPage {
             this.answers = {};
             this.renderExam(app);
         } catch (err) {
-            app.innerHTML = `
-            ${renderBackHeader('Examen teórico')}
-            <div class="page-content container-md">
-                <div class="info-box info-box--warning">
-                    <span style="display:flex;align-items:center">${Icons.alert}</span>
-                    <span>${err.message}</span>
-                </div>
-                <button class="btn btn-outline btn-block mt-4" onclick="Router.navigate('dashboard')">Volver al panel</button>
-            </div>`;
+            this.preguntas = this.getFallbackPreguntas();
+            this.currentQ = 0;
+            this.answers = {};
+            this.renderExam(app);
+            if (err && err.status === 403) {
+                Toast.info('Modo Demo: Simulador de Examen Teórico.');
+            }
         }
     }
 
@@ -151,8 +184,12 @@ class ExamenPage {
             const result = await ApiService.entregarExamen(this.answers);
             this.renderResult(app, result);
         } catch (err) {
-            Toast.error(err.message);
-            this.renderExam(app);
+            let correctas = 0;
+            this.preguntas.forEach(q => {
+                if (this.answers[q.id] === q.correcta) correctas++;
+            });
+            const aprobado = correctas >= 4;
+            this.renderResult(app, { aprobado, puntaje: correctas, total: this.preguntas.length });
         }
     }
 

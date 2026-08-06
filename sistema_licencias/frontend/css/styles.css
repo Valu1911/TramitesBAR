@@ -1887,13 +1887,11 @@ select.form-input {
     left: 0;
     width: 100vw;
     height: 100vh;
-    background: rgba(15, 23, 42, 0.7);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
+    background: rgba(15, 23, 42, 0.75);
     z-index: 9998;
     display: none;
     opacity: 0;
-    transition: opacity 0.3s ease;
+    transition: opacity 0.3s ease, background 0.3s ease;
 }
 
 #tutorial-overlay.active {
@@ -1901,14 +1899,36 @@ select.form-input {
     opacity: 1;
 }
 
-/* El elemento resaltado necesita z-index para estar sobre el overlay */
+#tutorial-overlay.transparent-bg {
+    background: transparent !important;
+}
+
+/* Recuadro marco enfocado (Spotlight cutout) sin difuminado */
+#tutorial-spotlight {
+    position: fixed;
+    z-index: 9999;
+    pointer-events: none;
+    border-radius: 12px;
+    box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.75), 0 0 0 3px #38bdf8, 0 0 25px rgba(56, 189, 248, 0.6);
+    transition: top 0.25s cubic-bezier(0.4, 0, 0.2, 1), 
+                left 0.25s cubic-bezier(0.4, 0, 0.2, 1), 
+                width 0.25s cubic-bezier(0.4, 0, 0.2, 1), 
+                height 0.25s cubic-bezier(0.4, 0, 0.2, 1), 
+                opacity 0.25s ease;
+    display: none;
+    opacity: 0;
+}
+
+#tutorial-spotlight.active {
+    display: block;
+    opacity: 1;
+}
+
+/* El elemento resaltado se mantiene nítido en su jerarquía original */
 .tutorial-highlight {
     position: relative;
-    z-index: 9999 !important;
-    box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.5), 0 0 20px rgba(56, 189, 248, 0.8) !important;
-    border-radius: inherit;
-    background: white !important;
-    pointer-events: none; /* Previene clicks accidentales durante el tutorial a menos que se quiera forzar */
+    z-index: 10000 !important;
+    pointer-events: none; /* Previene clicks accidentales durante el tutorial */
 }
 
 /* La mascota */
