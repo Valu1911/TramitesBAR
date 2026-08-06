@@ -59,18 +59,40 @@ def execute_many(query, data_list):
         conn.close()
 
 def init_db():
-    """Inicializa la base de datos con el schema si no existe."""
-    if not os.path.exists(DB_PATH):
-        schema_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'database', 'schema.sql')
-        if os.path.exists(schema_path):
-            with open(schema_path, 'r', encoding='utf-8') as f:
-                schema = f.read()
-            conn = get_connection()
-            try:
+    """Inicializa la base de datos con el schema si no existe o actualiza las tablas faltantes."""
+    conn = get_connection()
+    try:
+        if not os.path.exists(DB_PATH):
+            schema_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'database', 'schema.sql')
+            if os.path.exists(schema_path):
+                with open(schema_path, 'r', encoding='utf-8') as f:
+                    schema = f.read()
                 conn.executescript(schema)
                 conn.commit()
                 print("[OK] Base de datos SQLite inicializada con schema.sql")
-            except Exception as e:
-                print(f"[ERROR] Falló inicialización de base de datos: {e}")
-            finally:
-                conn.close()
+        else:
+            # Crear la tabla licencias si no existe en la base existente
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS licencias (
+                    id                INTEGER PRIMARY KEY AUTOINCREMENT,
+                    usuario_id        INTEGER NOT NULL,
+                    tramite_id        INTEGER NOT NULL,
+                    numero_licencia   TEXT NOT NULL,
+                    categoria         TEXT NOT NULL DEFAULT 'B1',
+                    jurisdiccion      TEXT NOT NULL DEFAULT 'Provincia de Buenos Aires - Baradero',
+                    fecha_emision     TEXT NOT NULL,
+                    fecha_vencimiento TEXT NOT NULL,
+                    estado            TEXT NOT NULL DEFAULT 'vigente',
+                    foto_rostro       TEXT DEFAULT NULL,
+                    qr_code_data      TEXT DEFAULT NULL,
+                    created_at        TEXT DEFAULT (datetime('now','localtime')),
+                    FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE,
+                    FOREIGN KEY (tramite_id) REFERENCES tramites(id) ON DELETE CASCADE
+                );
+            """)
+            conn.commit()
+    except Exception as e:
+        print(f"[ERROR] Falló inicialización de base de datos: {e}")
+    finally:
+        conn.close()
+

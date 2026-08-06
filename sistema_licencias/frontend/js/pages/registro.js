@@ -46,20 +46,20 @@ class RegistroPage {
                             </div>
 
                             <div class="form-group">
-                                <label class="form-label">Fecha de nacimiento</label>
-                                <input type="text" id="regFechaNac" class="form-input" placeholder="DD/MM/AAAA" maxlength="10" oninput="this.value=this.value.replace(/^(\\d\\d)(\\d)$/g,'$1/$2').replace(/^(\\d\\d\\/\\d\\d)(\\d+)$/g,'$1/$2').replace(/[^\\d\\/]/g,'')">
+                                <label class="form-label">Fecha de nacimiento * <span style="font-size:0.75rem;color:var(--text-muted)">(Obligatorio para calcular edad y vigencia)</span></label>
+                                <input type="text" id="regFechaNac" class="form-input" placeholder="DD/MM/AAAA" maxlength="10" required oninput="this.value=this.value.replace(/^(\d\d)(\d)$/g,'$1/$2').replace(/^(\d\d\/\d\d)(\d+)$/g,'$1/$2').replace(/[^\d\/]/g,'')">
                             </div>
 
                             <div class="form-group">
                                 <label class="form-label">Dirección</label>
-                                <input type="text" id="regDireccion" class="form-input" placeholder="Tu dirección">
+                                <input type="text" id="regDireccion" class="form-input" placeholder="Tu dirección en Baradero">
                             </div>
 
                             <div class="form-group">
-                                <label class="form-label">Tipo de trámite</label>
+                                <label class="form-label">Tipo de trámite *</label>
                                 <select id="regTipo" class="form-input">
-                                    <option value="nueva">Licencia nueva</option>
-                                    <option value="renovacion">Renovación</option>
+                                    <option value="nueva">Licencia nueva (7 pasos con exámenes)</option>
+                                    <option value="renovacion">Renovación de licencia (Salud y Pago)</option>
                                 </select>
                             </div>
 
@@ -114,6 +114,12 @@ class RegistroPage {
 
         if (!formData.nombre || !formData.apellido) {
             errorEl.textContent = 'Nombre y apellido son obligatorios';
+            errorEl.style.display = 'block';
+            return;
+        }
+
+        if (!formData.fecha_nacimiento) {
+            errorEl.textContent = 'Ingresá una fecha de nacimiento válida (DD/MM/AAAA)';
             errorEl.style.display = 'block';
             return;
         }

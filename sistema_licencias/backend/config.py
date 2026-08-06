@@ -12,9 +12,12 @@ MONTO_LICENCIA = 12500.00
 ALIAS_BANCARIO = 'MUNICIPIO.BARADERO.LICENCIAS'
 CBU_BANCARIO = '0110012330001234567890'
 
-# Pasos del trámite en orden secuencial
-PASOS_TRAMITE = ['charlas', 'formularios', 'examen', 'pago', 'practico', 'entrega', 'finalizado']
+# Pasos del trámite en orden secuencial segun tipo de tramite
+PASOS_NUEVA = ['charlas', 'formularios', 'examen', 'pago', 'practico', 'entrega', 'finalizado']
+PASOS_RENOVACION = ['formularios', 'pago', 'entrega', 'finalizado']
+PASOS_TRAMITE = PASOS_NUEVA
 
 # Número mínimo de respuestas correctas para aprobar
 MINIMO_APROBACION_EXAMEN = 4
 TOTAL_PREGUNTAS_EXAMEN = 5
+

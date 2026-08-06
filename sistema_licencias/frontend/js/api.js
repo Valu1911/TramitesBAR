@@ -200,7 +200,7 @@ class ApiService {
         });
     }
 
-    // ---- ENTREGA ----
+    // ---- ENTREGA & CREDENCIAL DIGITAL ----
     static async getEntregaEstado() {
         return this.request('/entrega/estado');
     }
@@ -211,6 +211,21 @@ class ApiService {
             body: { metodo, direccion }
         });
     }
+
+    static async getLicenciaDigital() {
+        return this.request('/licencia/digital');
+    }
+
+    static async iniciarRenovacion() {
+        const data = await this.request('/licencia/renovar', {
+            method: 'POST'
+        });
+        if (data.token) {
+            this.setToken(data.token);
+        }
+        return data;
+    }
+
 
     // ---- ADMIN ----
     static async adminGetPagos(estado = 'todos') {

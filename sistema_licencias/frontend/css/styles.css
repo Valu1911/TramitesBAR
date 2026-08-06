@@ -779,15 +779,24 @@ select.form-input {
 .modal-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(15, 23, 42, 0.5);
-    backdrop-filter: blur(4px);
-    z-index: 200;
-    display: flex;
+    background: rgba(15, 23, 42, 0.65);
+    backdrop-filter: blur(6px);
+    z-index: 9999;
+    display: none;
     align-items: center;
     justify-content: center;
     padding: 20px;
-    animation: fadeIn 0.2s ease;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
 }
+
+.modal-overlay.active {
+    display: flex !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+}
+
 
 .modal {
     background: var(--bg-card);
@@ -856,9 +865,172 @@ select.form-input {
     border-left-color: var(--danger);
 }
 
-.toast--warning {
-    border-left-color: var(--warning);
+/* ============================================================
+   CREDENCIAL DIGITAL (FRENTE Y DORSO ANTI-CLIPPING)
+   ============================================================ */
+.licencia-wrapper {
+    width: 100%;
+    max-width: 420px;
+    min-height: 240px;
+    margin: 0 auto;
+    position: relative;
 }
+
+.licencia-card-3d {
+    width: 100%;
+    min-height: 240px;
+    position: relative;
+    cursor: pointer;
+    border-radius: var(--radius-xl);
+    perspective: 1000px;
+}
+
+.licencia-card__front,
+.licencia-card__back {
+    width: 100%;
+    min-height: 240px;
+    border-radius: var(--radius-xl);
+    padding: 18px 22px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.2);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+/* FRENTE: Azul Provincial Argentina */
+.licencia-card__front {
+    background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #0369a1 100%);
+    color: #ffffff;
+    opacity: 1;
+    transform: rotateY(0deg);
+    pointer-events: auto;
+}
+
+/* DORSO: Azul Marino Oscuro */
+.licencia-card__back {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #1e3a8a 100%);
+    color: #ffffff;
+    position: absolute;
+    top: 0;
+    left: 0;
+    opacity: 0;
+    transform: rotateY(-180deg);
+    pointer-events: none;
+}
+
+/* ESTADO GIRADO (FLIPPED) */
+.licencia-card-3d.flipped .licencia-card__front {
+    opacity: 0;
+    transform: rotateY(180deg);
+    pointer-events: none;
+}
+
+.licencia-card-3d.flipped .licencia-card__back {
+    opacity: 1;
+    transform: rotateY(0deg);
+    pointer-events: auto;
+}
+
+.licencia-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    padding-bottom: 8px;
+}
+
+.licencia-header__title {
+    display: flex;
+    flex-direction: column;
+}
+
+.licencia-header__country {
+    font-size: 0.65rem;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    color: #93c5fd;
+}
+
+.licencia-header__sub {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #ffffff;
+}
+
+.licencia-badge {
+    background: rgba(34, 197, 94, 0.25);
+    color: #4ade80;
+    border: 1px solid rgba(34, 197, 94, 0.4);
+    font-size: 0.65rem;
+    font-weight: 800;
+    padding: 3px 8px;
+    border-radius: 9999px;
+    text-transform: uppercase;
+}
+
+.licencia-body {
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    margin: 12px 0;
+}
+
+.licencia-photo {
+    width: 65px;
+    height: 75px;
+    background: rgba(255, 255, 255, 0.15);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.2rem;
+    flex-shrink: 0;
+}
+
+.licencia-details {
+    flex: 1;
+}
+
+.licencia-label {
+    font-size: 0.625rem;
+    text-transform: uppercase;
+    color: #93c5fd;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+}
+
+.licencia-val {
+    font-size: 0.875rem;
+    font-weight: 800;
+    color: #ffffff;
+}
+
+.licencia-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    padding-top: 8px;
+    font-size: 0.75rem;
+}
+
+.licencia-qr {
+    width: 34px;
+    height: 34px;
+    background: #ffffff;
+    color: #0f172a;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    font-weight: 900;
+}
+
+
 
 .toast__message {
     flex: 1;
@@ -1870,3 +2042,234 @@ select.form-input {
 .tutorial-pulse-btn {
     animation: softPulse 2s infinite ease-in-out;
 }
+
+/* ============================================================
+   BOTÓN FLOTANTE MI LICENCIA DIGITAL
+   ============================================================ */
+.fab-licencia {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 9990;
+    background: linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 9999px;
+    box-shadow: 0 10px 25px rgba(37, 99, 235, 0.4);
+    font-weight: 700;
+    font-size: 0.875rem;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.fab-licencia:hover {
+    transform: translateY(-3px) scale(1.03);
+    box-shadow: 0 14px 30px rgba(37, 99, 235, 0.5);
+}
+
+
+/* ============================================================
+   OPTIMIZACIÓN DE ANIMACIONES POR GPU (60 FPS)
+   ============================================================ */
+.animate-fadeIn,
+.animate-slideUp,
+.modal-overlay,
+.modal,
+.toast,
+.step-card,
+.quick-action,
+.licencia-card-3d {
+    will-change: transform, opacity;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    transform: translateZ(0);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translate3d(0, 18px, 0); }
+    to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+/* ============================================================
+   CREDENCIAL DIGITAL - ESTILO MI ARGENTINA (PBA BARADERO)
+   ============================================================ */
+.licencia-wrapper {
+    perspective: 1200px;
+    max-width: 460px;
+    margin: 0 auto 24px auto;
+    width: 100%;
+}
+
+.licencia-card-3d {
+    position: relative;
+    width: 100%;
+    min-height: 270px;
+    transform-style: preserve-3d;
+    transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    cursor: pointer;
+    border-radius: var(--radius-xl);
+}
+
+.licencia-card-3d.flipped {
+    transform: rotateY(180deg);
+}
+
+.licencia-card__front,
+.licencia-card__back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    border-radius: var(--radius-xl);
+    padding: 20px;
+    background: linear-gradient(135deg, #0369a1 0%, #1e3a8a 60%, #172554 100%);
+    color: white;
+    box-shadow: 0 16px 32px rgba(37, 99, 235, 0.25), 0 4px 12px rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.licencia-card__back {
+    transform: rotateY(180deg);
+    background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+}
+
+.licencia-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    padding-bottom: 10px;
+    margin-bottom: 12px;
+}
+
+.licencia-header__title {
+    display: flex;
+    flex-direction: column;
+}
+
+.licencia-header__country {
+    font-size: 0.65rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #38bdf8;
+}
+
+.licencia-header__sub {
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+.licencia-badge {
+    background: rgba(16, 185, 129, 0.25);
+    border: 1px solid #34d399;
+    color: #a7f3d0;
+    padding: 3px 10px;
+    border-radius: 9999px;
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.licencia-body {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    flex: 1;
+}
+
+.licencia-photo {
+    width: 80px;
+    height: 96px;
+    border-radius: var(--radius-md);
+    background: rgba(255, 255, 255, 0.15);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.2rem;
+    flex-shrink: 0;
+    overflow: hidden;
+}
+
+.licencia-details {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.licencia-label {
+    font-size: 0.625rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.licencia-val {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: #ffffff;
+}
+
+.licencia-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    padding-top: 10px;
+    margin-top: 10px;
+    font-size: 0.75rem;
+}
+
+.licencia-qr {
+    width: 48px;
+    height: 48px;
+    background: white;
+    padding: 3px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.documentos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+}
+
+.documento-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    transition: var(--transition);
+}
+
+.documento-card:hover {
+    border-color: var(--primary);
+    transform: translateY(-2px);
+}
+

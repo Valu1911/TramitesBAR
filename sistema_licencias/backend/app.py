@@ -16,7 +16,7 @@ import jwt
 
 from config import (
     SECRET_KEY, JWT_EXPIRATION_HOURS, ADMIN_JWT_EXPIRATION_HOURS,
-    PASOS_TRAMITE, MINIMO_APROBACION_EXAMEN, TOTAL_PREGUNTAS_EXAMEN,
+    PASOS_TRAMITE, PASOS_NUEVA, PASOS_RENOVACION, MINIMO_APROBACION_EXAMEN, TOTAL_PREGUNTAS_EXAMEN,
     MONTO_LICENCIA, ALIAS_BANCARIO, CBU_BANCARIO
 )
 from db import execute_query, init_db
@@ -28,7 +28,7 @@ CORS(app)
 
 
 # ============================================================
-# HELPERS
+# HELPERS JWT & AUTH
 # ============================================================
 
 def create_token(payload, hours=JWT_EXPIRATION_HOURS):
@@ -78,16 +78,105 @@ def admin_required(rol=None):
     return decorator
 
 
-def get_paso_index(paso):
+# ============================================================
+# HELPERS DE LICENCIAS Y EDAD (PBA)
+# ============================================================
+
+def calcular_edad(fecha_nac_str):
+
+    """Calcula la edad actual en base a la fecha de nacimiento (YYYY-MM-DD)."""
+    if not fecha_nac_str:
+        return 0
     try:
-        return PASOS_TRAMITE.index(paso)
+        if isinstance(fecha_nac_str, (datetime.date, datetime.datetime)):
+            birth = fecha_nac_str.date() if isinstance(fecha_nac_str, datetime.datetime) else fecha_nac_str
+        else:
+            fecha_clean = str(fecha_nac_str).split(' ')[0].split('T')[0]
+            birth = datetime.datetime.strptime(fecha_clean, '%Y-%m-%d').date()
+        today = datetime.date.today()
+        edad = today.year - birth.year - ((today.month, today.day) < (birth.month, birth.day))
+        return max(0, edad)
+    except Exception:
+        return 0
+
+
+def calcular_vigencia_licencia(edad):
+    """
+    Vigencia según normativa de la Provincia de Buenos Aires (PBA):
+    - Menores de edad (16 a 17 años): 1 año (anualmente)
+    - Adultos (18 a 65 años): 5 años
+    - 66 a 70 años: 3 años
+    - Mayor a 70 años: 1 año
+    """
+    if edad < 18:
+        return 1
+    elif edad <= 65:
+        return 5
+    elif edad <= 70:
+        return 3
+    else:
+        return 1
+
+
+def get_pasos_por_tipo(tipo):
+    if tipo == 'renovacion':
+        return PASOS_RENOVACION
+    return PASOS_NUEVA
+
+
+def get_paso_index(paso, tipo='nueva'):
+    pasos = get_pasos_por_tipo(tipo)
+    try:
+        return pasos.index(paso)
     except ValueError:
         return -1
 
 
 def puede_acceder_paso(paso_actual, paso_solicitado):
-    # Permite navegación libre a cualquier sección para pruebas manuales y modo demo
     return True
+
+
+def emitir_licencia_digital(usuario_id, tramite_id):
+    """Genera o recupera la credencial digital emitida para un ciudadano."""
+    usuario = execute_query("SELECT * FROM usuarios WHERE id=?", (usuario_id,), fetch_one=True)
+    if not usuario:
+        return None
+
+    existente = execute_query("SELECT * FROM licencias WHERE tramite_id=?", (tramite_id,), fetch_one=True)
+    if existente:
+        if existente.get('fecha_emision'):
+            existente['fecha_emision'] = str(existente['fecha_emision'])
+        if existente.get('fecha_vencimiento'):
+            existente['fecha_vencimiento'] = str(existente['fecha_vencimiento'])
+        return existente
+
+    edad = calcular_edad(usuario.get('fecha_nacimiento'))
+    anios_vigencia = calcular_vigencia_licencia(edad)
+
+    hoy = datetime.date.today()
+    fecha_emision = hoy.strftime('%Y-%m-%d')
+    try:
+        fecha_vencimiento = datetime.date(hoy.year + anios_vigencia, hoy.month, hoy.day).strftime('%Y-%m-%d')
+    except ValueError: # bisiesto Feb 29
+        fecha_vencimiento = datetime.date(hoy.year + anios_vigencia, hoy.month, 28).strftime('%Y-%m-%d')
+
+    qr_data = f"PBA-BARADERO|DNI:{usuario['dni']}|TITULAR:{usuario['nombre']} {usuario['apellido']}|CAT:B1|EMISION:{fecha_emision}|VENC:{fecha_vencimiento}"
+
+    lic_id = execute_query(
+        """INSERT INTO licencias 
+           (usuario_id, tramite_id, numero_licencia, categoria, jurisdiccion, fecha_emision, fecha_vencimiento, estado, qr_code_data)
+           VALUES (?, ?, ?, 'B1', 'Provincia de Buenos Aires - Baradero', ?, ?, 'vigente', ?)""",
+        (usuario_id, tramite_id, usuario['dni'], fecha_emision, fecha_vencimiento, qr_data)
+    )
+
+    lic = execute_query("SELECT * FROM licencias WHERE id=?", (lic_id,), fetch_one=True)
+    if lic:
+        if lic.get('fecha_emision'):
+            lic['fecha_emision'] = str(lic['fecha_emision'])
+        if lic.get('fecha_vencimiento'):
+            lic['fecha_vencimiento'] = str(lic['fecha_vencimiento'])
+    return lic
+
 
 
 # ============================================================
@@ -113,7 +202,7 @@ def serve_static(path):
 
 @app.route('/api/auth/registro', methods=['POST'])
 def registro():
-    data = request.json
+    data = request.json or {}
     dni = data.get('dni', '').strip().replace('.', '').replace('-', '')
 
     if not dni or len(dni) < 7 or len(dni) > 8 or not dni.isdigit():
@@ -129,15 +218,18 @@ def registro():
     telefono = data.get('telefono', '').strip()
     fecha_nac = data.get('fecha_nacimiento', None)
     direccion = data.get('direccion', '').strip()
-
+    tipo_tramite = data.get('tipo_tramite', 'nueva')
     password = data.get('password', '').strip()
 
     if not nombre or not apellido:
         return jsonify({'error': 'Nombre y apellido son requeridos'}), 400
-        
+
+    if not fecha_nac:
+        return jsonify({'error': 'La fecha de nacimiento es obligatoria'}), 400
+
     if len(password) < 6:
         return jsonify({'error': 'La contraseña debe tener al menos 6 caracteres'}), 400
-        
+
     password_hash = generate_password_hash(password)
 
     user_id = execute_query(
@@ -146,13 +238,15 @@ def registro():
         (dni, nombre, apellido, email, telefono, fecha_nac, direccion, password_hash)
     )
 
-    # Crear trámite automáticamente
+    paso_inicial = 'formularios' if tipo_tramite == 'renovacion' else 'charlas'
+
     tramite_id = execute_query(
         "INSERT INTO tramites (usuario_id, tipo, paso_actual) VALUES (?, ?, ?)",
-        (user_id, data.get('tipo_tramite', 'nueva'), 'charlas')
+        (user_id, tipo_tramite, paso_inicial)
     )
 
     token = create_token({'usuario_id': user_id, 'dni': dni, 'tipo': 'usuario', 'tramite_id': tramite_id})
+    edad = calcular_edad(fecha_nac)
 
     return jsonify({
         'message': 'Registro exitoso',
@@ -162,7 +256,11 @@ def registro():
             'dni': dni,
             'nombre': nombre,
             'apellido': apellido,
-            'tramite_id': tramite_id
+            'fecha_nacimiento': fecha_nac,
+            'edad': edad,
+            'tipo_tramite': tipo_tramite,
+            'tramite_id': tramite_id,
+            'paso_actual': paso_inicial
         }
     }), 201
 
@@ -176,7 +274,7 @@ def get_user_tramite_id(user_data):
     usuario_id = user_data.get('usuario_id')
     if usuario_id:
         tramite = execute_query(
-            "SELECT id FROM tramites WHERE usuario_id=? AND estado='en_progreso' ORDER BY id DESC LIMIT 1",
+            "SELECT id, tipo FROM tramites WHERE usuario_id=? AND estado='en_progreso' ORDER BY id DESC LIMIT 1",
             (usuario_id,), fetch_one=True
         )
         if tramite:
@@ -190,9 +288,8 @@ def get_user_tramite_id(user_data):
 
 @app.route('/api/auth/login', methods=['POST'])
 def login():
-    data = request.json
+    data = request.json or {}
     dni = data.get('dni', '').strip().replace('.', '').replace('-', '')
-
     password = data.get('password', '').strip()
 
     if not dni or len(dni) < 7 or len(dni) > 8 or not dni.isdigit():
@@ -202,7 +299,7 @@ def login():
         return jsonify({'error': 'Contraseña requerida'}), 400
 
     user = execute_query(
-        "SELECT id, dni, nombre, apellido, password_hash FROM usuarios WHERE dni=?",
+        "SELECT id, dni, nombre, apellido, fecha_nacimiento, password_hash FROM usuarios WHERE dni=?",
         (dni,), fetch_one=True
     )
 
@@ -224,9 +321,13 @@ def login():
             (user['id'],)
         )
         paso_actual = 'charlas'
+        tipo_tramite = 'nueva'
     else:
         tramite_id = tramite['id']
         paso_actual = tramite['paso_actual']
+        tipo_tramite = tramite['tipo']
+
+    edad = calcular_edad(user.get('fecha_nacimiento'))
 
     token = create_token({
         'usuario_id': user['id'],
@@ -243,10 +344,14 @@ def login():
             'dni': user['dni'],
             'nombre': user['nombre'],
             'apellido': user['apellido'],
+            'fecha_nacimiento': user.get('fecha_nacimiento'),
+            'edad': edad,
             'tramite_id': tramite_id,
+            'tipo_tramite': tipo_tramite,
             'paso_actual': paso_actual
         }
     })
+
 
 
 @app.route('/api/auth/check-dni', methods=['POST'])
@@ -332,22 +437,27 @@ def get_progreso():
     if not tramite:
         return jsonify({'error': 'Trámite no encontrado'}), 404
 
-    # Construir estado de cada paso
+    tipo = tramite.get('tipo', 'nueva')
+    pasos_lista = get_pasos_por_tipo(tipo)
+    pasos_sin_final = pasos_lista[:-1]  # Excluir 'finalizado'
+
     paso_actual = tramite['paso_actual']
-    idx_actual = get_paso_index(paso_actual)
+    idx_actual = get_paso_index(paso_actual, tipo)
+    if idx_actual == -1:
+        idx_actual = len(pasos_sin_final)  # finalizado
 
     pasos_info = []
     labels = {
         'charlas': {'title': 'Charlas en video', 'desc': 'Capacitación obligatoria sobre seguridad vial'},
-        'formularios': {'title': 'Formularios de salud', 'desc': 'Certificados y datos médicos'},
+        'formularios': {'title': 'Formularios de salud', 'desc': 'Oftalmología, agudeza visual y aptitud física'},
         'examen': {'title': 'Examen teórico', 'desc': '5 preguntas de múltiple opción'},
-        'pago': {'title': 'Pago del arancel', 'desc': 'Pago del arancel de licencia'},
+        'pago': {'title': 'Pago del arancel', 'desc': 'Pago del arancel provincial/municipal CEPAT'},
         'practico': {'title': 'Examen práctico', 'desc': 'Presencial · Agendar turno'},
-        'entrega': {'title': 'Entrega de licencia', 'desc': 'Domicilio o retiro presencial'},
+        'entrega': {'title': 'Licencia Digital / Entrega', 'desc': 'Credencial Mi Argentina disponible'},
     }
 
-    for i, paso in enumerate(PASOS_TRAMITE[:-1]):  # excluir 'finalizado'
-        if i < idx_actual:
+    for i, paso in enumerate(pasos_sin_final):
+        if i < idx_actual or paso_actual == 'finalizado':
             status = 'completed'
         elif i == idx_actual:
             status = 'current'
@@ -364,18 +474,34 @@ def get_progreso():
         })
 
     usuario = execute_query(
-        "SELECT nombre, apellido, dni FROM usuarios WHERE id=?",
+        "SELECT id, nombre, apellido, dni, fecha_nacimiento, email, telefono, direccion FROM usuarios WHERE id=?",
         (tramite['usuario_id'],), fetch_one=True
     )
+    if usuario:
+        usuario['edad'] = calcular_edad(usuario.get('fecha_nacimiento'))
+
+    licencia = execute_query(
+        "SELECT * FROM licencias WHERE usuario_id=? ORDER BY id DESC LIMIT 1",
+        (tramite['usuario_id'],), fetch_one=True
+    )
+    if licencia:
+        if licencia.get('fecha_emision'):
+            licencia['fecha_emision'] = str(licencia['fecha_emision'])
+        if licencia.get('fecha_vencimiento'):
+            licencia['fecha_vencimiento'] = str(licencia['fecha_vencimiento'])
+
+    total_pasos = len(pasos_sin_final)
+    progreso_pct = 100 if paso_actual == 'finalizado' else round((min(idx_actual, total_pasos) / max(total_pasos, 1)) * 100)
 
     return jsonify({
         'tramite_id': tramite['id'],
-        'tipo': tramite['tipo'],
+        'tipo': tipo,
         'paso_actual': paso_actual,
         'estado': tramite['estado'],
         'pasos': pasos_info,
         'usuario': usuario,
-        'progreso_porcentaje': round((idx_actual / len(PASOS_TRAMITE[:-1])) * 100)
+        'licencia': licencia,
+        'progreso_porcentaje': progreso_pct
     })
 
 
@@ -386,26 +512,24 @@ def saltar_paso():
     if not tramite_id:
         return jsonify({'error': 'Trámite no encontrado'}), 404
 
+    tramite = execute_query("SELECT id, usuario_id, tipo, paso_actual FROM tramites WHERE id=?", (tramite_id,), fetch_one=True)
+    tipo = tramite['tipo'] if tramite else 'nueva'
+    pasos_lista = get_pasos_por_tipo(tipo)
+
     data = request.json or {}
     nuevo_paso = data.get('paso')
 
-    if not nuevo_paso or nuevo_paso not in PASOS_TRAMITE:
-        tramite = execute_query("SELECT paso_actual FROM tramites WHERE id=?", (tramite_id,), fetch_one=True)
-        paso_actual = tramite['paso_actual'] if tramite else 'charlas'
-        idx = get_paso_index(paso_actual)
-        if idx < len(PASOS_TRAMITE) - 1:
-            nuevo_paso = PASOS_TRAMITE[idx + 1]
+    if not nuevo_paso or nuevo_paso not in pasos_lista:
+        paso_actual = tramite['paso_actual'] if tramite else pasos_lista[0]
+        idx = get_paso_index(paso_actual, tipo)
+        if idx < len(pasos_lista) - 1:
+            nuevo_paso = pasos_lista[idx + 1]
         else:
             nuevo_paso = 'finalizado'
 
-    idx_nuevo = get_paso_index(nuevo_paso)
+    idx_nuevo = get_paso_index(nuevo_paso, tipo)
 
-    if idx_nuevo >= get_paso_index('formularios'):
-        videos = execute_query("SELECT id FROM videos", fetch_all=True)
-        for v in videos:
-            execute_query("INSERT OR IGNORE INTO videos_vistos (tramite_id, video_id, visto) VALUES (?, ?, 1)", (tramite_id, v['id']))
-
-    if idx_nuevo >= get_paso_index('examen'):
+    if 'formularios' in pasos_lista and idx_nuevo >= get_paso_index('formularios', tipo):
         execute_query("DELETE FROM formularios_salud WHERE tramite_id=?", (tramite_id,))
         execute_query(
             """INSERT INTO formularios_salud (tramite_id, grupo_sanguineo, usa_lentes, contacto_emergencia, telefono_emergencia, estado)
@@ -413,22 +537,21 @@ def saltar_paso():
             (tramite_id,)
         )
 
-    if idx_nuevo >= get_paso_index('pago'):
-        execute_query("DELETE FROM examenes_teoricos WHERE tramite_id=?", (tramite_id,))
-        execute_query(
-            "INSERT INTO examenes_teoricos (tramite_id, respuestas, puntaje, total_preguntas, aprobado) VALUES (?, '{}', 5, 5, 1)",
-            (tramite_id,)
-        )
-
-    if idx_nuevo >= get_paso_index('practico'):
+    if 'pago' in pasos_lista and idx_nuevo >= get_paso_index('pago', tipo):
         execute_query("DELETE FROM pagos WHERE tramite_id=?", (tramite_id,))
         execute_query(
             "INSERT INTO pagos (tramite_id, metodo, monto, estado) VALUES (?, 'demo', 12500.00, 'aprobado')",
             (tramite_id,)
         )
 
-    execute_query("UPDATE tramites SET paso_actual=? WHERE id=?", (nuevo_paso, tramite_id))
+    if nuevo_paso in ('entrega', 'finalizado') or idx_nuevo >= len(pasos_lista) - 1:
+        emitir_licencia_digital(tramite['usuario_id'], tramite_id)
+        execute_query("UPDATE tramites SET paso_actual=?, estado='completado' WHERE id=?", (nuevo_paso, tramite_id))
+    else:
+        execute_query("UPDATE tramites SET paso_actual=? WHERE id=?", (nuevo_paso, tramite_id))
+
     return jsonify({'message': f'Paso actualizado a {nuevo_paso}', 'paso_actual': nuevo_paso})
+
 
 
 # ============================================================
@@ -642,7 +765,7 @@ def formularios_estado():
 @token_required
 def enviar_formularios():
     tramite_id = request.user_data.get('tramite_id')
-    tramite = execute_query("SELECT paso_actual FROM tramites WHERE id=?", (tramite_id,), fetch_one=True)
+    tramite = execute_query("SELECT id, usuario_id, tipo, paso_actual FROM tramites WHERE id=?", (tramite_id,), fetch_one=True)
 
     if not tramite or not puede_acceder_paso(tramite['paso_actual'], 'formularios'):
         return jsonify({'error': 'No podés acceder a este paso'}), 403
@@ -653,25 +776,34 @@ def enviar_formularios():
     if existente:
         return jsonify({'error': 'Ya enviaste los formularios de salud'}), 400
 
-    data = request.json
+    data = request.json or {}
     required = ['grupo_sanguineo', 'usa_lentes', 'contacto_emergencia', 'telefono_emergencia']
     for field in required:
         val = data.get(field)
         if val is None or (isinstance(val, str) and not val.strip()):
             return jsonify({'error': f'Campo {field} es requerido'}), 400
 
+    estado_form = data.get('estado', 'aprobado')
+
     form_id = execute_query(
         """INSERT INTO formularios_salud 
            (tramite_id, grupo_sanguineo, usa_lentes, enfermedad_cronica, medicacion, 
-            contacto_emergencia, telefono_emergencia, certificado_archivo)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+            contacto_emergencia, telefono_emergencia, certificado_archivo, estado)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
         (tramite_id, data['grupo_sanguineo'], data['usa_lentes'],
          data.get('enfermedad_cronica', 'Ninguna'), data.get('medicacion', 'Ninguna'),
          data['contacto_emergencia'], data['telefono_emergencia'],
-         data.get('certificado_archivo', None))
+         data.get('certificado_archivo', None),
+         estado_form)
     )
 
-    return jsonify({'message': 'Formularios enviados correctamente', 'id': form_id})
+
+    siguiente_paso = 'pago' if tramite['tipo'] == 'renovacion' else 'examen'
+    if estado_form == 'aprobado' and tramite['paso_actual'] == 'formularios':
+        execute_query("UPDATE tramites SET paso_actual=? WHERE id=?", (siguiente_paso, tramite_id))
+
+    return jsonify({'message': 'Formularios de salud registrados correctamente', 'id': form_id, 'siguiente_paso': siguiente_paso})
+
 
 
 # ============================================================
@@ -697,7 +829,6 @@ def pagos_info():
             pago['fecha_pago'] = str(pago['fecha_pago'])
         if pago.get('fecha_revision'):
             pago['fecha_revision'] = str(pago['fecha_revision'])
-        # No enviar datos sensibles de tarjeta
         if pago.get('numero_tarjeta'):
             pago['numero_tarjeta'] = '****' + pago['numero_tarjeta'][-4:]
 
@@ -721,12 +852,12 @@ def reiniciar_pago():
 @token_required
 def registrar_pago():
     tramite_id = get_user_tramite_id(request.user_data)
-    tramite = execute_query("SELECT paso_actual FROM tramites WHERE id=?", (tramite_id,), fetch_one=True)
+    tramite = execute_query("SELECT id, usuario_id, tipo, paso_actual FROM tramites WHERE id=?", (tramite_id,), fetch_one=True)
 
     if not tramite or not puede_acceder_paso(tramite['paso_actual'], 'pago'):
         return jsonify({'error': 'No podés acceder a este paso'}), 403
 
-    data = request.json
+    data = request.json or {}
     metodo = data.get('metodo', 'transferencia')
     if metodo not in ('transferencia', 'debito', 'demo'):
         return jsonify({'error': 'Método de pago inválido'}), 400
@@ -754,14 +885,21 @@ def registrar_pago():
          estado)
     )
 
+    licencia_emitida = None
     if auto_aprobar and tramite['paso_actual'] == 'pago':
-        execute_query("UPDATE tramites SET paso_actual='practico' WHERE id=?", (tramite_id,))
+        if tramite['tipo'] == 'renovacion':
+            licencia_emitida = emitir_licencia_digital(tramite['usuario_id'], tramite_id)
+            execute_query("UPDATE tramites SET paso_actual='entrega', estado='completado' WHERE id=?", (tramite_id,))
+        else:
+            execute_query("UPDATE tramites SET paso_actual='practico' WHERE id=?", (tramite_id,))
 
     return jsonify({
         'message': '¡Pago registrado correctamente! Se envió la confirmación al sistema.',
         'id': pago_id,
-        'estado': estado
+        'estado': estado,
+        'licencia': licencia_emitida
     })
+
 
 
 # ============================================================
@@ -865,7 +1003,7 @@ def entrega_estado():
 @token_required
 def solicitar_entrega():
     tramite_id = request.user_data.get('tramite_id')
-    tramite = execute_query("SELECT paso_actual FROM tramites WHERE id=?", (tramite_id,), fetch_one=True)
+    tramite = execute_query("SELECT id, usuario_id, paso_actual FROM tramites WHERE id=?", (tramite_id,), fetch_one=True)
 
     if not tramite or not puede_acceder_paso(tramite['paso_actual'], 'entrega'):
         return jsonify({'error': 'No podés acceder a este paso'}), 403
@@ -876,7 +1014,7 @@ def solicitar_entrega():
     if existente:
         return jsonify({'error': 'Ya solicitaste la entrega'}), 400
 
-    data = request.json
+    data = request.json or {}
     metodo = data.get('metodo')
     if metodo not in ('domicilio', 'presencial'):
         return jsonify({'error': 'Método inválido'}), 400
@@ -890,12 +1028,105 @@ def solicitar_entrega():
         (tramite_id, metodo, direccion)
     )
 
+    emitir_licencia_digital(tramite['usuario_id'], tramite_id)
+
     execute_query(
         "UPDATE tramites SET paso_actual='finalizado', estado='completado' WHERE id=?",
         (tramite_id,)
     )
 
     return jsonify({'message': '¡Solicitud de entrega registrada! Trámite finalizado.', 'id': entrega_id})
+
+
+# ============================================================
+# LICENCIA DIGITAL & RENOVACIÓN (PBA)
+# ============================================================
+
+@app.route('/api/licencia/digital', methods=['GET'])
+@token_required
+def get_licencia_digital():
+    usuario_id = request.user_data.get('usuario_id')
+    tramite_id = request.user_data.get('tramite_id')
+
+    usuario = execute_query(
+        "SELECT id, dni, nombre, apellido, fecha_nacimiento, email, telefono, direccion, foto_rostro FROM usuarios WHERE id=?",
+        (usuario_id,), fetch_one=True
+    )
+    if not usuario:
+        return jsonify({'error': 'Usuario no encontrado'}), 404
+
+    edad = calcular_edad(usuario.get('fecha_nacimiento'))
+    usuario['edad'] = edad
+
+    licencia = execute_query(
+        "SELECT * FROM licencias WHERE usuario_id=? ORDER BY id DESC LIMIT 1",
+        (usuario_id,), fetch_one=True
+    )
+
+    if not licencia and tramite_id:
+        tramite = execute_query("SELECT estado, paso_actual FROM tramites WHERE id=?", (tramite_id,), fetch_one=True)
+        if tramite and (tramite['estado'] == 'completado' or tramite['paso_actual'] in ('entrega', 'finalizado')):
+            licencia = emitir_licencia_digital(usuario_id, tramite_id)
+
+    documentos = []
+    if licencia:
+        if licencia.get('fecha_emision'):
+            licencia['fecha_emision'] = str(licencia['fecha_emision'])
+        if licencia.get('fecha_vencimiento'):
+            licencia['fecha_vencimiento'] = str(licencia['fecha_vencimiento'])
+
+        try:
+            venc_date = datetime.datetime.strptime(licencia['fecha_vencimiento'], '%Y-%m-%d').date()
+            today = datetime.date.today()
+            dias_restantes = (venc_date - today).days
+            licencia['dias_restantes'] = dias_restantes
+            licencia['puede_renovar'] = (-90 <= dias_restantes <= 30)
+            licencia['excedido_renovacion'] = (dias_restantes < -90)
+        except Exception:
+            licencia['dias_restantes'] = 365
+            licencia['puede_renovar'] = False
+            licencia['excedido_renovacion'] = False
+
+        documentos = [
+            {'titulo': 'Formulario Único de Trámite (FUT PBA)', 'tipo': 'FUT', 'estado': 'Aprobado', 'fecha': licencia['fecha_emision']},
+            {'titulo': 'Certificado Médico y Aptitud Física', 'tipo': 'Salud', 'estado': 'Aprobado', 'fecha': licencia['fecha_emision']},
+            {'titulo': 'Comprobante de Arancel CEPAT / Municipal', 'tipo': 'Pago', 'estado': 'Aprobado', 'monto': '$12.500'},
+        ]
+
+    return jsonify({
+        'usuario': usuario,
+        'licencia': licencia,
+        'documentos': documentos
+    })
+
+
+@app.route('/api/licencia/renovar', methods=['POST'])
+@token_required
+def iniciar_renovacion_licencia():
+    usuario_id = request.user_data.get('usuario_id')
+    dni = request.user_data.get('dni')
+
+    execute_query("UPDATE tramites SET estado='cancelado' WHERE usuario_id=? AND estado='en_progreso'", (usuario_id,))
+
+    nuevo_tramite_id = execute_query(
+        "INSERT INTO tramites (usuario_id, tipo, paso_actual, estado) VALUES (?, 'renovacion', 'formularios', 'en_progreso')",
+        (usuario_id,)
+    )
+
+    token = create_token({
+        'usuario_id': usuario_id,
+        'dni': dni,
+        'tipo': 'usuario',
+        'tramite_id': nuevo_tramite_id
+    })
+
+    return jsonify({
+        'message': 'Trámite de renovación iniciado correctamente',
+        'tramite_id': nuevo_tramite_id,
+        'tipo': 'renovacion',
+        'paso_actual': 'formularios',
+        'token': token
+    })
 
 
 # ============================================================
@@ -943,7 +1174,7 @@ def admin_pagos_lista():
 @app.route('/api/admin/pagos/<int:pago_id>/revisar', methods=['PUT'])
 @admin_required(rol='pagos')
 def admin_revisar_pago(pago_id):
-    data = request.json
+    data = request.json or {}
     nuevo_estado = data.get('estado')
     if nuevo_estado not in ('aprobado', 'rechazado'):
         return jsonify({'error': 'Estado inválido'}), 400
@@ -961,13 +1192,14 @@ def admin_revisar_pago(pago_id):
         pago = execute_query("SELECT tramite_id FROM pagos WHERE id=?", (pago_id,), fetch_one=True)
         if pago:
             tramite = execute_query(
-                "SELECT paso_actual FROM tramites WHERE id=?", (pago['tramite_id'],), fetch_one=True
+                "SELECT id, usuario_id, tipo, paso_actual FROM tramites WHERE id=?", (pago['tramite_id'],), fetch_one=True
             )
             if tramite and tramite['paso_actual'] == 'pago':
-                execute_query(
-                    "UPDATE tramites SET paso_actual='practico' WHERE id=?",
-                    (pago['tramite_id'],)
-                )
+                if tramite['tipo'] == 'renovacion':
+                    emitir_licencia_digital(tramite['usuario_id'], tramite['id'])
+                    execute_query("UPDATE tramites SET paso_actual='entrega', estado='completado' WHERE id=?", (tramite['id'],))
+                else:
+                    execute_query("UPDATE tramites SET paso_actual='practico' WHERE id=?", (tramite['id'],))
 
     return jsonify({'message': f'Pago {nuevo_estado} correctamente'})
 
@@ -1017,7 +1249,7 @@ def admin_salud_lista():
 @app.route('/api/admin/salud/<int:form_id>/revisar', methods=['PUT'])
 @admin_required(rol='salud')
 def admin_revisar_salud(form_id):
-    data = request.json
+    data = request.json or {}
     nuevo_estado = data.get('estado')
     if nuevo_estado not in ('aprobado', 'rechazado'):
         return jsonify({'error': 'Estado inválido'}), 400
@@ -1035,15 +1267,14 @@ def admin_revisar_salud(form_id):
         form = execute_query("SELECT tramite_id FROM formularios_salud WHERE id=?", (form_id,), fetch_one=True)
         if form:
             tramite = execute_query(
-                "SELECT paso_actual FROM tramites WHERE id=?", (form['tramite_id'],), fetch_one=True
+                "SELECT id, tipo, paso_actual FROM tramites WHERE id=?", (form['tramite_id'],), fetch_one=True
             )
             if tramite and tramite['paso_actual'] == 'formularios':
-                execute_query(
-                    "UPDATE tramites SET paso_actual='examen' WHERE id=?",
-                    (form['tramite_id'],)
-                )
+                sig = 'pago' if tramite['tipo'] == 'renovacion' else 'examen'
+                execute_query("UPDATE tramites SET paso_actual=? WHERE id=?", (sig, tramite['id']))
 
     return jsonify({'message': f'Formulario {nuevo_estado} correctamente'})
+
 
 
 # ============================================================

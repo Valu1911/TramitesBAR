@@ -39,6 +39,26 @@ CREATE TABLE IF NOT EXISTS admins (
 );
 
 -- ============================================================
+-- TABLA: licencias (credenciales digitales emitidas)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS licencias (
+  id                INTEGER PRIMARY KEY AUTOINCREMENT,
+  usuario_id        INTEGER NOT NULL,
+  tramite_id        INTEGER NOT NULL,
+  numero_licencia   TEXT NOT NULL,
+  categoria         TEXT NOT NULL DEFAULT 'B1',
+  jurisdiccion      TEXT NOT NULL DEFAULT 'Provincia de Buenos Aires - Baradero',
+  fecha_emision     TEXT NOT NULL,
+  fecha_vencimiento TEXT NOT NULL,
+  estado            TEXT NOT NULL DEFAULT 'vigente',
+  foto_rostro       TEXT DEFAULT NULL,
+  qr_code_data      TEXT DEFAULT NULL,
+  created_at        TEXT DEFAULT (datetime('now','localtime')),
+  FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE,
+  FOREIGN KEY (tramite_id) REFERENCES tramites(id) ON DELETE CASCADE
+);
+
+-- ============================================================
 -- TABLA: tramites (un tramite por usuario, controla el flujo)
 -- ============================================================
 CREATE TABLE IF NOT EXISTS tramites (
@@ -51,6 +71,7 @@ CREATE TABLE IF NOT EXISTS tramites (
   updated_at      TEXT DEFAULT (datetime('now','localtime')),
   FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
 );
+
 
 -- ============================================================
 -- TABLA: videos (charlas de seguridad vial)

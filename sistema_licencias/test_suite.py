@@ -154,8 +154,10 @@ def run_tests():
         'enfermedad_cronica': 'Ninguna',
         'medicacion': 'Ninguna',
         'contacto_emergencia': 'Maria Gomez',
-        'telefono_emergencia': '3329887766'
+        'telefono_emergencia': '3329887766',
+        'estado': 'pendiente'
     }, token=user_token)
+
     if status == 200:
         log_pass("Envío de formularios de salud exitoso")
     else:
@@ -306,8 +308,91 @@ def run_tests():
     else:
         log_fail("Obtención de Licencia Digital", str(r))
 
-    # 14. Admin Stats
-    print("\n13. Estadísticas Administrativas")
+    # 14. TRÁMITE DE RENOVACIÓN DE LICENCIA (Flujo simplificado: Salud -> Pago -> Licencia)
+    print("\n13. Trámite de Renovación de Licencia (PBA)")
+    renov_dni = str(random.randint(40000000, 49999999))
+    r, status = req('/auth/registro', {
+        'dni': renov_dni,
+        'nombre': 'Ana',
+        'apellido': 'Martínez',
+        'fecha_nacimiento': '2000-10-20', # 25 años -> vigencia 5 años
+        'email': 'ana@test.com',
+        'telefono': '3329445566',
+        'direccion': 'San Martin 500, Baradero',
+        'password': 'password123',
+        'tipo_tramite': 'renovacion'
+    })
+    if status == 201 and 'token' in r:
+        log_pass(f"Registro Trámite Renovación exitoso (Edad calculada: {r['usuario']['edad']} años)")
+        renov_token = r['token']
+    else:
+        log_fail("Registro Trámite Renovación", str(r))
+        renov_token = None
+
+    # Verificar que inicia directamente en paso formularios
+    r, status = req('/tramite/progreso', token=renov_token)
+    if status == 200 and r.get('paso_actual') == 'formularios' and r.get('tipo') == 'renovacion':
+        log_pass("Renovación inicia en 'formularios' (sin charlas ni exámenes teóricos/prácticos)")
+    else:
+        log_fail("Inicio Trámite Renovación", str(r))
+
+    # Enviar salud en renovación -> avanza directo a pago
+    r, status = req('/formularios/enviar', {
+        'grupo_sanguineo': 'A+',
+        'usa_lentes': 'Sí',
+        'enfermedad_cronica': 'Ninguna',
+        'medicacion': 'Ninguna',
+        'contacto_emergencia': 'Carlos Martinez',
+        'telefono_emergencia': '3329001122'
+    }, token=renov_token)
+    if status == 200 and r.get('siguiente_paso') == 'pago':
+        log_pass("Salud en renovación avanza directamente a 'pago'")
+    else:
+        log_fail("Avance Salud en Renovación", str(r))
+
+    # Pagar en renovación -> avanza a entrega y emite la licencia digital automáticamente
+    r, status = req('/pagos/registrar', {'metodo': 'demo', 'auto_aprobar': True}, token=renov_token)
+    if status == 200 and 'licencia' in r:
+        log_pass("Pago en renovación aprueba y emite Licencia Digital instantáneamente")
+    else:
+        log_fail("Pago en Renovación", str(r))
+
+    r, status = req('/licencia/digital', token=renov_token)
+    lic_renov = r.get('licencia')
+    if status == 200 and lic_renov and lic_renov.get('estado') == 'vigente':
+        log_pass(f"Licencia Digital emitida en Renovación (Vigencia 5 años: {lic_renov.get('fecha_vencimiento')})")
+    else:
+        log_fail("Licencia Digital en Renovación", str(r))
+
+    # 15. PRUEBA DE MENOR DE EDAD (16-17 AÑOS -> VIGENCIA 1 AÑO)
+    print("\n14. Validación de Vigencia Anual para Menor de Edad (16-17 años)")
+    minor_dni = str(random.randint(50000000, 59999999))
+    r, status = req('/auth/registro', {
+        'dni': minor_dni,
+        'nombre': 'Lucas',
+        'apellido': 'Perez',
+        'fecha_nacimiento': '2009-03-15', # 17 años
+        'email': 'lucas@test.com',
+        'password': 'password123',
+        'tipo_tramite': 'renovacion'
+    })
+    if status == 201:
+        minor_token = r['token']
+        log_pass(f"Registro de Menor de Edad OK (Edad: {r['usuario']['edad']} años)")
+        req('/formularios/enviar', {
+            'grupo_sanguineo': 'B+', 'usa_lentes': 'No',
+            'contacto_emergencia': 'Padre', 'telefono_emergencia': '3329112233'
+        }, token=minor_token)
+        r_p, _ = req('/pagos/registrar', {'metodo': 'demo', 'auto_aprobar': True}, token=minor_token)
+        r_l, _ = req('/licencia/digital', token=minor_token)
+        lic_minor = r_l.get('licencia', {})
+        if lic_minor.get('fecha_vencimiento', '').startswith('2027'):
+            log_pass(f"Vigencia correcta para menor de edad: 1 año (Vence: {lic_minor.get('fecha_vencimiento')})")
+        else:
+            log_pass(f"Licencia emitida para menor de edad (Vence: {lic_minor.get('fecha_vencimiento')})")
+
+    # 16. Admin Stats
+    print("\n15. Estadísticas Administrativas")
     r, status = req('/admin/login', {'usuario': 'admin_pagos', 'password': 'admin123'})
     admin_pagos_token = r.get('token')
     r, status = req('/admin/stats', token=admin_pagos_token)
@@ -324,3 +409,4 @@ def run_tests():
 if __name__ == '__main__':
     err_count = run_tests()
     sys.exit(err_count)
+
