@@ -1,5 +1,5 @@
 /**
- * Admin Login Page
+ * Admin Login Page - Acceso Administrativo y Profesores
  */
 class AdminLoginPage {
     static render(app) {
@@ -18,7 +18,7 @@ class AdminLoginPage {
                             <div class="form-group">
                                 <label class="form-label">Usuario</label>
                                 <input type="text" id="adminUser" class="form-input" 
-                                       placeholder="Ej: admin_pagos" autocomplete="off">
+                                       placeholder="Ej: admin_profesores" autocomplete="off">
                             </div>
                             <div class="form-group">
                                 <label class="form-label">Contraseña</label>
@@ -36,7 +36,7 @@ class AdminLoginPage {
                         <span style="display:flex;align-items:center">${Icons.info}</span>
                         <div style="font-size:0.75rem">
                             <strong>Usuarios disponibles:</strong><br>
-                            admin_pagos · admin_salud · admin_turnos<br>
+                            admin_profesores · admin_pagos · admin_salud · admin_turnos<br>
                             <strong>Contraseña:</strong> admin123
                         </div>
                     </div>
@@ -77,13 +77,14 @@ class AdminLoginPage {
 
             // Redirigir según rol
             const redirectMap = {
+                'profesores': 'admin-profesores',
                 'pagos': 'admin-pagos',
                 'salud': 'admin-salud',
                 'turnos': 'admin-turnos'
             };
-            Router.navigate(redirectMap[result.admin.rol] || 'admin-pagos');
+            Router.navigate(redirectMap[result.admin.rol] || 'admin-profesores');
         } catch (err) {
-            errorEl.textContent = err.message;
+            errorEl.textContent = err.message || 'Error de autenticación';
             errorEl.style.display = 'block';
         } finally {
             btn.disabled = false;

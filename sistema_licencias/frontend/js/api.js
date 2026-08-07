@@ -227,7 +227,32 @@ class ApiService {
     }
 
 
-    // ---- ADMIN ----
+    static async iniciarTramite(tipo) {
+        const data = await this.request('/tramite/iniciar', {
+            method: 'POST',
+            body: { tipo }
+        });
+        if (data.token) {
+            this.setToken(data.token);
+        }
+        return data;
+    }
+
+    static async actualizarCud(tieneCud, numeroCud = '') {
+        return this.request('/usuario/cud', {
+            method: 'POST',
+            body: { tiene_cud: tieneCud, numero_cud: numeroCud }
+        });
+    }
+
+    static async sendExamenPing(pingData) {
+        return this.request('/examen/stream/ping', {
+            method: 'POST',
+            body: pingData
+        });
+    }
+
+    // ---- ADMIN & PROFESORES ----
     static async adminGetPagos(estado = 'todos') {
         return this.request(`/admin/pagos?estado=${estado}`, { useAdmin: true });
     }
@@ -256,15 +281,124 @@ class ApiService {
         return this.request(`/admin/turnos?estado=${estado}`, { useAdmin: true });
     }
 
-    static async adminRevisarTurno(reservaId, estado, resultadoExamen = 'pendiente', observaciones = '') {
+    static async adminRevisarTurno(reservaId, estado, resultadoExamen = 'pendiente', huellaTomada = 0, fotoTomada = 0, observaciones = '') {
         return this.request(`/admin/turnos/${reservaId}/revisar`, {
             method: 'PUT',
-            body: { estado, resultado_examen: resultadoExamen, observaciones },
+            body: { 
+                estado, 
+                resultado_examen: resultadoExamen, 
+                huella_tomada: huellaTomada, 
+                foto_tomada: fotoTomada, 
+                observaciones 
+            },
             useAdmin: true
         });
+    }
+
+    static async adminGetConfigExamen() {
+        return this.request('/admin/config-examen', { useAdmin: true });
+    }
+
+    static async adminUpdateConfigExamen(configData) {
+        return this.request('/admin/config-examen', {
+            method: 'POST',
+            body: configData,
+            useAdmin: true
+        });
+    }
+
+    static async adminGetPreguntas() {
+        return this.request('/admin/preguntas', { useAdmin: true });
+    }
+
+    static async adminCreatePregunta(preguntaData) {
+        return this.request('/admin/preguntas', {
+            method: 'POST',
+            body: preguntaData,
+            useAdmin: true
+        });
+    }
+
+    static async adminUpdatePregunta(pid, preguntaData) {
+        return this.request(`/admin/preguntas/${pid}`, {
+            method: 'PUT',
+            body: preguntaData,
+            useAdmin: true
+        });
+    }
+
+    static async adminDeletePregunta(pid) {
+        return this.request(`/admin/preguntas/${pid}`, {
+            method: 'DELETE',
+            useAdmin: true
+        });
+    }
+
+    static async adminVaciarPreguntas(soloProfesor = true) {
+        return this.request('/admin/preguntas/vaciar', {
+            method: 'POST',
+            body: { solo_profesor: soloProfesor },
+            useAdmin: true
+        });
+    }
+
+    static async adminVaciarPlantilla() {
+        return this.request('/admin/preguntas/vaciar', {
+            method: 'POST',
+            body: { tipo: 'plantilla' },
+            useAdmin: true
+        });
+    }
+
+    static async adminRestaurarPlantilla() {
+        return this.request('/admin/preguntas/restaurar-plantilla', {
+            method: 'POST',
+            useAdmin: true
+        });
+    }
+
+    static async adminGetPreguntasPreview() {
+        return this.request('/admin/preguntas/preview', { useAdmin: true });
+    }
+
+    static async adminGetExamenMonitoreo() {
+        return this.request('/admin/examen/monitoreo', { useAdmin: true });
+    }
+
+    static async adminExpulsarExamen(tramiteId, motivo) {
+        return this.request('/admin/examen/expulsar', {
+            method: 'POST',
+            body: { tramite_id: tramiteId, motivo },
+            useAdmin: true
+        });
+    }
+
+    static async adminGetExamenesRevision() {
+        return this.request('/admin/examen/revision-lista', { useAdmin: true });
+    }
+
+    static async adminRevisarExamen(tramiteId, decision, motivo) {
+        return this.request('/admin/examen/revisar', {
+            method: 'POST',
+            body: { tramite_id: tramiteId, decision, motivo },
+            useAdmin: true
+        });
+    }
+
+    static async adminEnviarMensajeProfesor(tramiteId, mensaje) {
+        return this.request('/admin/profesor/chat/enviar', {
+            method: 'POST',
+            body: { tramite_id: tramiteId, mensaje },
+            useAdmin: true
+        });
+    }
+
+    static async getMensajesProfesor() {
+        return this.request('/profesor/chat/mensajes');
     }
 
     static async adminGetStats() {
         return this.request('/admin/stats', { useAdmin: true });
     }
 }
+

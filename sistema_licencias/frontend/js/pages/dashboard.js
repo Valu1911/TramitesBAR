@@ -1,5 +1,5 @@
 /**
- * Dashboard - Panel principal del usuario con progreso del trámite
+ * Dashboard - Panel principal del usuario con elección de trámite y progreso específico
  */
 class DashboardPage {
     static async render(app) {
@@ -10,7 +10,7 @@ class DashboardPage {
         <div class="page-content">
             <div class="text-center" style="padding:60px 0">
                 <div class="spinner" style="margin:0 auto"></div>
-                <p class="text-muted mt-3">Cargando tu trámite...</p>
+                <p class="text-muted mt-3">Cargando tu información...</p>
             </div>
         </div>`;
 
@@ -37,11 +37,11 @@ class DashboardPage {
 
     static renderContent(app, data, user) {
         const citizen = data.usuario || user || {};
+        const tramiteSeleccionado = localStorage.getItem('tramite_activo_seleccionado') || null;
         const isRenovacion = data.tipo === 'renovacion';
         const isCompletado = data.progreso_porcentaje === 100 || data.estado === 'completado' || data.paso_actual === 'finalizado';
         const licencia = data.licencia;
 
-        // Guardar referencia en el objeto para la modal
         this.currentData = data;
 
         const stepIcons = {
@@ -69,35 +69,134 @@ class DashboardPage {
                 <div style="position:relative;z-index:1">
                     <div class="hero__badge">
                         <span style="display:flex;align-items:center;color:var(--warning)">${Icons.sparkles}</span>
-                        ${isRenovacion ? 'Trámite de Renovación (Salud + Pago)' : 'Licencia Nueva'} · Baradero
+                        Baradero · Portal de Ciudadano
                     </div>
                     <h1 class="hero__title">
-                        Tu licencia de conducir, <span>sin filas</span>
+                        Bienvenido/a, <span>${citizen.nombre || 'Ciudadano'}</span>
                     </h1>
                     <p class="hero__subtitle">
-                        ${isRenovacion ? 'Renovación directa online. Te acompañamos paso a paso desde la web.' : 'Iniciá tu trámite ahora mismo. Te acompañamos paso a paso desde la web.'}
+                        Gestioná todos tus trámites de licencia de conducir en un solo lugar de forma simple y digital.
                     </p>
-                    <div class="hero__actions">
-                        ${currentStep ? `
-                        <button class="btn btn-lg" style="background:var(--bg-card);color:var(--primary);font-weight:700;box-shadow:var(--shadow-lg)" 
-                                onclick="Router.navigate('${currentStep.id}')">
-                            Continuar trámite →
-                        </button>` : `
-                        <button class="btn btn-lg" style="background:var(--success);color:white;font-weight:700" 
-                                onclick="DashboardPage.openLicenciaModal()">
-                            🪪 Ver mi Licencia Digital ✓
-                        </button>`}
-                    </div>
                 </div>
             </section>
 
-            <!-- PROGRESO -->
-            <div class="glass-card p-5">
+            <!-- PANEL DE DATOS PERSONALES DEL CIUDADANO -->
+            <section class="glass-card p-6" style="border-left: 4px solid var(--primary)">
+                <div class="flex-between mb-4">
+                    <div style="display:flex;align-items:center;gap:12px">
+                        <div style="width:48px;height:48px;border-radius:50%;background:var(--primary-soft);display:flex;align-items:center;justify-content:center;font-size:1.5rem;color:var(--primary)">
+                            ${Icons.user}
+                        </div>
+                        <div>
+                            <h2 class="font-bold text-lg mb-0">${citizen.nombre || ''} ${citizen.apellido || ''}</h2>
+                            <p class="text-xs text-muted">DNI ${citizen.dni || ''} · ${citizen.edad || '--'} años</p>
+                        </div>
+                    </div>
+
+                    <!-- BADGE CUD -->
+                    <div style="text-align:right">
+                        ${citizen.tiene_cud ? `
+                        <span class="badge badge-success" style="padding:6px 12px;font-size:0.8rem;display:inline-flex;align-items:center;gap:6px;background:#dcfce7;color:#15803d;border:1px solid #86efac">
+                            ${Icons.wheelchair} Posee CUD ${citizen.numero_cud ? 'N° ' + citizen.numero_cud : ''} (Atención Prioritaria)
+                        </span>` : `
+                        <span class="badge" style="padding:6px 12px;font-size:0.8rem;display:inline-flex;align-items:center;gap:6px;background:var(--bg);color:var(--text-muted);border:1px solid var(--border)">
+                            Sin CUD registrado
+                        </span>`}
+                        <div class="mt-1">
+                            <button class="btn btn-ghost btn-sm text-xs" style="display:inline-flex;align-items:center;gap:4px" onclick="DashboardPage.toggleCudModal(${citizen.tiene_cud ? 1 : 0})">
+                                ${Icons.edit} Cambiar estado CUD
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid-3" style="font-size:0.85rem;gap:16px;background:rgba(255,255,255,0.05);padding:14px;border-radius:var(--radius-md)">
+                    <div><strong class="text-muted">Fecha Nacimiento:</strong> ${citizen.fecha_nacimiento || '--'}</div>
+                    <div><strong class="text-muted">Email:</strong> ${citizen.email || 'No registrado'}</div>
+                    <div><strong class="text-muted">Teléfono:</strong> ${citizen.telefono || 'No registrado'}</div>
+                    <div><strong class="text-muted">Dirección:</strong> ${citizen.direccion || 'Baradero'}</div>
+                    <div><strong class="text-muted">Trámites Realizados:</strong> 1 activo</div>
+                    <div><strong class="text-muted">Estado General:</strong> En Regla</div>
+                </div>
+            </section>
+
+            <!-- SECCIÓN: SELECCIÓN DE TRÁMITES -->
+            <section class="glass-card p-6">
+                <div class="mb-4">
+                    <h2 class="section-title mb-1" style="display:flex;align-items:center;gap:8px">
+                        <span style="color:var(--primary);display:flex;align-items:center">${Icons.doc}</span> Elegir mi Trámite
+                    </h2>
+                    <p class="text-xs text-muted">Seleccioná un botón para activar el trámite correspondiente y visualizar sus pasos específicos:</p>
+                </div>
+
+                <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(210px, 1fr));gap:14px">
+                    <button class="tramite-card-btn ${tramiteSeleccionado === 'nueva' ? 'tramite-card-btn--active' : ''}" 
+                            onclick="DashboardPage.seleccionarTramite('nueva')">
+                        <div style="font-size:1.5rem;margin-bottom:6px;color:var(--primary);display:flex;justify-content:center">${Icons.car}</div>
+                        <strong style="font-size:0.95rem;margin-bottom:4px">Licencia Nueva</strong>
+                        <span class="text-xs ${tramiteSeleccionado === 'nueva' ? '' : 'text-muted'}">Primera vez · Examen teórico, práctico y biometría.</span>
+                        ${tramiteSeleccionado === 'nueva' ? `<span class="badge mt-2" style="background:rgba(255,255,255,0.25);display:inline-flex;align-items:center;gap:4px">${Icons.check} En curso</span>` : ''}
+                    </button>
+
+                    <button class="tramite-card-btn ${tramiteSeleccionado === 'renovacion' ? 'tramite-card-btn--active' : ''}" 
+                            onclick="DashboardPage.seleccionarTramite('renovacion')">
+                        <div style="font-size:1.5rem;margin-bottom:6px;color:var(--primary);display:flex;justify-content:center">${Icons.sparkles}</div>
+                        <strong style="font-size:0.95rem;margin-bottom:4px">Renovar Licencia</strong>
+                        <span class="text-xs ${tramiteSeleccionado === 'renovacion' ? '' : 'text-muted'}">Renovación directa online · Salud + Pago del arancel.</span>
+                        ${tramiteSeleccionado === 'renovacion' ? `<span class="badge mt-2" style="background:rgba(255,255,255,0.25);display:inline-flex;align-items:center;gap:4px">${Icons.check} En curso</span>` : ''}
+                    </button>
+
+                    <button class="tramite-card-btn ${tramiteSeleccionado === 'vencida' ? 'tramite-card-btn--active' : ''}" 
+                            onclick="DashboardPage.seleccionarTramite('vencida')">
+                        <div style="font-size:1.5rem;margin-bottom:6px;color:var(--warning);display:flex;justify-content:center">${Icons.clock}</div>
+                        <strong style="font-size:0.95rem;margin-bottom:4px">Licencia Vencida</strong>
+                        <span class="text-xs ${tramiteSeleccionado === 'vencida' ? '' : 'text-muted'}">Fuera de término (+90 días) · Requiere re-examen.</span>
+                        ${tramiteSeleccionado === 'vencida' ? `<span class="badge mt-2" style="background:rgba(255,255,255,0.25);display:inline-flex;align-items:center;gap:4px">${Icons.check} En curso</span>` : ''}
+                    </button>
+
+                    <button class="tramite-card-btn ${tramiteSeleccionado === 'categoria' ? 'tramite-card-btn--active' : ''}" 
+                            onclick="DashboardPage.seleccionarTramite('categoria')">
+                        <div style="font-size:1.5rem;margin-bottom:6px;color:var(--primary);display:flex;justify-content:center">${Icons.shield}</div>
+                        <strong style="font-size:0.95rem;margin-bottom:4px">Subir de Categoría</strong>
+                        <span class="text-xs ${tramiteSeleccionado === 'categoria' ? '' : 'text-muted'}">Ampliación de licencia · Agregar auto/moto.</span>
+                        ${tramiteSeleccionado === 'categoria' ? `<span class="badge mt-2" style="background:rgba(255,255,255,0.25);display:inline-flex;align-items:center;gap:4px">${Icons.check} En curso</span>` : ''}
+                    </button>
+
+                    <button class="tramite-card-btn ${tramiteSeleccionado === 'profesional' ? 'tramite-card-btn--active' : ''}" 
+                            onclick="DashboardPage.seleccionarTramite('profesional')">
+                        <div style="font-size:1.5rem;margin-bottom:6px;color:var(--primary);display:flex;justify-content:center">${Icons.truck}</div>
+                        <strong style="font-size:0.95rem;margin-bottom:4px">Licencia Profesional</strong>
+                        <span class="text-xs ${tramiteSeleccionado === 'profesional' ? '' : 'text-muted'}">Categorías C, D y E · Camiones, taxis, colectivos.</span>
+                        ${tramiteSeleccionado === 'profesional' ? `<span class="badge mt-2" style="background:rgba(255,255,255,0.25);display:inline-flex;align-items:center;gap:4px">${Icons.check} En curso</span>` : ''}
+                    </button>
+
+                    <button class="tramite-card-btn ${tramiteSeleccionado === 'extravio' ? 'tramite-card-btn--active' : ''}" 
+                            onclick="DashboardPage.seleccionarTramite('extravio')">
+                        <div style="font-size:1.5rem;margin-bottom:6px;color:var(--accent);display:flex;justify-content:center">${Icons.box}</div>
+                        <strong style="font-size:0.95rem;margin-bottom:4px">Extravío o Robo</strong>
+                        <span class="text-xs ${tramiteSeleccionado === 'extravio' ? '' : 'text-muted'}">Duplicado por pérdida/robo · Trámite ágil Salud + Pago.</span>
+                        ${tramiteSeleccionado === 'extravio' ? `<span class="badge mt-2" style="background:rgba(255,255,255,0.25);display:inline-flex;align-items:center;gap:4px">${Icons.check} En curso</span>` : ''}
+                    </button>
+                </div>
+            </section>
+
+            <!-- MOSTRAR PROGRESO Y PASOS ÚNICAMENTE SI SE SELECCIONÓ UN TRÁMITE PREVIAMENTE -->
+            ${!tramiteSeleccionado ? `
+            <div class="glass-card p-6 text-center" style="border: 2px dashed var(--primary-light,#93c5fd); background: rgba(37,99,235,0.03)">
+                <div style="display:flex;justify-content:center;margin-bottom:8px;color:var(--primary);font-size:1.5rem">${Icons.id}</div>
+                <h3 class="font-bold text-base mb-1">Seleccioná un Trámite para Comenzar</h3>
+                <p class="text-xs text-muted mb-0">
+                    Hacé clic en cualquiera de las 6 opciones superiores (<i>Licencia Nueva, Renovar Licencia, Licencia Vencida, Subir de Categoría, Licencia Profesional o Extravío/Robo</i>) para ver la barra de progreso específica y los pasos correspondientes a tu trámite.
+                </p>
+            </div>` : `
+            
+            <!-- PROGRESO DEL TRÁMITE SELECCIONADO -->
+            <div class="glass-card p-5 animate-slideUp">
                 <div class="flex-between mb-3">
                     <div style="display:flex;align-items:center;gap:10px">
                         <div style="width:40px;height:40px;border-radius:var(--radius-md);background:var(--primary-soft);display:flex;align-items:center;justify-content:center;font-size:1.2rem;color:var(--primary)">${Icons.id}</div>
                         <div>
-                            <div class="font-bold text-sm">Tu progreso (${isRenovacion ? 'Renovación' : 'Licencia Nueva'})</div>
+                            <div class="font-bold text-sm">Progreso del Trámite Actual (${tramiteSeleccionado.toUpperCase()})</div>
                             <div class="text-xs text-muted">${data.pasos.filter(p => p.status === 'completed').length} de ${data.pasos.length} pasos completados</div>
                         </div>
                     </div>
@@ -109,8 +208,8 @@ class DashboardPage {
             </div>
 
             <!-- ACCESO RÁPIDO (Adaptado según Trámite) -->
-            <section>
-                <h2 class="section-title mb-3">Acceso rápido</h2>
+            <section class="animate-slideUp">
+                <h2 class="section-title mb-3">Acceso rápido a pasos</h2>
                 <div class="quick-grid">
                     ${!isRenovacion ? `
                     <button class="quick-action" onclick="Router.navigate('charlas')">
@@ -138,91 +237,11 @@ class DashboardPage {
                 </div>
             </section>
 
-            <!-- APARTADO DE MI LICENCIA DIGITAL EN DASHBOARD (SOLO SI TIENE LICENCIA/TRAMITE 100% O RENOVACIÓN) -->
-            ${(licencia || isCompletado) ? `
-            <section class="glass-card p-6" id="licenciaSection" style="border-left: 4px solid var(--success)">
-                <div class="flex-between mb-4">
-                    <div>
-                        <h2 class="font-bold text-base mb-1" style="display:flex;align-items:center;gap:8px">
-                            🪪 Mi Licencia Digital (Mi Argentina)
-                        </h2>
-                        <p class="text-xs text-muted">Licencia de conducir emitida · Hacé click para girarla (Frente / Dorso)</p>
-                    </div>
-                    <span class="licencia-badge">✓ VIGENTE · PBA</span>
-                </div>
-
-                <div class="licencia-wrapper">
-                    <div class="licencia-card-3d" id="digitalCard" onclick="this.classList.toggle('flipped')">
-                        <!-- FRENTE -->
-                        <div class="licencia-card__front">
-                            <div class="licencia-header">
-                                <div class="licencia-header__title">
-                                    <span class="licencia-header__country">REPÚBLICA ARGENTINA · PROV. BS. AS.</span>
-                                    <span class="licencia-header__sub">LICENCIA NACIONAL DE CONDUCIR</span>
-                                </div>
-                                <span class="licencia-badge">VIGENTE</span>
-                            </div>
-
-                            <div class="licencia-body">
-                                <div class="licencia-photo">👤</div>
-                                <div class="licencia-details">
-                                    <div class="licencia-label">Apellido y Nombre</div>
-                                    <div class="licencia-val">${citizen.apellido || ''}, ${citizen.nombre || ''}</div>
-                                    <div class="grid-2 mt-1">
-                                        <div>
-                                            <div class="licencia-label">DNI / N° Licencia</div>
-                                            <div class="licencia-val">${citizen.dni || ''}</div>
-                                        </div>
-                                        <div>
-                                            <div class="licencia-label">Edad / Clase</div>
-                                            <div class="licencia-val">${citizen.edad || '--'} años · B1</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="licencia-footer">
-                                <div>
-                                    <div class="licencia-label">Emisión</div>
-                                    <div class="font-bold">${licencia?.fecha_emision || '2026-08-06'}</div>
-                                </div>
-                                <div>
-                                    <div class="licencia-label">Vencimiento</div>
-                                    <div class="font-bold" style="color:#fef08a">${licencia?.fecha_vencimiento || '2031-08-06'}</div>
-                                </div>
-                                <div class="licencia-qr" title="Código de validación provincial">📱</div>
-                            </div>
-                        </div>
-
-                        <!-- DORSO -->
-                        <div class="licencia-card__back">
-                            <div class="licencia-header">
-                                <span class="licencia-header__country">DATOS COMPLEMENTARIOS Y MÉDICOS</span>
-                                <span style="font-size:0.7rem;color:#93c5fd">BARADERO (PBA)</span>
-                            </div>
-                            <div style="font-size:0.8rem;line-height:1.5;display:flex;flex-direction:column;gap:6px">
-                                <div><strong style="color:#93c5fd">Jurisdicción:</strong> Provincia de Buenos Aires</div>
-                                <div><strong style="color:#93c5fd">Grupo Sanguíneo:</strong> O+</div>
-                                <div><strong style="color:#93c5fd">Donante de Órganos:</strong> Sí (Ley 27.447)</div>
-                                <div><strong style="color:#93c5fd">Apto Médico:</strong> Verificado sin restricciones.</div>
-                            </div>
-                            <div class="licencia-footer" style="border-top:1px dashed rgba(255,255,255,0.3)">
-                                <div>
-                                    <div class="licencia-label">Firma Autoridad Baradero</div>
-                                    <div style="font-family:cursive;font-size:0.9rem;color:#7dd3fc">Intendencia Baradero</div>
-                                </div>
-                                <span class="text-xs" style="color:rgba(255,255,255,0.7)">Click para voltear ↺</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>` : ''}
-
             <!-- PASOS DEL TRÁMITE -->
-            <section>
+            <section class="animate-slideUp">
                 <div class="flex-between mb-3">
-                    <h2 class="section-title">Pasos del trámite</h2>
-                    <span class="text-xs text-muted">${isRenovacion ? '⚡ Renovación: Salud + Pago' : 'Completá cada paso en orden'}</span>
+                    <h2 class="section-title">Pasos del trámite (${tramiteSeleccionado.toUpperCase()})</h2>
+                    <span class="text-xs text-muted">${isRenovacion ? 'Renovación: Salud + Pago' : 'Completá cada paso en orden'}</span>
                 </div>
                 <div class="grid-steps">
                     ${data.pasos.map((paso, i) => `
@@ -241,83 +260,130 @@ class DashboardPage {
                         </div>
                     </div>`).join('')}
                 </div>
-            </section>
-        </div>
+            </section>`}
 
-        <!-- BOTÓN FLOTANTE (FAB) PARA VER LICENCIA -->
-        <button class="fab-licencia animate-slideUp" onclick="DashboardPage.openLicenciaModal()" title="Ver mi Licencia Digital">
-            <span style="font-size:1.2rem">🪪</span>
-            <span>Mi Licencia</span>
-        </button>
-
-        <!-- MODAL DE LICENCIA DIGITAL -->
-        <div class="modal-overlay" id="licenciaModal" onclick="DashboardPage.closeLicenciaModal()">
-            <div class="modal p-6" style="max-width:500px;position:relative" onclick="event.stopPropagation()">
+            <!-- APARTADO DE MI LICENCIA DIGITAL EN DASHBOARD (SOLO SI EL PROGRESO ES EXACTAMENTE 100% Y EL ESTADO ES COMPLETADO) -->
+            ${(data.progreso_porcentaje === 100 && data.estado === 'completado' && licencia && (licencia.numero_licencia || licencia.id)) ? `
+            <section class="glass-card p-6" id="licenciaSection" style="border-left: 4px solid var(--success); margin-top: 48px !important">
                 <div class="flex-between mb-4">
-                    <h3 class="font-bold text-base" style="display:flex;align-items:center;gap:6px">
-                        <span>🪪</span> Licencia Digital Mi Argentina
-                    </h3>
-                    <button class="btn btn-ghost btn-sm" type="button" onclick="DashboardPage.closeLicenciaModal()" style="font-size:1.2rem;padding:4px 10px;cursor:pointer">✕</button>
+                    <div>
+                        <h2 class="font-bold text-base mb-1" style="display:flex;align-items:center;gap:8px">
+                            <span style="color:var(--primary);display:flex;align-items:center">${Icons.id}</span> Mi Licencia Digital (Mi Argentina)
+                        </h2>
+                        <p class="text-xs text-muted">Licencia de conducir emitida · Hacé click sobre la credencial para alternar Frente / Dorso</p>
+                    </div>
+                    <span class="licencia-badge" style="display:inline-flex;align-items:center;gap:4px">${Icons.check} VIGENTE · PBA</span>
                 </div>
 
-                <div class="licencia-wrapper mb-4">
-                    <div class="licencia-card-3d" onclick="this.classList.toggle('flipped')">
-                        <div class="licencia-card__front">
-                            <div class="licencia-header">
-                                <div class="licencia-header__title">
-                                    <span class="licencia-header__country">REPÚBLICA ARGENTINA · PROV. BS. AS.</span>
-                                    <span class="licencia-header__sub">LICENCIA NACIONAL DE CONDUCIR</span>
-                                </div>
-                                <span class="licencia-badge">VIGENTE</span>
-                            </div>
-                            <div class="licencia-body">
-                                <div class="licencia-photo">👤</div>
-                                <div class="licencia-details">
-                                    <div class="licencia-label">Titular</div>
-                                    <div class="licencia-val">${citizen.apellido || ''}, ${citizen.nombre || ''}</div>
-                                    <div class="grid-2 mt-1">
-                                        <div>
-                                            <div class="licencia-label">DNI / N° Licencia</div>
-                                            <div class="licencia-val">${citizen.dni || ''}</div>
-                                        </div>
-                                        <div>
-                                            <div class="licencia-label">Edad / Clase</div>
-                                            <div class="licencia-val">${citizen.edad || '--'} años · B1</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="licencia-footer">
-                                <div><div class="licencia-label">Emisión</div><div class="font-bold">${licencia?.fecha_emision || '2026-08-06'}</div></div>
-                                <div><div class="licencia-label">Vencimiento</div><div class="font-bold" style="color:#fef08a">${licencia?.fecha_vencimiento || '2031-08-06'}</div></div>
-                                <div class="licencia-qr">📱</div>
-                            </div>
-                        </div>
-                        <div class="licencia-card__back">
-                            <div class="licencia-header">
-                                <span class="licencia-header__country">DATOS COMPLEMENTARIOS</span>
-                                <span style="font-size:0.7rem;color:#93c5fd">BARADERO</span>
-                            </div>
-                            <div style="font-size:0.8rem;line-height:1.5">
-                                <div><strong>Jurisdicción:</strong> Prov. de Buenos Aires</div>
-                                <div><strong>Donante:</strong> Sí</div>
-                                <div><strong>Observaciones:</strong> Habilitado sin restricciones.</div>
-                            </div>
-                            <div class="licencia-footer">
-                                <span class="text-xs" style="color:rgba(255,255,255,0.7)">Click para girar ↺</span>
-                            </div>
-                        </div>
+                <div style="max-width:460px;margin:0 auto;text-align:center">
+                    <div style="position:relative;cursor:pointer;border-radius:16px;overflow:hidden;box-shadow:0 12px 30px rgba(0,0,0,0.3);border:2px solid var(--primary);transition:transform 0.2s ease" 
+                         onclick="DashboardPage.toggleLicenciaImage()"
+                         onmouseover="this.style.transform='scale(1.02)'"
+                         onmouseout="this.style.transform='scale(1)'">
+                        <img id="licenciaImgDisplay" src="./img/licencia_frente.png" 
+                             style="width:100%;height:auto;max-height:285px;object-fit:cover;display:block;border-radius:14px" 
+                             alt="Licencia Digital Mi Argentina">
+                    </div>
+                    <div id="licenciaSideLabel" class="text-xs text-muted mt-2 font-bold" style="color:var(--primary);display:inline-flex;align-items:center;gap:6px">
+                        ${Icons.mapPin} Viendo: FRENTE DE LA LICENCIA (Datos personales y QR)
                     </div>
                 </div>
-
-                <div class="text-center">
-                    <button class="btn btn-outline btn-block" type="button" onclick="DashboardPage.closeLicenciaModal()">Cerrar</button>
-                </div>
-            </div>
+            </section>` : ''}
         </div>`;
 
-        if (window.Tutorial) {
+        const is100Pct = data.progreso_porcentaje === 100 && data.estado === 'completado' && licencia;
+        if (is100Pct) {
+            const tramiteKey = 'celebrated_' + (data.tramite_id || '1');
+            if (!sessionStorage.getItem(tramiteKey)) {
+                sessionStorage.setItem(tramiteKey, '1');
+                setTimeout(() => {
+                    if (window.Tutorial) {
+                        window.Tutorial.startTutorialWithContext('licencia-completada', true);
+                    }
+                }, 400);
+            }
+        } else if (window.Tutorial) {
             setTimeout(() => window.Tutorial.startTutorialWithContext('dashboard'), 300);
+        }
+    }
+
+    static toggleLicenciaImage() {
+        const img = document.getElementById('licenciaImgDisplay');
+        const label = document.getElementById('licenciaSideLabel');
+        if (!img) return;
+
+        if (img.src.includes('licencia_frente.png')) {
+            img.src = './img/licencia_dorso.png';
+            if (label) label.textContent = '📍 Viendo: DORSO DE LA LICENCIA (Datos médicos y firma)';
+        } else {
+            img.src = './img/licencia_frente.png';
+            if (label) label.textContent = '📍 Viendo: FRENTE DE LA LICENCIA (Datos personales y QR)';
+        }
+    }
+
+    static async seleccionarTramite(tipo) {
+        const actual = localStorage.getItem('tramite_activo_seleccionado');
+        
+        // Si se hace clic en la misma opción activa, se des-selecciona para limpiar la pantalla
+        if (actual === tipo) {
+            localStorage.removeItem('tramite_activo_seleccionado');
+            Toast.info('Trámite deseleccionado. Vista limpia.');
+            DashboardPage.render(document.getElementById('app'));
+            return;
+        }
+
+        const data = this.currentData || {};
+        const licencia = data.licencia;
+        const citizen = data.usuario || {};
+
+        // VALIDACIÓN DE RENOVACIÓN DE LICENCIA
+        if (tipo === 'renovacion') {
+            if (!licencia || !licencia.fecha_vencimiento) {
+                Toast.warning('ℹ️ No poseés una licencia previa registrada en el sistema para renovar. Podés iniciar tu primera "Licencia Nueva".');
+                return;
+            }
+            const hoy = new Date();
+            const venc = new Date(licencia.fecha_vencimiento);
+            const diasRestantes = Math.ceil((venc - hoy) / (1000 * 60 * 60 * 24));
+            if (diasRestantes > 30) {
+                Toast.warning(`ℹ️ Tu licencia N° ${licencia.numero_licencia || citizen.dni} sigue vigente hasta el ${licencia.fecha_vencimiento} (le quedan ${diasRestantes} días). La renovación se habilita 30 días antes del vencimiento.`);
+                return;
+            }
+        }
+
+        // VALIDACIÓN DE LICENCIA VENCIDA
+        if (tipo === 'vencida') {
+            if (!licencia || !licencia.fecha_vencimiento) {
+                Toast.warning('ℹ️ No registrás una licencia previa vencida. Seleccioná "Licencia Nueva" para sacar tu primera licencia.');
+                return;
+            }
+            const hoy = new Date();
+            const venc = new Date(licencia.fecha_vencimiento);
+            const diasRestantes = Math.ceil((venc - hoy) / (1000 * 60 * 60 * 24));
+            if (diasRestantes > 0) {
+                Toast.warning(`ℹ️ Tu licencia N° ${licencia.numero_licencia || citizen.dni} aún se encuentra vigente hasta el ${licencia.fecha_vencimiento}. El trámite de Licencia Vencida es únicamente para licencias expiradas.`);
+                return;
+            }
+        }
+
+        try {
+            localStorage.setItem('tramite_activo_seleccionado', tipo);
+            await ApiService.iniciarTramite(tipo);
+            Toast.success(`¡Excelente! Seleccionaste el trámite: ${tipo.toUpperCase()}`);
+            DashboardPage.render(document.getElementById('app'));
+        } catch (err) {
+            Toast.error(err.message || 'Error al seleccionar trámite');
+        }
+    }
+
+    static async toggleCudModal(actualCud) {
+        const nuevoCud = actualCud ? 0 : 1;
+        try {
+            await ApiService.actualizarCud(nuevoCud);
+            Toast.success(`Estado CUD actualizado a: ${nuevoCud ? '♿ Con CUD (Atención Prioritaria)' : 'Sin CUD'}`);
+            DashboardPage.render(document.getElementById('app'));
+        } catch (err) {
+            Toast.error(err.message || 'Error al actualizar CUD');
         }
     }
 
@@ -331,7 +397,6 @@ class DashboardPage {
             return;
         }
 
-        // Resetear giros 3D para que siempre abra mostrando el frente
         document.querySelectorAll('.licencia-card-3d').forEach(card => card.classList.remove('flipped'));
 
         const modal = document.getElementById('licenciaModal');
@@ -340,6 +405,22 @@ class DashboardPage {
         } else {
             const section = document.getElementById('licenciaSection');
             if (section) section.scrollIntoView({ behavior: 'smooth' });
+        }
+    }
+
+    static toggleLicenciaSide() {
+        const frontEl = document.getElementById('licenciaFront');
+        const backEl = document.getElementById('licenciaBack');
+        if (!frontEl || !backEl) return;
+
+        if (frontEl.style.display === 'none') {
+            backEl.style.display = 'none';
+            frontEl.style.display = 'flex';
+            Toast.info('🔄 Mostrando FRENTE de la licencia (Datos personales y QR)');
+        } else {
+            frontEl.style.display = 'none';
+            backEl.style.display = 'flex';
+            Toast.info('🔄 Mostrando DORSO de la licencia (Datos médicos y firma)');
         }
     }
 

@@ -8,6 +8,7 @@
 -- TABLA: usuarios (login por DNI, sin duplicados)
 -- ============================================================
 CREATE TABLE IF NOT EXISTS usuarios (
+<<<<<<< HEAD
   id            INT AUTO_INCREMENT PRIMARY KEY,
   dni           VARCHAR(50) NOT NULL UNIQUE,
   nombre        VARCHAR(100) NOT NULL DEFAULT '',
@@ -22,11 +23,28 @@ CREATE TABLE IF NOT EXISTS usuarios (
   foto_rostro   TEXT,
   created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+=======
+  id            INTEGER PRIMARY KEY AUTOINCREMENT,
+  dni           TEXT NOT NULL UNIQUE,
+  nombre        TEXT NOT NULL DEFAULT '',
+  apellido      TEXT NOT NULL DEFAULT '',
+  password_hash TEXT NOT NULL DEFAULT '',
+  email         TEXT DEFAULT '',
+  telefono      TEXT DEFAULT '',
+  fecha_nacimiento TEXT DEFAULT NULL,
+  direccion     TEXT DEFAULT '',
+  dni_frente    TEXT DEFAULT NULL,
+  dni_dorso     TEXT DEFAULT NULL,
+  foto_rostro   TEXT DEFAULT NULL,
+  tiene_cud     INTEGER DEFAULT 0,
+  created_at    TEXT DEFAULT (datetime('now','localtime')),
+  updated_at    TEXT DEFAULT (datetime('now','localtime'))
+>>>>>>> 68c55a60f7d0f4cd25d39b182726459d7a1587b2
 );
 
 -- ============================================================
 -- TABLA: admins (panel de administracion, login por usuario+pass)
--- Roles: pagos, salud, turnos
+-- Roles: pagos, salud, turnos, profesores
 -- ============================================================
 CREATE TABLE IF NOT EXISTS admins (
   id            INT AUTO_INCREMENT PRIMARY KEY,
@@ -110,9 +128,28 @@ CREATE TABLE IF NOT EXISTS preguntas_examen (
   opcion_b        TEXT NOT NULL,
   opcion_c        TEXT NOT NULL,
   opcion_d        TEXT NOT NULL,
+<<<<<<< HEAD
   respuesta_correcta VARCHAR(10) NOT NULL,
   activo          TINYINT DEFAULT 1,
   created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+=======
+  respuesta_correcta TEXT NOT NULL,
+  es_plantilla    INTEGER DEFAULT 1,
+  profesor_id     INTEGER DEFAULT NULL,
+  activo          INTEGER DEFAULT 1,
+  created_at      TEXT DEFAULT (datetime('now','localtime'))
+>>>>>>> 68c55a60f7d0f4cd25d39b182726459d7a1587b2
+);
+
+-- ============================================================
+-- TABLA: config_examen (configuración del profesor: plantilla, personalizado, hibrido)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS config_examen (
+  id              INTEGER PRIMARY KEY AUTOINCREMENT,
+  modo            TEXT NOT NULL DEFAULT 'plantilla', -- 'plantilla', 'personalizado', 'hibrido'
+  cant_plantilla  INTEGER NOT NULL DEFAULT 3,
+  cant_profesor   INTEGER NOT NULL DEFAULT 3,
+  updated_at      TEXT DEFAULT (datetime('now','localtime'))
 );
 
 -- ============================================================
@@ -189,11 +226,21 @@ CREATE TABLE IF NOT EXISTS turnos_practico (
 -- TABLA: reservas_turno (reservas de turnos por tramite)
 -- ============================================================
 CREATE TABLE IF NOT EXISTS reservas_turno (
+<<<<<<< HEAD
   id              INT AUTO_INCREMENT PRIMARY KEY,
   tramite_id      INT NOT NULL,
   turno_id        INT NOT NULL,
   estado          VARCHAR(50) DEFAULT 'reservado',
   resultado_examen VARCHAR(50) DEFAULT 'pendiente',
+=======
+  id              INTEGER PRIMARY KEY AUTOINCREMENT,
+  tramite_id      INTEGER NOT NULL,
+  turno_id        INTEGER NOT NULL,
+  estado          TEXT DEFAULT 'reservado',
+  resultado_examen TEXT DEFAULT 'pendiente',
+  huella_tomada   INTEGER DEFAULT 0,
+  foto_tomada     INTEGER DEFAULT 0,
+>>>>>>> 68c55a60f7d0f4cd25d39b182726459d7a1587b2
   observaciones_admin TEXT,
   fecha_reserva   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   fecha_revision  TIMESTAMP NULL DEFAULT NULL,
@@ -225,7 +272,11 @@ CREATE TABLE IF NOT EXISTS entregas (
 INSERT IGNORE INTO admins (usuario, password_hash, nombre, rol) VALUES
 ('admin_pagos', 'PENDING_HASH', 'Admin Pagos', 'pagos'),
 ('admin_salud', 'PENDING_HASH', 'Admin Salud', 'salud'),
-('admin_turnos', 'PENDING_HASH', 'Admin Turnos', 'turnos');
+('admin_turnos', 'PENDING_HASH', 'Admin Turnos', 'turnos'),
+('admin_profesores', 'PENDING_HASH', 'Profesor Admin', 'profesores');
+
+-- Configuración inicial del examen
+INSERT OR IGNORE INTO config_examen (id, modo, cant_plantilla, cant_profesor) VALUES (1, 'plantilla', 3, 3);
 
 -- Videos de seguridad vial
 INSERT IGNORE INTO videos (id, titulo, descripcion, url_video, duracion, orden) VALUES
@@ -234,6 +285,7 @@ INSERT IGNORE INTO videos (id, titulo, descripcion, url_video, duracion, orden) 
 (3, 'Primeros auxilios en accidentes viales', 'Procedimientos básicos de primeros auxilios en caso de accidente de tránsito.', 'https://www.youtube.com/embed/dQw4w9WgXcQ', '15 min', 3),
 (4, 'Normativa vigente en la Provincia de Buenos Aires', 'Conocé las leyes y regulaciones de tránsito vigentes en la provincia.', 'https://www.youtube.com/embed/dQw4w9WgXcQ', '8 min', 4);
 
+<<<<<<< HEAD
 -- Preguntas del examen teórico
 INSERT IGNORE INTO preguntas_examen (id, pregunta, opcion_a, opcion_b, opcion_c, opcion_d, respuesta_correcta) VALUES
 (1, '¿Qué indica una luz amarilla de semáforo?', 'Acelerar para pasar', 'Precaución, detenerse si es posible', 'Vía libre', 'Girar a la derecha', 'b'),
@@ -258,3 +310,29 @@ INSERT IGNORE INTO turnos_practico (id, fecha, horario, ubicacion, cupo_maximo) 
 (7, 'Miércoles 27/08/2026', '14:00 hs', 'Circuito Municipal de Baradero', 10),
 (8, 'Lunes 01/09/2026', '09:00 hs', 'Circuito Municipal de Baradero', 10);
 
+=======
+-- Preguntas del examen teórico (10 preguntas, se eligen según modo)
+INSERT INTO preguntas_examen (pregunta, opcion_a, opcion_b, opcion_c, opcion_d, respuesta_correcta, es_plantilla) VALUES
+('¿Qué indica una luz amarilla de semáforo?', 'Acelerar para pasar', 'Precaución, detenerse si es posible', 'Vía libre', 'Girar a la derecha', 'b', 1),
+('¿Cuál es el límite de velocidad en zona urbana?', '60 km/h', '40 km/h', '80 km/h', '30 km/h', 'b', 1),
+('¿Qué documento es obligatorio llevar al conducir?', 'Partida de nacimiento', 'Licencia de conducir vigente', 'Título del auto', 'Boleta de impuestos', 'b', 1),
+('¿Qué significa una señal de PARE?', 'Disminuir velocidad', 'Detenerse completamente', 'Ceder el paso', 'Estacionar', 'b', 1),
+('¿Cuándo se debe usar el cinturón de seguridad?', 'Solo en ruta', 'Solo el conductor', 'Siempre todos los ocupantes', 'Solo de noche', 'c', 1),
+('¿A qué distancia mínima se debe estacionar de una esquina?', '5 metros', '10 metros', '3 metros', '15 metros', 'b', 1),
+('¿Qué se debe hacer ante un paso a nivel sin barreras?', 'Pasar rápidamente', 'Detenerse, mirar y escuchar', 'Tocar bocina y pasar', 'Pasar si no hay tren visible', 'b', 1),
+('¿Cuál es la tasa de alcohol permitida para conductores particulares?', '0.5 g/l', '0.2 g/l', '0.0 g/l', '1.0 g/l', 'a', 1),
+('¿Quién tiene prioridad en una rotonda?', 'El que entra', 'El que ya está circulando', 'El vehículo más grande', 'El que viene por la derecha', 'b', 1),
+('¿Qué indica una línea amarilla continua en el centro de la calzada?', 'Se puede adelantar', 'Prohibido adelantar', 'Zona de estacionamiento', 'Carril exclusivo', 'b', 1);
+
+-- Turnos para examen práctico (fechas futuras)
+INSERT INTO turnos_practico (fecha, horario, ubicacion, cupo_maximo) VALUES
+('Lunes 11/08/2026', '09:00 hs', 'Circuito Municipal de Baradero', 10),
+('Miércoles 13/08/2026', '10:30 hs', 'Circuito Municipal de Baradero', 10),
+('Viernes 15/08/2026', '14:00 hs', 'Circuito Municipal de Baradero', 10),
+('Lunes 18/08/2026', '09:00 hs', 'Circuito Municipal de Baradero', 10),
+('Miércoles 20/08/2026', '10:30 hs', 'Circuito Municipal de Baradero', 10),
+('Lunes 25/08/2026', '09:00 hs', 'Circuito Municipal de Baradero', 10),
+('Miércoles 27/08/2026', '14:00 hs', 'Circuito Municipal de Baradero', 10),
+('Lunes 01/09/2026', '09:00 hs', 'Circuito Municipal de Baradero', 10);
+
+>>>>>>> 68c55a60f7d0f4cd25d39b182726459d7a1587b2

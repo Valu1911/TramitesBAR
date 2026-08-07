@@ -199,8 +199,8 @@ def run_tests():
     print("\n8. Examen Teórico")
     r, status = req('/examen/preguntas', token=user_token)
     preguntas = r.get('preguntas', [])
-    if status == 200 and len(preguntas) == 5:
-        log_pass("Obtención de 5 preguntas aleatorias")
+    if status == 200 and len(preguntas) > 0:
+        log_pass(f"Obtención de preguntas ({len(preguntas)} en el examen)")
     else:
         log_fail("Obtención de preguntas", str(r))
 
@@ -269,6 +269,8 @@ def run_tests():
         r_rev, s_rev = req(f'/admin/turnos/{res_id}/revisar', {
             'estado': 'completado',
             'resultado_examen': 'aprobado',
+            'huella_tomada': 1,
+            'foto_tomada': 1,
             'observaciones': 'Conduccion perfecta en circuito'
         }, token=admin_turnos_token, method='PUT')
         if s_rev == 200:
@@ -401,10 +403,120 @@ def run_tests():
     else:
         log_fail("Admin Stats", str(r))
 
+    # 17. PRUEBAS NUEVAS: CUD, SELECCIÓN DE TRÁMITES, BIOMETRÍA Y PROFESORES
+    print("\n16. Validación CUD y Selección de Trámites desde Dashboard")
+    cud_user_dni = str(random.randint(40000000, 49999999))
+    r, status = req('/auth/registro', {
+        'dni': cud_user_dni, 'nombre': 'Roberto', 'apellido': 'Gomez',
+        'fecha_nacimiento': '1990-08-10', 'password': 'password123',
+        'tiene_cud': True, 'tipo_tramite': 'nueva'
+    })
+    if status == 201 and bool(r['usuario'].get('tiene_cud')) is True:
+        log_pass("Registro con CUD activado (HTTP 201)")
+        cud_user_token = r['token']
+    else:
+        log_fail("Registro con CUD", str(r))
+        cud_user_token = user_token
+
+    r, status = req('/usuario/cud', {'tiene_cud': False}, token=cud_user_token)
+    if status == 200 and r.get('tiene_cud') == 0:
+        log_pass("Actualización dinámica de CUD a False (HTTP 200)")
+    else:
+        log_fail("Actualización CUD", str(r))
+
+    # Selección de Trámites
+    r, status = req('/tramite/iniciar', {'tipo': 'profesional'}, token=cud_user_token)
+    if status == 200 and r.get('tipo') == 'profesional':
+        log_pass("Selección/cambio de trámite a 'profesional' desde el Dashboard (HTTP 200)")
+        cud_user_token = r['token']
+    else:
+        log_fail("Selección de Trámite", str(r))
+
+    # 18. PROFESORES: Configuración de Examen y Banco de Preguntas
+    print("\n17. Panel de Profesores y Modos de Examen (Plantilla, Personalizado, Híbrido)")
+    r, status = req('/admin/login', {'usuario': 'admin_profesores', 'password': 'admin123'})
+    if status == 200 and 'token' in r:
+        log_pass("Login de Profesor Admin exitoso (Rol profesores)")
+        prof_token = r['token']
+    else:
+        log_fail("Login de Profesor Admin", str(r))
+        prof_token = None
+
+    if prof_token:
+        # Crear pregunta de profesor
+        r, status = req('/admin/preguntas', {
+            'pregunta': '¿Qué distancia mínima de seguimiento corresponde en lluvia?',
+            'opcion_a': '3 segundos', 'opcion_b': '5 segundos', 'opcion_c': '1 segundo', 'opcion_d': 'No importa',
+            'respuesta_correcta': 'b', 'es_plantilla': 0
+        }, token=prof_token)
+        if status == 200 and 'id' in r:
+            log_pass("Creación de pregunta de profesor exitosa")
+        else:
+            log_fail("Crear pregunta profesor", str(r))
+
+        # Configurar examen en modo hibrido
+        r, status = req('/admin/config-examen', {'modo': 'hibrido', 'cant_plantilla': 3, 'cant_profesor': 2}, token=prof_token)
+        if status == 200:
+            log_pass("Configuración de examen actualizada a Modo Híbrido")
+        else:
+            log_fail("Configuración examen híbrido", str(r))
+
+        # Obtener preview
+        r, status = req('/admin/preguntas/preview', token=prof_token)
+        if status == 200 and 'preguntas' in r:
+            log_pass(f"Vista previa de preguntas del profesor obtenida ({len(r['preguntas'])} preguntas en vista previa)")
+        else:
+            log_fail("Vista previa preguntas profesor", str(r))
+
+    # 19. PROCTORING PING Y MONITOREO EN VIVO
+    print("\n18. Proctoring: Ping en Vivo y Monitoreo Admin")
+    r, status = req('/examen/stream/ping', {
+        'cam_frame': 'data:image/jpeg;base64,mockframe',
+        'screen_frame': 'data:image/jpeg;base64,mockscreen',
+        'warnings_count': 1, 'elapsed_seconds': 15, 'current_question': 2
+    }, token=user_token)
+    if status == 200:
+        log_pass("Envío de fotograma de proctoring (Ping) exitoso")
+    else:
+        log_fail("Proctoring Ping", str(r))
+
+    r, status = req('/admin/examen/monitoreo', token=admin_pagos_token)
+    if status == 200 and 'estudiantes' in r:
+        log_pass(f"Monitoreo en vivo de examen obtenido ({len(r['estudiantes'])} estudiantes activos supervisados)")
+    else:
+        log_fail("Monitoreo en vivo", str(r))
+
+    # 20. TURNO PRÁCTICO UNIFICADO CON HUELLA DIGITAL Y FOTO BIOMÉTRICA
+    print("\n19. Validación Biométrica en Turno Práctico (Huella + Foto)")
+    # Reservar turno
+    r, status = req('/turnos/disponibles', token=user_token)
+    turnos_avail = r.get('turnos', [])
+    if turnos_avail:
+        t_id = turnos_avail[0]['id']
+        r_res, status_res = req('/turnos/reservar', {'turno_id': t_id}, token=user_token)
+        if status_res == 200:
+            res_id = r_res['id']
+            log_pass("Reserva de turno unificado (Práctico + Biometría) exitosa")
+
+            # Aprobar turno registrando examen, huella y foto
+            r_rev, status_rev = req(f'/admin/turnos/{res_id}/revisar', {
+                'estado': 'completado',
+                'resultado_examen': 'aprobado',
+                'huella_tomada': 1,
+                'foto_tomada': 1,
+                'observaciones': 'Examen y Biometría verificados'
+            }, token=admin_pagos_token, method='PUT')
+
+            if status_rev == 200:
+                log_pass("Revisión de turno con Huella + Foto aprobada y emisión de Licencia Digital ejecutada")
+            else:
+                log_fail("Revisión turno biometría", str(r_rev))
+
     print("\n" + "=" * 60)
     print(f"  RESULTADO FINAL: {passed} PRUEBAS EXITOSAS, {failed} FALLOS")
     print("=" * 60)
     return failed
+
 
 if __name__ == '__main__':
     err_count = run_tests()

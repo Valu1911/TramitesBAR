@@ -1,5 +1,5 @@
 /**
- * Página de Login - Ingreso por DNI
+ * Página de Login - Ingreso por DNI y Contraseña
  */
 class LoginPage {
     static render(app) {
@@ -31,6 +31,7 @@ class LoginPage {
                                    placeholder="Tu contraseña" required>
                             <div id="loginError" class="form-error" style="display:none"></div>
                         </div>
+
                         <button type="submit" class="btn btn-primary btn-block btn-lg" id="loginBtn">
                             Continuar →
                         </button>
@@ -80,15 +81,14 @@ class LoginPage {
             const checkResult = await ApiService.checkDni(dni);
 
             if (checkResult.exists) {
-                // Login directo
+                // Login directo sin re-preguntar CUD
                 const loginResult = await ApiService.login(dni, password);
                 Toast.success(`¡Bienvenido/a, ${loginResult.usuario.nombre}!`);
                 Router.navigate('dashboard');
             } else {
                 // Necesita registro
-                Router.navigate('registro', { dni });
-                // Guardamos el DNI temporalmente
                 sessionStorage.setItem('registro_dni', dni);
+                Router.navigate('registro');
             }
         } catch (err) {
             if (err.data?.needs_register) {

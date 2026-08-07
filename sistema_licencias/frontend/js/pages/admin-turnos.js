@@ -1,5 +1,5 @@
 /**
- * Admin Panel - Turnos y Exámenes Prácticos
+ * Admin Panel - Turnos, Exámenes Prácticos y Biometría (Huella + Foto)
  */
 class AdminTurnosPage {
     static filtro = 'todos';
@@ -37,8 +37,8 @@ class AdminTurnosPage {
         <div class="page-content animate-fadeIn">
             <div class="flex-between mb-4">
                 <div>
-                    <h1 style="font-size:1.25rem;font-weight:800;display:flex;align-items:center;gap:8px">${Icons.calendar} Gestión de Turnos y Exámenes</h1>
-                    <p class="text-sm text-muted">Aprobá turnos y registrá resultados de exámenes prácticos</p>
+                    <h1 style="font-size:1.25rem;font-weight:800;display:flex;align-items:center;gap:8px">${Icons.calendar} Gestión de Turnos y Biometría</h1>
+                    <p class="text-sm text-muted">Confirmá turnos, registrá la toma de huella digital, foto y el resultado del examen práctico.</p>
                 </div>
                 <span class="badge badge-pending">${data.pendientes} pendientes</span>
             </div>
@@ -63,7 +63,7 @@ class AdminTurnosPage {
                         'reservado': { badge: 'badge-pending', text: '<span style="display:flex;align-items:center;gap:4px">' + Icons.clock + ' Pendiente</span>' },
                         'aprobado': { badge: 'badge-info', text: '<span style="display:flex;align-items:center;gap:4px">' + Icons.check + ' Confirmado</span>' },
                         'completado': { badge: r.resultado_examen === 'aprobado' ? 'badge-success' : 'badge-danger', 
-                                       text: r.resultado_examen === 'aprobado' ? '<span style="display:flex;align-items:center;gap:4px">' + Icons.party + ' Aprobado</span>' : '<span style="display:flex;align-items:center;gap:4px">' + Icons.x + ' No aprobado</span>' },
+                                       text: r.resultado_examen === 'aprobado' ? '<span style="display:flex;align-items:center;gap:4px">' + Icons.party + ' Aprobado & Biometría OK</span>' : '<span style="display:flex;align-items:center;gap:4px">' + Icons.x + ' No aprobado</span>' },
                         'rechazado': { badge: 'badge-danger', text: '<span style="display:flex;align-items:center;gap:4px">' + Icons.x + ' Rechazado</span>' }
                     };
                     const st = estadoMap[r.estado] || estadoMap['reservado'];
@@ -86,6 +86,15 @@ class AdminTurnosPage {
                                     <div class="text-xs text-muted" style="display:flex;align-items:center;gap:4px">${Icons.mapPin} ${r.ubicacion}</div>
                                 </div>
                             </div>
+
+                            <div style="display:flex;gap:12px;margin-top:10px;font-size:0.75rem">
+                                <span class="badge ${r.huella_tomada ? 'badge-success' : 'badge-pending'}">
+                                    ☝️ Huella: ${r.huella_tomada ? 'Registrada' : 'Pendiente'}
+                                </span>
+                                <span class="badge ${r.foto_tomada ? 'badge-success' : 'badge-pending'}">
+                                    📸 Foto: ${r.foto_tomada ? 'Registrada' : 'Pendiente'}
+                                </span>
+                            </div>
                         </div>
 
                         ${r.estado === 'reservado' ? `
@@ -99,17 +108,29 @@ class AdminTurnosPage {
                             </button>
                         </div>` : ''}
 
-                        ${r.estado === 'aprobado' ? `
-                        <div>
-                            <p class="text-xs text-muted mb-2">Registrar resultado del examen práctico:</p>
+                        ${(r.estado === 'aprobado' || r.estado === 'completado') ? `
+                        <div class="p-3 style="background:var(--bg);border-radius:var(--radius-md)">
+                            <p class="text-xs font-bold mb-2">📋 Validación de Evaluación y Registros Biométricos:</p>
+                            
+                            <div style="display:flex;flex-wrap:wrap;gap:16px;margin-bottom:12px;font-size:0.85rem">
+                                <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
+                                    <input type="checkbox" id="checkHuella_${r.id}" ${r.huella_tomada ? 'checked' : ''}>
+                                    <span>☝️ Huella Digital Tomada</span>
+                                </label>
+                                <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
+                                    <input type="checkbox" id="checkFoto_${r.id}" ${r.foto_tomada ? 'checked' : ''}>
+                                    <span>📸 Foto de Licencia Tomada</span>
+                                </label>
+                            </div>
+
                             <div class="admin-item__actions">
                                 <button class="btn btn-success btn-sm" 
-                                        onclick="AdminTurnosPage.completar(${r.id}, 'aprobado')">
-                                    <span style="display:flex;align-items:center;gap:4px">${Icons.party} Aprobó examen</span>
+                                        onclick="AdminTurnosPage.completarConBiometria(${r.id}, 'aprobado')">
+                                    <span style="display:flex;align-items:center;gap:4px">${Icons.party} Aprobar Examen y Emitir</span>
                                 </button>
                                 <button class="btn btn-outline btn-sm" style="color:var(--danger);border-color:var(--danger)" 
-                                        onclick="AdminTurnosPage.completar(${r.id}, 'reprobado')">
-                                    <span style="display:flex;align-items:center;gap:4px">${Icons.x} No aprobó</span>
+                                        onclick="AdminTurnosPage.completarConBiometria(${r.id}, 'reprobado')">
+                                    <span style="display:flex;align-items:center;gap:4px">${Icons.x} No Aprobó Examen</span>
                                 </button>
                             </div>
                         </div>` : ''}
@@ -134,7 +155,7 @@ class AdminTurnosPage {
         const obs = estado === 'rechazado' ? prompt('Motivo del rechazo (opcional):') || '' : '';
         
         try {
-            await ApiService.adminRevisarTurno(reservaId, estado, 'pendiente', obs);
+            await ApiService.adminRevisarTurno(reservaId, estado, 'pendiente', 0, 0, obs);
             Toast.success(`Turno ${estado} correctamente`);
             this.render(document.getElementById('app'));
         } catch (err) {
@@ -142,12 +163,21 @@ class AdminTurnosPage {
         }
     }
 
-    static async completar(reservaId, resultado) {
+    static async completarConBiometria(reservaId, resultado) {
+        const huellaChecked = document.getElementById(`checkHuella_${reservaId}`)?.checked ? 1 : 0;
+        const fotoChecked = document.getElementById(`checkFoto_${reservaId}`)?.checked ? 1 : 0;
+
+        if (resultado === 'aprobado' && (!huellaChecked || !fotoChecked)) {
+            if (!confirm('⚠️ Advertencia: No se han marcado ambas verificaciones biométricas (Huella y Foto). ¿Deseás continuar?')) {
+                return;
+            }
+        }
+
         const obs = resultado === 'reprobado' ? prompt('Observaciones (opcional):') || '' : '';
         
         try {
-            await ApiService.adminRevisarTurno(reservaId, 'completado', resultado, obs);
-            Toast.success(resultado === 'aprobado' ? '¡Examen práctico aprobado!' : 'Examen práctico registrado como no aprobado');
+            await ApiService.adminRevisarTurno(reservaId, 'completado', resultado, huellaChecked, fotoChecked, obs);
+            Toast.success(resultado === 'aprobado' ? '¡Examen práctico y registro biométrico finalizados! Licencia lista.' : 'Registro finalizado como no aprobado.');
             this.render(document.getElementById('app'));
         } catch (err) {
             Toast.error(err.message);
