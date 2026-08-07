@@ -202,42 +202,16 @@ class TutorialSystem {
                     // Actualizar spotlight cutout
                     this.updateSpotlight(targetEl);
                     
-                    // Calcular posición para la mascota
-                    const rect = targetEl.getBoundingClientRect();
-                    const cWidth = 460; // 300 dialog + 15 gap + 140 mascot
-                    const cHeight = 160;
+                    // Estrategia de posicionamiento: Ubicar a TramitBot más arriba en la esquina inferior derecha
+                    // para que el diálogo completo y el botón de confirmar sean 100% visibles y fáciles de presionar.
+                    const cWidth = 460;
+                    const cHeight = 320;
                     
-                    let top = 0;
-                    let left = 0;
+                    let top = window.innerHeight - cHeight - 40;
+                    let left = window.innerWidth - cWidth - 30;
                     
-                    // Estrategia de posicionamiento
-                    if (rect.right + 20 + cWidth <= window.innerWidth) {
-                        // A la derecha
-                        left = rect.right + 20;
-                        top = rect.top + (rect.height / 2) - (cHeight / 2);
-                    } else if (rect.left - 20 - cWidth >= 0) {
-                        // A la izquierda
-                        left = rect.left - 20 - cWidth;
-                        top = rect.top + (rect.height / 2) - (cHeight / 2);
-                    } else if (rect.bottom + 20 + cHeight <= window.innerHeight) {
-                        // Abajo
-                        top = rect.bottom + 20;
-                        left = rect.left + (rect.width / 2) - (cWidth / 2);
-                    } else if (rect.top - 20 - cHeight >= 0) {
-                        // Arriba
-                        top = rect.top - 20 - cHeight;
-                        left = rect.left + (rect.width / 2) - (cWidth / 2);
-                    } else {
-                        // Elemento muy grande, centrar en pantalla forzosamente
-                        top = (window.innerHeight - cHeight) / 2;
-                        left = (window.innerWidth - cWidth) / 2;
-                    }
-                    
-                    // Ajustar para que nunca se salga de la pantalla
                     if (left < 10) left = 10;
-                    if (left + cWidth > window.innerWidth - 10) left = window.innerWidth - cWidth - 10;
-                    if (top < 70) top = 70; // Respetar navbar
-                    if (top + cHeight > window.innerHeight - 10) top = window.innerHeight - cHeight - 10;
+                    if (top < 70) top = 70;
                     
                     this.container.style.top = top + 'px';
                     this.container.style.left = left + 'px';
@@ -290,21 +264,68 @@ class TutorialSystem {
 
     getStepsForContext(context) {
         switch(context) {
-            case 'dashboard':
+            case 'licencia-completada':
                 return [
                     {
-                        title: '¡Bienvenido!',
-                        text: 'Soy TramitBot y te voy a guiar para que saques tu licencia rápido y sin perderte.',
+                        title: '🎉 ¡FELICITACIONES! Trámite al 100%',
+                        text: '¡Increíble trabajo! Has completado exitosamente el 100% de tu trámite. Tu Licencia Digital Mi Argentina ya está emitida y disponible abajo.',
+                        targetSelector: '#licenciaSection'
+                    },
+                    {
+                        title: '🪪 Mi Licencia Digital Emitida',
+                        text: 'Aquí podés ver tu credencial emitida. Hacé clic sobre ella para alternar entre la cara frontal (datos y QR) y la cara trasera (información médica).',
+                        targetSelector: '#licenciaImgDisplay'
+                    }
+                ];
+            case 'dashboard':
+                const licenciaSec = document.getElementById('licenciaSection');
+                if (licenciaSec) {
+                    return [
+                        {
+                            title: '🎉 Trámite Completado al 100%',
+                            text: '¡Felicitaciones! Has completado exitosamente el 100% de tu trámite. Tu Licencia Digital ya está emitida y disponible en esta sección inferior.',
+                            targetSelector: '#licenciaSection'
+                        },
+                        {
+                            title: '🪪 Credencial Digital Mi Argentina',
+                            text: 'Aquí se encuentra tu credencial oficial emitida. Hacé clic sobre la tarjeta para alternar entre la cara frontal (datos y QR) y la cara trasera (información médica).',
+                            targetSelector: '#licenciaImgDisplay'
+                        }
+                    ];
+                }
+                if (!localStorage.getItem('tramite_activo_seleccionado')) {
+                    return [
+                        {
+                            title: '¡Bienvenido/a al Portal de Baradero!',
+                            text: 'Soy TramitBot y te voy a guiar. Para comenzar, primero debes seleccionar un trámite de la lista superior.',
+                            targetSelector: null
+                        },
+                        {
+                            title: 'Selección de Trámite',
+                            text: 'Elige entre Licencia Nueva, Renovación, Vencida, Subir de Categoría, Profesional o Extravío.',
+                            targetSelector: '.tramite-card-btn'
+                        },
+                        {
+                            title: 'Despliegue Específico',
+                            text: 'Al hacer clic en cualquiera de estas opciones, se desplegarán tus pasos específicos y barra de progreso.',
+                            targetSelector: null
+                        }
+                    ];
+                }
+                return [
+                    {
+                        title: '¡Trámite en Curso!',
+                        text: 'Soy TramitBot. Te muestro la barra de avance y los pasos requeridos para obtener tu licencia.',
                         targetSelector: null
                     },
                     {
                         title: 'Tu Progreso',
-                        text: 'Aquí podrás ver cuánto te falta para terminar tu trámite.',
+                        text: 'Aquí podrás ver cuánto te falta para terminar tu trámite (actualmente en curso).',
                         targetSelector: '.progress-bar'
                     },
                     {
                         title: 'Pasos Obligatorios',
-                        text: 'Debes completar estos pasos en orden. Te iré guiando en cada uno.',
+                        text: 'Debes completar estos pasos en orden para alcanzar el 100%.',
                         targetSelector: '.grid-steps'
                     }
                 ];

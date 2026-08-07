@@ -20,13 +20,14 @@ CREATE TABLE IF NOT EXISTS usuarios (
   dni_frente    TEXT DEFAULT NULL,
   dni_dorso     TEXT DEFAULT NULL,
   foto_rostro   TEXT DEFAULT NULL,
+  tiene_cud     INTEGER DEFAULT 0,
   created_at    TEXT DEFAULT (datetime('now','localtime')),
   updated_at    TEXT DEFAULT (datetime('now','localtime'))
 );
 
 -- ============================================================
 -- TABLA: admins (panel de administracion, login por usuario+pass)
--- Roles: pagos, salud, turnos
+-- Roles: pagos, salud, turnos, profesores
 -- ============================================================
 CREATE TABLE IF NOT EXISTS admins (
   id            INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -112,8 +113,21 @@ CREATE TABLE IF NOT EXISTS preguntas_examen (
   opcion_c        TEXT NOT NULL,
   opcion_d        TEXT NOT NULL,
   respuesta_correcta TEXT NOT NULL,
+  es_plantilla    INTEGER DEFAULT 1,
+  profesor_id     INTEGER DEFAULT NULL,
   activo          INTEGER DEFAULT 1,
   created_at      TEXT DEFAULT (datetime('now','localtime'))
+);
+
+-- ============================================================
+-- TABLA: config_examen (configuración del profesor: plantilla, personalizado, hibrido)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS config_examen (
+  id              INTEGER PRIMARY KEY AUTOINCREMENT,
+  modo            TEXT NOT NULL DEFAULT 'plantilla', -- 'plantilla', 'personalizado', 'hibrido'
+  cant_plantilla  INTEGER NOT NULL DEFAULT 3,
+  cant_profesor   INTEGER NOT NULL DEFAULT 3,
+  updated_at      TEXT DEFAULT (datetime('now','localtime'))
 );
 
 -- ============================================================
@@ -195,6 +209,8 @@ CREATE TABLE IF NOT EXISTS reservas_turno (
   turno_id        INTEGER NOT NULL,
   estado          TEXT DEFAULT 'reservado',
   resultado_examen TEXT DEFAULT 'pendiente',
+  huella_tomada   INTEGER DEFAULT 0,
+  foto_tomada     INTEGER DEFAULT 0,
   observaciones_admin TEXT,
   fecha_reserva   TEXT DEFAULT (datetime('now','localtime')),
   fecha_revision  TEXT DEFAULT NULL,
@@ -226,7 +242,11 @@ CREATE TABLE IF NOT EXISTS entregas (
 INSERT INTO admins (usuario, password_hash, nombre, rol) VALUES
 ('admin_pagos', 'PENDING_HASH', 'Admin Pagos', 'pagos'),
 ('admin_salud', 'PENDING_HASH', 'Admin Salud', 'salud'),
-('admin_turnos', 'PENDING_HASH', 'Admin Turnos', 'turnos');
+('admin_turnos', 'PENDING_HASH', 'Admin Turnos', 'turnos'),
+('admin_profesores', 'PENDING_HASH', 'Profesor Admin', 'profesores');
+
+-- Configuración inicial del examen
+INSERT OR IGNORE INTO config_examen (id, modo, cant_plantilla, cant_profesor) VALUES (1, 'plantilla', 3, 3);
 
 -- Videos de seguridad vial
 INSERT INTO videos (titulo, descripcion, url_video, duracion, orden) VALUES
@@ -235,18 +255,18 @@ INSERT INTO videos (titulo, descripcion, url_video, duracion, orden) VALUES
 ('Primeros auxilios en accidentes viales', 'Procedimientos básicos de primeros auxilios en caso de accidente de tránsito.', 'https://www.youtube.com/embed/dQw4w9WgXcQ', '15 min', 3),
 ('Normativa vigente en la Provincia de Buenos Aires', 'Conocé las leyes y regulaciones de tránsito vigentes en la provincia.', 'https://www.youtube.com/embed/dQw4w9WgXcQ', '8 min', 4);
 
--- Preguntas del examen teórico (10 preguntas, se eligen 5 al azar)
-INSERT INTO preguntas_examen (pregunta, opcion_a, opcion_b, opcion_c, opcion_d, respuesta_correcta) VALUES
-('¿Qué indica una luz amarilla de semáforo?', 'Acelerar para pasar', 'Precaución, detenerse si es posible', 'Vía libre', 'Girar a la derecha', 'b'),
-('¿Cuál es el límite de velocidad en zona urbana?', '60 km/h', '40 km/h', '80 km/h', '30 km/h', 'b'),
-('¿Qué documento es obligatorio llevar al conducir?', 'Partida de nacimiento', 'Licencia de conducir vigente', 'Título del auto', 'Boleta de impuestos', 'b'),
-('¿Qué significa una señal de PARE?', 'Disminuir velocidad', 'Detenerse completamente', 'Ceder el paso', 'Estacionar', 'b'),
-('¿Cuándo se debe usar el cinturón de seguridad?', 'Solo en ruta', 'Solo el conductor', 'Siempre todos los ocupantes', 'Solo de noche', 'c'),
-('¿A qué distancia mínima se debe estacionar de una esquina?', '5 metros', '10 metros', '3 metros', '15 metros', 'b'),
-('¿Qué se debe hacer ante un paso a nivel sin barreras?', 'Pasar rápidamente', 'Detenerse, mirar y escuchar', 'Tocar bocina y pasar', 'Pasar si no hay tren visible', 'b'),
-('¿Cuál es la tasa de alcohol permitida para conductores particulares?', '0.5 g/l', '0.2 g/l', '0.0 g/l', '1.0 g/l', 'a'),
-('¿Quién tiene prioridad en una rotonda?', 'El que entra', 'El que ya está circulando', 'El vehículo más grande', 'El que viene por la derecha', 'b'),
-('¿Qué indica una línea amarilla continua en el centro de la calzada?', 'Se puede adelantar', 'Prohibido adelantar', 'Zona de estacionamiento', 'Carril exclusivo', 'b');
+-- Preguntas del examen teórico (10 preguntas, se eligen según modo)
+INSERT INTO preguntas_examen (pregunta, opcion_a, opcion_b, opcion_c, opcion_d, respuesta_correcta, es_plantilla) VALUES
+('¿Qué indica una luz amarilla de semáforo?', 'Acelerar para pasar', 'Precaución, detenerse si es posible', 'Vía libre', 'Girar a la derecha', 'b', 1),
+('¿Cuál es el límite de velocidad en zona urbana?', '60 km/h', '40 km/h', '80 km/h', '30 km/h', 'b', 1),
+('¿Qué documento es obligatorio llevar al conducir?', 'Partida de nacimiento', 'Licencia de conducir vigente', 'Título del auto', 'Boleta de impuestos', 'b', 1),
+('¿Qué significa una señal de PARE?', 'Disminuir velocidad', 'Detenerse completamente', 'Ceder el paso', 'Estacionar', 'b', 1),
+('¿Cuándo se debe usar el cinturón de seguridad?', 'Solo en ruta', 'Solo el conductor', 'Siempre todos los ocupantes', 'Solo de noche', 'c', 1),
+('¿A qué distancia mínima se debe estacionar de una esquina?', '5 metros', '10 metros', '3 metros', '15 metros', 'b', 1),
+('¿Qué se debe hacer ante un paso a nivel sin barreras?', 'Pasar rápidamente', 'Detenerse, mirar y escuchar', 'Tocar bocina y pasar', 'Pasar si no hay tren visible', 'b', 1),
+('¿Cuál es la tasa de alcohol permitida para conductores particulares?', '0.5 g/l', '0.2 g/l', '0.0 g/l', '1.0 g/l', 'a', 1),
+('¿Quién tiene prioridad en una rotonda?', 'El que entra', 'El que ya está circulando', 'El vehículo más grande', 'El que viene por la derecha', 'b', 1),
+('¿Qué indica una línea amarilla continua en el centro de la calzada?', 'Se puede adelantar', 'Prohibido adelantar', 'Zona de estacionamiento', 'Carril exclusivo', 'b', 1);
 
 -- Turnos para examen práctico (fechas futuras)
 INSERT INTO turnos_practico (fecha, horario, ubicacion, cupo_maximo) VALUES
@@ -258,3 +278,4 @@ INSERT INTO turnos_practico (fecha, horario, ubicacion, cupo_maximo) VALUES
 ('Lunes 25/08/2026', '09:00 hs', 'Circuito Municipal de Baradero', 10),
 ('Miércoles 27/08/2026', '14:00 hs', 'Circuito Municipal de Baradero', 10),
 ('Lunes 01/09/2026', '09:00 hs', 'Circuito Municipal de Baradero', 10);
+

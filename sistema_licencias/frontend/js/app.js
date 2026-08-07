@@ -72,7 +72,7 @@ class Router {
 
         // Auth guard
         const publicPages = ['login', 'registro', 'admin-login'];
-        const adminPages = ['admin-pagos', 'admin-salud', 'admin-turnos'];
+        const adminPages = ['admin-pagos', 'admin-salud', 'admin-turnos', 'admin-profesores'];
 
         if (!publicPages.includes(page) && !adminPages.includes(page)) {
             const token = ApiService.getToken();
@@ -131,6 +131,9 @@ class Router {
             case 'admin-turnos':
                 AdminTurnosPage.render(app);
                 break;
+            case 'admin-profesores':
+                AdminProfesoresPage.render(app);
+                break;
             default:
                 app.innerHTML = `
                     <div class="page-content text-center" style="padding-top:100px">
@@ -156,13 +159,14 @@ function renderNavbar(user) {
             </a>
             <div class="navbar__actions">
                 <select class="form-input" style="height:32px;padding:0 8px;font-size:0.75rem;background:var(--warning-bg);color:#b45309;border:1px dashed var(--warning);font-weight:700;cursor:pointer" onchange="saltarDemoPaso(this.value); this.value='';" title="Navegar a cualquier sección (Modo Demo)">
-                    <option value="" disabled selected>⚡ Saltear a...</option>
-                    <option value="charlas">1. 🎬 Charlas en video</option>
-                    <option value="formularios">2. 🏥 Formularios de Salud</option>
-                    <option value="examen">3. 📝 Examen Teórico</option>
-                    <option value="pago">4. 💳 Pago del Arancel</option>
-                    <option value="practico">5. 🚗 Examen Práctico</option>
-                    <option value="entrega">6. 📦 Entrega de Licencia</option>
+                    <option value="" disabled selected>Saltear a...</option>
+                    <option value="charlas">1. Charlas en video</option>
+                    <option value="formularios">2. Formularios de Salud</option>
+                    <option value="examen">3. Examen Teórico</option>
+                    <option value="pago">4. Pago del Arancel</option>
+                    <option value="practico">5. Examen Práctico</option>
+                    <option value="entrega">6. Entrega de Licencia</option>
+                    <option value="completar">7. Completar Trámite (100%)</option>
                 </select>
                 <button class="btn btn-ghost btn-sm" onclick="toggleDarkMode()" title="Cambiar tema" id="darkModeBtn">
                     <span style="display:flex;align-items:center">${document.body.classList.contains('dark') ? Icons.sun : Icons.moon}</span>
@@ -185,12 +189,29 @@ function renderNavbar(user) {
 async function saltarDemoPaso(paso) {
     if (!paso) return;
     try {
+        if (paso === 'completar') {
+            await ApiService.saltarPaso('completar');
+            Toast.success('Trámite completado al 100%. Licencia Digital emitida');
+            sessionStorage.clear();
+            const app = document.getElementById('app');
+            if (app) DashboardPage.render(app);
+            setTimeout(() => {
+                if (window.Tutorial) {
+                    window.Tutorial.startTutorialWithContext('licencia-completada', true);
+                }
+            }, 400);
+            return;
+        }
         await ApiService.saltarPaso(paso);
-        Toast.success(`⚡ Modo Demo: Se avanzó a la sección de ${paso.toUpperCase()}`);
-        Router.navigate(paso);
+        Toast.success(`Modo Demo: Avanzado a ${paso.toUpperCase()}`);
+        const app = document.getElementById('app');
+        if (app && (window.location.hash.includes('dashboard') || !window.location.hash)) {
+            DashboardPage.render(app);
+        } else {
+            Router.navigate(paso);
+        }
     } catch (err) {
-        Toast.success(`⚡ Modo Demo: Navegando a ${paso.toUpperCase()}`);
-        Router.navigate(paso);
+        Toast.error(err.message || 'Error al saltar paso en modo demo');
     }
 }
 
@@ -198,7 +219,7 @@ function renderAdminNavbar(admin) {
     return `
     <nav class="navbar" style="background:rgba(23,37,84,0.95);border-bottom-color:rgba(255,255,255,0.1)">
         <div class="navbar__inner">
-            <a class="navbar__brand" style="color:white" href="#admin-pagos">
+            <a class="navbar__brand" style="color:white" href="#admin-profesores">
                 <div class="navbar__brand-icon" style="background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center">${Icons.settings}</div>
                 <span>Admin Panel</span>
             </a>
@@ -206,6 +227,7 @@ function renderAdminNavbar(admin) {
                 <button class="btn btn-ghost btn-sm" onclick="toggleDarkMode()" title="Cambiar tema" style="color:rgba(255,255,255,0.6)" id="darkModeAdminBtn">
                     <span style="display:flex;align-items:center">${document.body.classList.contains('dark') ? Icons.sun : Icons.moon}</span>
                 </button>
+                <button class="btn btn-ghost btn-sm" style="color:${admin?.rol==='profesores'?'#38bdf8':'rgba(255,255,255,0.6)'}; display:flex;align-items:center;gap:4px" onclick="Router.navigate('admin-profesores')">${Icons.teacher} Profesores</button>
                 <button class="btn btn-ghost btn-sm" style="color:${admin?.rol==='pagos'?'#38bdf8':'rgba(255,255,255,0.6)'}; display:flex;align-items:center;gap:4px" onclick="Router.navigate('admin-pagos')">${Icons.money} Pagos</button>
                 <button class="btn btn-ghost btn-sm" style="color:${admin?.rol==='salud'?'#38bdf8':'rgba(255,255,255,0.6)'}; display:flex;align-items:center;gap:4px" onclick="Router.navigate('admin-salud')">${Icons.heart} Salud</button>
                 <button class="btn btn-ghost btn-sm" style="color:${admin?.rol==='turnos'?'#38bdf8':'rgba(255,255,255,0.6)'}; display:flex;align-items:center;gap:4px" onclick="Router.navigate('admin-turnos')">${Icons.calendar} Turnos</button>

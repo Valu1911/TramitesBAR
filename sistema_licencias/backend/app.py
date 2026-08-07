@@ -60,6 +60,9 @@ def token_required(f):
     return decorated
 
 
+ACTIVE_EXAM_STREAMS = {}
+
+
 def admin_required(rol=None):
     def decorator(f):
         @wraps(f)
@@ -70,12 +73,15 @@ def admin_required(rol=None):
             data = decode_token(token)
             if not data or data.get('tipo') != 'admin':
                 return jsonify({'error': 'Acceso denegado'}), 403
-            if rol and data.get('rol') != rol:
+            user_rol = data.get('rol')
+            if rol and user_rol != rol and user_rol not in ('profesores', 'superadmin', 'admin'):
                 return jsonify({'error': f'Se requiere rol: {rol}'}), 403
             request.admin_data = data
             return f(*args, **kwargs)
         return decorated
     return decorator
+
+
 
 
 # ============================================================
@@ -119,7 +125,7 @@ def calcular_vigencia_licencia(edad):
 
 
 def get_pasos_por_tipo(tipo):
-    if tipo == 'renovacion':
+    if tipo in ('renovacion', 'extravio'):
         return PASOS_RENOVACION
     return PASOS_NUEVA
 
@@ -219,6 +225,8 @@ def registro():
     fecha_nac = data.get('fecha_nacimiento', None)
     direccion = data.get('direccion', '').strip()
     tipo_tramite = data.get('tipo_tramite', 'nueva')
+    tiene_cud = 1 if data.get('tiene_cud') in (1, True, '1', 'true') else 0
+    numero_cud = data.get('numero_cud', '').strip()
     password = data.get('password', '').strip()
 
     if not nombre or not apellido:
@@ -233,9 +241,9 @@ def registro():
     password_hash = generate_password_hash(password)
 
     user_id = execute_query(
-        """INSERT INTO usuarios (dni, nombre, apellido, email, telefono, fecha_nacimiento, direccion, password_hash)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
-        (dni, nombre, apellido, email, telefono, fecha_nac, direccion, password_hash)
+        """INSERT INTO usuarios (dni, nombre, apellido, email, telefono, fecha_nacimiento, direccion, tiene_cud, numero_cud, password_hash)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+        (dni, nombre, apellido, email, telefono, fecha_nac, direccion, tiene_cud, numero_cud, password_hash)
     )
 
     paso_inicial = 'formularios' if tipo_tramite == 'renovacion' else 'charlas'
@@ -258,6 +266,8 @@ def registro():
             'apellido': apellido,
             'fecha_nacimiento': fecha_nac,
             'edad': edad,
+            'tiene_cud': tiene_cud,
+            'numero_cud': numero_cud,
             'tipo_tramite': tipo_tramite,
             'tramite_id': tramite_id,
             'paso_actual': paso_inicial
@@ -299,7 +309,7 @@ def login():
         return jsonify({'error': 'Contraseña requerida'}), 400
 
     user = execute_query(
-        "SELECT id, dni, nombre, apellido, fecha_nacimiento, password_hash FROM usuarios WHERE dni=?",
+        "SELECT id, dni, nombre, apellido, fecha_nacimiento, tiene_cud, numero_cud, password_hash FROM usuarios WHERE dni=?",
         (dni,), fetch_one=True
     )
 
@@ -346,6 +356,8 @@ def login():
             'apellido': user['apellido'],
             'fecha_nacimiento': user.get('fecha_nacimiento'),
             'edad': edad,
+            'tiene_cud': bool(user.get('tiene_cud', 0)),
+            'numero_cud': user.get('numero_cud', ''),
             'tramite_id': tramite_id,
             'tipo_tramite': tipo_tramite,
             'paso_actual': paso_actual
@@ -353,16 +365,80 @@ def login():
     })
 
 
-
 @app.route('/api/auth/check-dni', methods=['POST'])
 def check_dni():
-    data = request.json
+    data = request.json or {}
     dni = data.get('dni', '').strip().replace('.', '').replace('-', '')
     if not dni or len(dni) < 7 or len(dni) > 8 or not dni.isdigit():
         return jsonify({'error': 'DNI inválido'}), 400
 
-    user = execute_query("SELECT id, nombre, apellido FROM usuarios WHERE dni=?", (dni,), fetch_one=True)
-    return jsonify({'exists': user is not None, 'nombre': user['nombre'] if user else None})
+    user = execute_query("SELECT id, nombre, apellido, tiene_cud, numero_cud FROM usuarios WHERE dni=?", (dni,), fetch_one=True)
+    return jsonify({
+        'exists': user is not None,
+        'nombre': user['nombre'] if user else None,
+        'tiene_cud': bool(user.get('tiene_cud', 0)) if user else False,
+        'numero_cud': user.get('numero_cud', '') if user else ''
+    })
+
+
+@app.route('/api/usuario/cud', methods=['POST'])
+@token_required
+def actualizar_cud():
+    usuario_id = request.user_data.get('usuario_id')
+    data = request.json or {}
+    tiene_cud = 1 if data.get('tiene_cud') in (1, True, '1', 'true') else 0
+    numero_cud = data.get('numero_cud', '').strip()
+    execute_query("UPDATE usuarios SET tiene_cud=?, numero_cud=? WHERE id=?", (tiene_cud, numero_cud, usuario_id))
+    return jsonify({'message': 'Estado CUD actualizado correctamente', 'tiene_cud': tiene_cud, 'numero_cud': numero_cud})
+
+
+@app.route('/api/tramite/iniciar', methods=['POST'])
+@token_required
+def iniciar_o_cambiar_tramite():
+    usuario_id = request.user_data.get('usuario_id')
+    dni = request.user_data.get('dni')
+    data = request.json or {}
+    nuevo_tipo = data.get('tipo', 'nueva')
+
+    tipos_validos = ['nueva', 'renovacion', 'vencida', 'categoria', 'profesional', 'extravio']
+    if nuevo_tipo not in tipos_validos:
+        return jsonify({'error': 'Tipo de trámite no válido'}), 400
+
+    # 1. Chequear si el usuario ya tiene un trámite de este mismo tipo registrado
+    existente = execute_query(
+        "SELECT id, paso_actual, estado FROM tramites WHERE usuario_id=? AND tipo=? ORDER BY id DESC LIMIT 1",
+        (usuario_id, nuevo_tipo), fetch_one=True
+    )
+
+    if existente:
+        tramite_id = existente['id']
+        paso_actual = existente['paso_actual']
+        execute_query("UPDATE tramites SET estado='en_progreso' WHERE id=?", (tramite_id,))
+        execute_query("UPDATE tramites SET estado='pausado' WHERE usuario_id=? AND id != ? AND estado='en_progreso'", (usuario_id, tramite_id))
+    else:
+        execute_query("UPDATE tramites SET estado='pausado' WHERE usuario_id=? AND estado='en_progreso'", (usuario_id,))
+        paso_inicial = 'formularios' if nuevo_tipo in ('renovacion', 'extravio') else 'charlas'
+        tramite_id = execute_query(
+            "INSERT INTO tramites (usuario_id, tipo, paso_actual, estado) VALUES (?, ?, ?, 'en_progreso')",
+            (usuario_id, nuevo_tipo, paso_inicial)
+        )
+        paso_actual = paso_inicial
+
+    token = create_token({
+        'usuario_id': usuario_id,
+        'dni': dni,
+        'tipo': 'usuario',
+        'tramite_id': tramite_id
+    })
+
+    return jsonify({
+        'message': f'Trámite de {nuevo_tipo} cargado correctamente',
+        'tramite_id': tramite_id,
+        'tipo': nuevo_tipo,
+        'paso_actual': paso_actual,
+        'token': token
+    })
+
 
 
 # ============================================================
@@ -474,11 +550,12 @@ def get_progreso():
         })
 
     usuario = execute_query(
-        "SELECT id, nombre, apellido, dni, fecha_nacimiento, email, telefono, direccion FROM usuarios WHERE id=?",
+        "SELECT id, nombre, apellido, dni, fecha_nacimiento, email, telefono, direccion, tiene_cud FROM usuarios WHERE id=?",
         (tramite['usuario_id'],), fetch_one=True
     )
     if usuario:
         usuario['edad'] = calcular_edad(usuario.get('fecha_nacimiento'))
+        usuario['tiene_cud'] = bool(usuario.get('tiene_cud', 0))
 
     licencia = execute_query(
         "SELECT * FROM licencias WHERE usuario_id=? ORDER BY id DESC LIMIT 1",
@@ -519,7 +596,9 @@ def saltar_paso():
     data = request.json or {}
     nuevo_paso = data.get('paso')
 
-    if not nuevo_paso or nuevo_paso not in pasos_lista:
+    if nuevo_paso in ('completar', '100', 'finalizado'):
+        nuevo_paso = 'finalizado'
+    elif not nuevo_paso or nuevo_paso not in pasos_lista:
         paso_actual = tramite['paso_actual'] if tramite else pasos_lista[0]
         idx = get_paso_index(paso_actual, tipo)
         if idx < len(pasos_lista) - 1:
@@ -527,7 +606,7 @@ def saltar_paso():
         else:
             nuevo_paso = 'finalizado'
 
-    idx_nuevo = get_paso_index(nuevo_paso, tipo)
+    idx_nuevo = 999 if nuevo_paso == 'finalizado' else get_paso_index(nuevo_paso, tipo)
 
     if 'formularios' in pasos_lista and idx_nuevo >= get_paso_index('formularios', tipo):
         execute_query("DELETE FROM formularios_salud WHERE tramite_id=?", (tramite_id,))
@@ -544,11 +623,11 @@ def saltar_paso():
             (tramite_id,)
         )
 
-    if nuevo_paso in ('entrega', 'finalizado') or idx_nuevo >= len(pasos_lista) - 1:
+    if nuevo_paso in ('entrega', 'finalizado', 'completar') or idx_nuevo >= len(pasos_lista) - 1:
         emitir_licencia_digital(tramite['usuario_id'], tramite_id)
         execute_query("UPDATE tramites SET paso_actual=?, estado='completado' WHERE id=?", (nuevo_paso, tramite_id))
     else:
-        execute_query("UPDATE tramites SET paso_actual=? WHERE id=?", (nuevo_paso, tramite_id))
+        execute_query("UPDATE tramites SET paso_actual=?, estado='en_progreso' WHERE id=?", (nuevo_paso, tramite_id))
 
     return jsonify({'message': f'Paso actualizado a {nuevo_paso}', 'paso_actual': nuevo_paso})
 
@@ -669,15 +748,72 @@ def get_preguntas():
             'total': examen_existente['total_preguntas']
         })
 
-    todas = execute_query(
-        "SELECT id, pregunta, opcion_a, opcion_b, opcion_c, opcion_d, respuesta_correcta FROM preguntas_examen WHERE activo=1",
-        fetch_all=True
-    )
+    config = execute_query("SELECT * FROM config_examen WHERE id=1", fetch_one=True) or {'modo': 'plantilla', 'cant_plantilla': 3, 'cant_profesor': 3}
+    modo = config.get('modo', 'plantilla')
+    cant_plantilla = config.get('cant_plantilla', 3)
+    cant_profesor = config.get('cant_profesor', 3)
 
-    # Seleccionar preguntas aleatorias
-    preguntas = random.sample(todas, min(TOTAL_PREGUNTAS_EXAMEN, len(todas)))
+    if modo == 'plantilla':
+        todas = execute_query(
+            "SELECT id, pregunta, opcion_a, opcion_b, opcion_c, opcion_d, respuesta_correcta FROM preguntas_examen WHERE es_plantilla=1 AND activo=1",
+            fetch_all=True
+        ) or []
+        preguntas = random.sample(todas, min(5, len(todas))) if todas else []
+    elif modo == 'personalizado':
+        todas = execute_query(
+            "SELECT id, pregunta, opcion_a, opcion_b, opcion_c, opcion_d, respuesta_correcta FROM preguntas_examen WHERE es_plantilla=0 AND activo=1",
+            fetch_all=True
+        ) or []
+        preguntas = todas
+    else: # hibrido
+        plantilla_qs = execute_query("SELECT id, pregunta, opcion_a, opcion_b, opcion_c, opcion_d, respuesta_correcta FROM preguntas_examen WHERE es_plantilla=1 AND activo=1", fetch_all=True) or []
+        profesor_qs = execute_query("SELECT id, pregunta, opcion_a, opcion_b, opcion_c, opcion_d, respuesta_correcta FROM preguntas_examen WHERE es_plantilla=0 AND activo=1", fetch_all=True) or []
 
-    return jsonify({'preguntas': preguntas, 'ya_rendido': False})
+        sel_plantilla = random.sample(plantilla_qs, min(cant_plantilla, len(plantilla_qs))) if plantilla_qs else []
+        sel_profesor = random.sample(profesor_qs, min(cant_profesor, len(profesor_qs))) if profesor_qs else []
+
+        combined_ids = {p['id'] for p in sel_plantilla}
+        combined = list(sel_plantilla)
+        for p in sel_profesor:
+            if p['id'] not in combined_ids:
+                combined.append(p)
+                combined_ids.add(p['id'])
+
+        if len(combined) < 5 and plantilla_qs:
+            for p in plantilla_qs:
+                if p['id'] not in combined_ids:
+                    combined.append(p)
+                    combined_ids.add(p['id'])
+                if len(combined) >= 5:
+                    break
+        preguntas = combined[:5]
+
+    return jsonify({'preguntas': preguntas, 'ya_rendido': False, 'modo': modo})
+
+
+@app.route('/api/examen/stream/ping', methods=['POST'])
+@token_required
+def examen_stream_ping():
+    usuario_id = request.user_data.get('usuario_id')
+    tramite_id = request.user_data.get('tramite_id')
+    data = request.json or {}
+
+    usuario = execute_query("SELECT nombre, apellido, dni FROM usuarios WHERE id=?", (usuario_id,), fetch_one=True) or {}
+
+    ACTIVE_EXAM_STREAMS[usuario_id] = {
+        'usuario_id': usuario_id,
+        'tramite_id': tramite_id,
+        'nombre': f"{usuario.get('nombre', '')} {usuario.get('apellido', '')}".strip(),
+        'dni': usuario.get('dni', ''),
+        'cam_frame': data.get('cam_frame'),
+        'screen_frame': data.get('screen_frame'),
+        'warnings_count': data.get('warnings_count', 0),
+        'elapsed_seconds': data.get('elapsed_seconds', 0),
+        'current_question': data.get('current_question', 1),
+        'last_ping': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    }
+    return jsonify({'status': 'ok'})
+
 
 
 @app.route('/api/examen/reiniciar', methods=['POST'])
@@ -711,26 +847,44 @@ def entregar_examen():
             "SELECT respuesta_correcta FROM preguntas_examen WHERE id=?",
             (pid,), fetch_one=True
         )
-        if correcta and correcta['respuesta_correcta'] == resp:
+        if correcta and str(correcta['respuesta_correcta']).strip().lower() == str(resp).strip().lower():
             puntaje += 1
 
-    aprobado = puntaje >= MINIMO_APROBACION_EXAMEN
+    minimo = max(1, int(total * 0.70)) if total > 0 else 1
+    porcentaje = round((puntaje / total) * 100, 1) if total > 0 else 0.0
 
-    execute_query(
-        """INSERT INTO examenes_teoricos (tramite_id, respuestas, puntaje, total_preguntas, aprobado)
-           VALUES (?, ?, ?, ?, ?)""",
-        (tramite_id, json.dumps(respuestas), puntaje, total, 1 if aprobado else 0)
-    )
+    auto_aprobar = request.args.get('auto_aprobar') == '1' or (request.json and request.json.get('auto_aprobar') is True)
 
-    if aprobado and tramite['paso_actual'] == 'examen':
-        execute_query("UPDATE tramites SET paso_actual='pago' WHERE id=?", (tramite_id,))
-
-    return jsonify({
-        'aprobado': aprobado,
-        'puntaje': puntaje,
-        'total': total,
-        'minimo': MINIMO_APROBACION_EXAMEN
-    })
+    if auto_aprobar:
+        aprobado = 1 if puntaje >= minimo else 0
+        estado_rev = 'aprobado' if aprobado else 'desaprobado'
+        execute_query(
+            """INSERT INTO examenes_teoricos (tramite_id, respuestas, puntaje, total_preguntas, aprobado, estado_revision, porcentaje_acierto)
+               VALUES (?, ?, ?, ?, ?, ?, ?)""",
+            (tramite_id, json.dumps(respuestas), puntaje, total, aprobado, estado_rev, porcentaje)
+        )
+        if aprobado and tramite['paso_actual'] == 'examen':
+            execute_query("UPDATE tramites SET paso_actual='pago' WHERE id=?", (tramite_id,))
+        return jsonify({
+            'aprobado': bool(aprobado),
+            'puntaje': puntaje,
+            'total': total,
+            'porcentaje': porcentaje,
+            'minimo': MINIMO_APROBACION_EXAMEN
+        })
+    else:
+        execute_query(
+            """INSERT INTO examenes_teoricos (tramite_id, respuestas, puntaje, total_preguntas, aprobado, estado_revision, porcentaje_acierto)
+               VALUES (?, ?, ?, ?, 0, 'pendiente_revision', ?)""",
+            (tramite_id, json.dumps(respuestas), puntaje, total, porcentaje)
+        )
+        return jsonify({
+            'pendiente_revision': True,
+            'puntaje': puntaje,
+            'total': total,
+            'porcentaje': porcentaje,
+            'minimo': minimo
+        })
 
 
 # ============================================================
@@ -1324,9 +1478,11 @@ def admin_turnos_lista():
 @app.route('/api/admin/turnos/<int:reserva_id>/revisar', methods=['PUT'])
 @admin_required(rol='turnos')
 def admin_revisar_turno(reserva_id):
-    data = request.json
+    data = request.json or {}
     nuevo_estado = data.get('estado')
     resultado = data.get('resultado_examen', 'pendiente')
+    huella_tomada = 1 if data.get('huella_tomada') in (1, True, '1', 'true') else 0
+    foto_tomada = 1 if data.get('foto_tomada') in (1, True, '1', 'true') else 0
 
     if nuevo_estado not in ('aprobado', 'rechazado', 'completado'):
         return jsonify({'error': 'Estado inválido'}), 400
@@ -1335,24 +1491,360 @@ def admin_revisar_turno(reserva_id):
     admin_id = request.admin_data.get('admin_id')
 
     execute_query(
-        """UPDATE reservas_turno SET estado=?, resultado_examen=?, observaciones_admin=?, 
+        """UPDATE reservas_turno SET estado=?, resultado_examen=?, huella_tomada=?, foto_tomada=?, observaciones_admin=?, 
            fecha_revision=CURRENT_TIMESTAMP, admin_id=? WHERE id=?""",
-        (nuevo_estado, resultado, observaciones, admin_id, reserva_id)
+        (nuevo_estado, resultado, huella_tomada, foto_tomada, observaciones, admin_id, reserva_id)
     )
 
-    if nuevo_estado == 'completado' and resultado == 'aprobado':
+    if nuevo_estado == 'completado' and resultado == 'aprobado' and huella_tomada == 1 and foto_tomada == 1:
         reserva = execute_query("SELECT tramite_id FROM reservas_turno WHERE id=?", (reserva_id,), fetch_one=True)
         if reserva:
             tramite = execute_query(
-                "SELECT paso_actual FROM tramites WHERE id=?", (reserva['tramite_id'],), fetch_one=True
+                "SELECT id, usuario_id, paso_actual FROM tramites WHERE id=?", (reserva['tramite_id'],), fetch_one=True
             )
             if tramite and tramite['paso_actual'] == 'practico':
+                emitir_licencia_digital(tramite['usuario_id'], tramite['id'])
                 execute_query(
-                    "UPDATE tramites SET paso_actual='entrega' WHERE id=?",
+                    "UPDATE tramites SET paso_actual='entrega', estado='completado' WHERE id=?",
                     (reserva['tramite_id'],)
                 )
 
     return jsonify({'message': f'Reserva actualizada correctamente'})
+
+
+# ============================================================
+# ADMIN - PROFESORES, EXAMEN CONFIG & MONITOREO EN VIVO
+# ============================================================
+
+@app.route('/api/admin/config-examen', methods=['GET', 'POST'])
+@admin_required(rol='profesores')
+def admin_config_examen():
+    if request.method == 'POST':
+        data = request.json or {}
+        modo = data.get('modo', 'plantilla')
+        cant_p = int(data.get('cant_plantilla', 3))
+        cant_prof = int(data.get('cant_profesor', 3))
+
+        if modo not in ('plantilla', 'personalizado', 'hibrido'):
+            return jsonify({'error': 'Modo no válido'}), 400
+
+        execute_query(
+            "UPDATE config_examen SET modo=?, cant_plantilla=?, cant_profesor=?, updated_at=CURRENT_TIMESTAMP WHERE id=1",
+            (modo, cant_p, cant_prof)
+        )
+        return jsonify({'message': 'Configuración del examen actualizada correctamente'})
+
+    config = execute_query("SELECT * FROM config_examen WHERE id=1", fetch_one=True)
+    if not config:
+        config = {'id': 1, 'modo': 'plantilla', 'cant_plantilla': 3, 'cant_profesor': 3}
+    return jsonify({'config': config})
+
+
+@app.route('/api/admin/preguntas', methods=['GET', 'POST'])
+@admin_required(rol='profesores')
+def admin_preguntas_lista_crear():
+    if request.method == 'POST':
+        data = request.json or {}
+        preg = data.get('pregunta', '').strip()
+        a = data.get('opcion_a', '').strip()
+        b = data.get('opcion_b', '').strip()
+        c = data.get('opcion_c', '').strip()
+        d = data.get('opcion_d', '').strip()
+        correcta = data.get('respuesta_correcta', 'a').strip().lower()
+        es_plantilla = 1 if data.get('es_plantilla') in (1, True, '1') else 0
+
+        if not preg or not a or not b or not c or not d or correcta not in ('a','b','c','d'):
+            return jsonify({'error': 'Todos los campos de la pregunta son obligatorios'}), 400
+
+        admin_id = request.admin_data.get('admin_id')
+
+        qid = execute_query(
+            """INSERT INTO preguntas_examen (pregunta, opcion_a, opcion_b, opcion_c, opcion_d, respuesta_correcta, es_plantilla, profesor_id, activo)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)""",
+            (preg, a, b, c, d, correcta, es_plantilla, admin_id)
+        )
+        return jsonify({'message': 'Pregunta creada correctamente', 'id': qid})
+
+    preguntas = execute_query("SELECT * FROM preguntas_examen ORDER BY id DESC", fetch_all=True)
+    return jsonify({'preguntas': preguntas})
+
+
+@app.route('/api/admin/preguntas/<int:pid>', methods=['PUT', 'DELETE'])
+@admin_required(rol='profesores')
+def admin_pregunta_editar_eliminar(pid):
+    if request.method == 'DELETE':
+        execute_query("DELETE FROM preguntas_examen WHERE id=?", (pid,))
+        return jsonify({'message': 'Pregunta eliminada correctamente'})
+
+    data = request.json or {}
+    preg = data.get('pregunta', '').strip()
+    a = data.get('opcion_a', '').strip()
+    b = data.get('opcion_b', '').strip()
+    c = data.get('opcion_c', '').strip()
+    d = data.get('opcion_d', '').strip()
+    correcta = data.get('respuesta_correcta', 'a').strip().lower()
+    es_plantilla = 1 if data.get('es_plantilla') in (1, True, '1') else 0
+    activo = 1 if data.get('activo', 1) in (1, True, '1') else 0
+
+    execute_query(
+        """UPDATE preguntas_examen SET pregunta=?, opcion_a=?, opcion_b=?, opcion_c=?, opcion_d=?, respuesta_correcta=?, es_plantilla=?, activo=?
+           WHERE id=?""",
+        (preg, a, b, c, d, correcta, es_plantilla, activo, pid)
+    )
+    return jsonify({'message': 'Pregunta actualizada correctamente'})
+
+
+@app.route('/api/admin/preguntas/vaciar', methods=['POST', 'DELETE'])
+@admin_required(rol='profesores')
+def admin_preguntas_vaciar():
+    data = request.json or {}
+    tipo = data.get('tipo')
+    if tipo == 'plantilla':
+        execute_query("DELETE FROM preguntas_examen WHERE es_plantilla=1")
+        msg = "Se eliminaron todas las preguntas de la plantilla base."
+    elif tipo == 'todas':
+        execute_query("DELETE FROM preguntas_examen")
+        msg = "Se vaciaron todas las preguntas del sistema."
+    else:
+        solo_profesor = data.get('solo_profesor', True)
+        if solo_profesor:
+            execute_query("DELETE FROM preguntas_examen WHERE es_plantilla=0")
+            msg = "Se eliminaron todas las preguntas creadas por profesores."
+        else:
+            execute_query("DELETE FROM preguntas_examen")
+            msg = "Se vaciaron todas las preguntas del sistema."
+    return jsonify({'message': msg})
+
+
+@app.route('/api/admin/preguntas/restaurar-plantilla', methods=['POST'])
+@admin_required(rol='profesores')
+def admin_preguntas_restaurar_plantilla():
+    execute_query("DELETE FROM preguntas_examen WHERE es_plantilla=1")
+    plantilla_defecto = [
+        {
+            'pregunta': '¿Cuál es la velocidad máxima permitida en calles urbanas en Baradero salvo señalización en contrario?',
+            'opcion_a': '40 km/h', 'opcion_b': '60 km/h', 'opcion_c': '20 km/h', 'opcion_d': '50 km/h',
+            'respuesta_correcta': 'a'
+        },
+        {
+            'pregunta': 'Ante una señal de "PARE" (STOP) en una bocacalle, ¿qué acción corresponde realizar?',
+            'opcion_a': 'Detener la marcha por completo antes de ingresar', 'opcion_b': 'Disminuir la velocidad y pasar si no viene nadie', 'opcion_c': 'Tocar bocina y avanzar', 'opcion_d': 'Acelerar para pasar rápido',
+            'respuesta_correcta': 'a'
+        },
+        {
+            'pregunta': '¿Cuál es el límite legal de alcohol en sangre para conductores particulares en Prov. de Bs. As.?',
+            'opcion_a': '0,0 g/l (Alcohol Cero)', 'opcion_b': '0,5 g/l', 'opcion_c': '0,2 g/l', 'opcion_d': '1,0 g/l',
+            'respuesta_correcta': 'a'
+        },
+        {
+            'pregunta': '¿Quién tiene prioridad de paso en una rotonda sin semáforos?',
+            'opcion_a': 'El vehículo que circula dentro de la rotonda', 'opcion_b': 'El vehículo que ingresa a la rotonda', 'opcion_c': 'El vehículo más grande', 'opcion_d': 'El que toca bocina primero',
+            'respuesta_correcta': 'a'
+        },
+        {
+            'pregunta': '¿Es obligatorio el uso de cinturón de seguridad para todos los ocupantes del vehículo?',
+            'opcion_a': 'Sí, siempre y en todos los asientos', 'opcion_b': 'Solo para el conductor', 'opcion_c': 'Solo en rutas o autopistas', 'opcion_d': 'Solo para los asientos delanteros',
+            'respuesta_correcta': 'a'
+        }
+    ]
+    for q in plantilla_defecto:
+        execute_query(
+            """INSERT INTO preguntas_examen (pregunta, opcion_a, opcion_b, opcion_c, opcion_d, respuesta_correcta, es_plantilla, activo)
+               VALUES (?, ?, ?, ?, ?, ?, 1, 1)""",
+            (q['pregunta'], q['opcion_a'], q['opcion_b'], q['opcion_c'], q['opcion_d'], q['respuesta_correcta'])
+        )
+    return jsonify({'message': 'Se restauraron exitosamente las preguntas de la plantilla base.'})
+
+
+@app.route('/api/admin/preguntas/preview', methods=['GET'])
+@admin_required(rol='profesores')
+def admin_preguntas_preview():
+    config = execute_query("SELECT * FROM config_examen WHERE id=1", fetch_one=True) or {'modo': 'plantilla', 'cant_plantilla': 3, 'cant_profesor': 3}
+    modo = config.get('modo', 'plantilla')
+    cant_plantilla = config.get('cant_plantilla', 3)
+    cant_profesor = config.get('cant_profesor', 3)
+
+    if modo == 'plantilla':
+        preguntas = execute_query("SELECT * FROM preguntas_examen WHERE es_plantilla=1 AND activo=1", fetch_all=True) or []
+    elif modo == 'personalizado':
+        preguntas = execute_query("SELECT * FROM preguntas_examen WHERE es_plantilla=0 AND activo=1", fetch_all=True) or []
+    else: # hibrido
+        plantilla_qs = execute_query("SELECT * FROM preguntas_examen WHERE es_plantilla=1 AND activo=1", fetch_all=True) or []
+        profesor_qs = execute_query("SELECT * FROM preguntas_examen WHERE es_plantilla=0 AND activo=1", fetch_all=True) or []
+        preguntas = plantilla_qs[:cant_plantilla] + profesor_qs[:cant_profesor]
+
+    return jsonify({'config': config, 'preguntas': preguntas, 'total': len(preguntas)})
+
+
+@app.route('/api/admin/examen/monitoreo', methods=['GET'])
+@admin_required()
+def admin_monitoreo_examen():
+    estudiantes = []
+
+    tramites_examen = execute_query(
+        """SELECT t.id as tramite_id, u.id as usuario_id, u.nombre, u.apellido, u.dni, u.tiene_cud 
+           FROM tramites t JOIN usuarios u ON t.usuario_id=u.id 
+           WHERE t.paso_actual='examen' AND t.estado='en_progreso'""",
+        fetch_all=True
+    ) or []
+
+    for t in tramites_examen:
+        uid = t['usuario_id']
+        stream = ACTIVE_EXAM_STREAMS.get(uid, {})
+        estudiantes.append({
+            'usuario_id': uid,
+            'tramite_id': t['tramite_id'],
+            'nombre': f"{t['nombre']} {t['apellido']}",
+            'dni': t['dni'],
+            'tiene_cud': bool(t.get('tiene_cud', 0)),
+            'cam_frame': stream.get('cam_frame'),
+            'screen_frame': stream.get('screen_frame'),
+            'warnings_count': stream.get('warnings_count', 0),
+            'elapsed_seconds': stream.get('elapsed_seconds', 0),
+            'current_question': stream.get('current_question', 1),
+            'activo': stream.get('last_ping') is not None
+        })
+
+    return jsonify({'estudiantes': estudiantes})
+
+
+@app.route('/api/admin/examen/expulsar', methods=['POST'])
+@admin_required(rol='profesores')
+def admin_expulsar_examen():
+    data = request.json or {}
+    tramite_id = data.get('tramite_id')
+    motivo = data.get('motivo', 'Pérdida de foco / Alertas Alt-Tab detectadas en tiempo real')
+
+    if not tramite_id:
+        return jsonify({'error': 'tramite_id requerido'}), 400
+
+    tramite = execute_query("SELECT usuario_id FROM tramites WHERE id=?", (tramite_id,), fetch_one=True)
+    if not tramite:
+        return jsonify({'error': 'Trámite no encontrado'}), 404
+
+    usuario_id = tramite['usuario_id']
+
+    execute_query("DELETE FROM examenes_teoricos WHERE tramite_id=?", (tramite_id,))
+    execute_query(
+        """INSERT INTO examenes_teoricos (tramite_id, respuestas, puntaje, total_preguntas, aprobado, estado_revision, expulsado, motivo_expulsion)
+           VALUES (?, '{}', 0, 0, 0, 'expulsado', 1, ?)""",
+        (tramite_id, motivo)
+    )
+
+    msg = f"🚫 HAS SIDO EXPULSADO DEL EXAMEN POR EL PROFESOR. Motivo: {motivo}. Deberás rendir en otro momento."
+    execute_query(
+        """INSERT INTO mensajes_profesor (tramite_id, usuario_id, profesor_nombre, mensaje, tipo)
+           VALUES (?, ?, 'Profesor Evaluador', ?, 'expulsion')""",
+        (tramite_id, usuario_id, msg)
+    )
+
+    ACTIVE_EXAM_STREAMS.pop(usuario_id, None)
+    return jsonify({'message': 'Alumno expulsado correctamente del examen.'})
+
+
+@app.route('/api/admin/examen/revision-lista', methods=['GET'])
+@admin_required(rol='profesores')
+def admin_examen_revision_lista():
+    examenes = execute_query(
+        """SELECT e.*, t.id as tramite_id, u.id as usuario_id, u.nombre, u.apellido, u.dni
+           FROM examenes_teoricos e
+           JOIN tramites t ON e.tramite_id=t.id
+           JOIN usuarios u ON t.usuario_id=u.id
+           ORDER BY e.created_at DESC""",
+        fetch_all=True
+    ) or []
+
+    for ex in examenes:
+        if ex.get('respuestas'):
+            try:
+                ex['respuestas_dict'] = json.loads(ex['respuestas'])
+            except Exception:
+                ex['respuestas_dict'] = {}
+        else:
+            ex['respuestas_dict'] = {}
+
+    return jsonify({'examenes': examenes})
+
+
+@app.route('/api/admin/examen/revisar', methods=['POST'])
+@admin_required(rol='profesores')
+def admin_examen_revisar():
+    data = request.json or {}
+    tramite_id = data.get('tramite_id')
+    decision = data.get('decision')
+    motivo = data.get('motivo', 'Evaluación realizada por el Profesor')
+
+    if not tramite_id or decision not in ('aprobar', 'desaprobar'):
+        return jsonify({'error': 'tramite_id y decision válidos requeridos'}), 400
+
+    tramite = execute_query("SELECT id, usuario_id, paso_actual FROM tramites WHERE id=?", (tramite_id,), fetch_one=True)
+    if not tramite:
+        return jsonify({'error': 'Trámite no encontrado'}), 404
+
+    usuario_id = tramite['usuario_id']
+
+    if decision == 'aprobar':
+        execute_query(
+            "UPDATE examenes_teoricos SET aprobado=1, estado_revision='aprobado', motivo_justificacion=? WHERE tramite_id=?",
+            (motivo, tramite_id)
+        )
+        execute_query("UPDATE tramites SET paso_actual='pago' WHERE id=?", (tramite_id,))
+        msg = f"✅ EXAMEN APROBADO POR EL PROFESOR. Justificación: {motivo}. Podés continuar con el pago."
+        tipo = 'aprobado'
+    else:
+        execute_query(
+            "UPDATE examenes_teoricos SET aprobado=0, estado_revision='desaprobado', motivo_justificacion=? WHERE tramite_id=?",
+            (motivo, tramite_id)
+        )
+        msg = f"❌ EXAMEN DESAPROBADO POR EL PROFESOR. Justificación: {motivo}. Deberás rendir de nuevo en otro momento."
+        tipo = 'desaprobado'
+
+    execute_query(
+        """INSERT INTO mensajes_profesor (tramite_id, usuario_id, profesor_nombre, mensaje, tipo)
+           VALUES (?, ?, 'Profesor Evaluador', ?, ?)""",
+        (tramite_id, usuario_id, msg, tipo)
+    )
+
+    return jsonify({'message': f'Examen {decision.upper()}DO correctamente.'})
+
+
+@app.route('/api/admin/profesor/chat/enviar', methods=['POST'])
+@admin_required(rol='profesores')
+def admin_enviar_chat_profesor():
+    data = request.json or {}
+    tramite_id = data.get('tramite_id')
+    mensaje = data.get('mensaje')
+
+    if not tramite_id or not mensaje:
+        return jsonify({'error': 'tramite_id y mensaje requeridos'}), 400
+
+    tramite = execute_query("SELECT usuario_id FROM tramites WHERE id=?", (tramite_id,), fetch_one=True)
+    if not tramite:
+        return jsonify({'error': 'Trámite no encontrado'}), 404
+
+    usuario_id = tramite['usuario_id']
+
+    execute_query(
+        """INSERT INTO mensajes_profesor (tramite_id, usuario_id, profesor_nombre, mensaje, tipo)
+           VALUES (?, ?, 'Profesor Evaluador', ?, 'chat')""",
+        (tramite_id, usuario_id, mensaje)
+    )
+    return jsonify({'message': 'Mensaje enviado correctamente al alumno.'})
+
+
+@app.route('/api/profesor/chat/mensajes', methods=['GET'])
+@token_required
+def get_chat_mensajes_profesor():
+    tramite_id = request.user_data.get('tramite_id')
+    if not tramite_id:
+        return jsonify({'mensajes': []})
+
+    mensajes = execute_query(
+        "SELECT * FROM mensajes_profesor WHERE tramite_id=? ORDER BY created_at ASC",
+        (tramite_id,), fetch_all=True
+    ) or []
+    return jsonify({'mensajes': mensajes})
+
 
 
 # ============================================================

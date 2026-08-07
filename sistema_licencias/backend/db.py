@@ -71,7 +71,7 @@ def init_db():
                 conn.commit()
                 print("[OK] Base de datos SQLite inicializada con schema.sql")
         else:
-            # Crear la tabla licencias si no existe en la base existente
+            # Migraciones sobre base de datos existente
             conn.execute("""
                 CREATE TABLE IF NOT EXISTS licencias (
                     id                INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -90,6 +90,91 @@ def init_db():
                     FOREIGN KEY (tramite_id) REFERENCES tramites(id) ON DELETE CASCADE
                 );
             """)
+
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS config_examen (
+                    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+                    modo            TEXT NOT NULL DEFAULT 'plantilla',
+                    cant_plantilla  INTEGER NOT NULL DEFAULT 3,
+                    cant_profesor   INTEGER NOT NULL DEFAULT 3,
+                    updated_at      TEXT DEFAULT (datetime('now','localtime'))
+                );
+            """)
+            conn.execute("INSERT OR IGNORE INTO config_examen (id, modo, cant_plantilla, cant_profesor) VALUES (1, 'plantilla', 3, 3);")
+
+            # Columnas opcionales
+            try:
+                conn.execute("ALTER TABLE usuarios ADD COLUMN tiene_cud INTEGER DEFAULT 0")
+            except sqlite3.OperationalError:
+                pass
+
+            try:
+                conn.execute("ALTER TABLE usuarios ADD COLUMN numero_cud TEXT DEFAULT ''")
+            except sqlite3.OperationalError:
+                pass
+
+            try:
+                conn.execute("ALTER TABLE preguntas_examen ADD COLUMN es_plantilla INTEGER DEFAULT 1")
+            except sqlite3.OperationalError:
+                pass
+
+            try:
+                conn.execute("ALTER TABLE preguntas_examen ADD COLUMN profesor_id INTEGER DEFAULT NULL")
+            except sqlite3.OperationalError:
+                pass
+
+            try:
+                conn.execute("ALTER TABLE reservas_turno ADD COLUMN huella_tomada INTEGER DEFAULT 0")
+            except sqlite3.OperationalError:
+                pass
+
+            try:
+                conn.execute("ALTER TABLE reservas_turno ADD COLUMN foto_tomada INTEGER DEFAULT 0")
+            except sqlite3.OperationalError:
+                pass
+
+            try:
+                conn.execute("INSERT OR IGNORE INTO admins (usuario, password_hash, nombre, rol) VALUES ('admin_profesores', 'PENDING_HASH', 'Profesor Admin', 'profesores')")
+            except sqlite3.OperationalError:
+                pass
+
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS mensajes_profesor (
+                    id                INTEGER PRIMARY KEY AUTOINCREMENT,
+                    tramite_id        INTEGER NOT NULL,
+                    usuario_id        INTEGER NOT NULL,
+                    profesor_nombre   TEXT DEFAULT 'Profesor Evaluador',
+                    mensaje           TEXT NOT NULL,
+                    tipo              TEXT DEFAULT 'justificacion',
+                    created_at        TEXT DEFAULT (datetime('now','localtime'))
+                );
+            """)
+
+            try:
+                conn.execute("ALTER TABLE examenes_teoricos ADD COLUMN estado_revision TEXT DEFAULT 'pendiente_revision'")
+            except sqlite3.OperationalError:
+                pass
+
+            try:
+                conn.execute("ALTER TABLE examenes_teoricos ADD COLUMN porcentaje_acierto REAL DEFAULT 0")
+            except sqlite3.OperationalError:
+                pass
+
+            try:
+                conn.execute("ALTER TABLE examenes_teoricos ADD COLUMN motivo_justificacion TEXT DEFAULT ''")
+            except sqlite3.OperationalError:
+                pass
+
+            try:
+                conn.execute("ALTER TABLE examenes_teoricos ADD COLUMN expulsado INTEGER DEFAULT 0")
+            except sqlite3.OperationalError:
+                pass
+
+            try:
+                conn.execute("ALTER TABLE examenes_teoricos ADD COLUMN motivo_expulsion TEXT DEFAULT ''")
+            except sqlite3.OperationalError:
+                pass
+
             conn.commit()
     except Exception as e:
         print(f"[ERROR] Falló inicialización de base de datos: {e}")
