@@ -1,98 +1,109 @@
 # -*- coding: utf-8 -*-
 """
-Módulo de conexión a SQLite.
+Módulo de conexión a MySQL (WampServer).
 """
 
-import sqlite3
+import pymysql
 import os
+from config import MYSQL_HOST, MYSQL_PORT, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DB
 
-DB_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'database', 'licencias.db')
+from pymysql.constants import CLIENT
 
-def dict_factory(cursor, row):
-    d = {}
-    for idx, col in enumerate(cursor.description):
-        d[col[0]] = row[idx]
-    return d
-
-def get_connection():
-    """Obtiene una conexión a la base de datos SQLite."""
-    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
-    conn.row_factory = dict_factory
-    return conn
+def get_connection(include_db=True):
+    """Obtiene una conexión a la base de datos MySQL."""
+    try:
+        if include_db:
+            return pymysql.connect(
+                host=MYSQL_HOST,
+                port=MYSQL_PORT,
+                user=MYSQL_USER,
+                password=MYSQL_PASSWORD,
+                database=MYSQL_DB,
+                client_flag=CLIENT.MULTI_STATEMENTS,
+                cursorclass=pymysql.cursors.DictCursor
+            )
+        else:
+            return pymysql.connect(
+                host=MYSQL_HOST,
+                port=MYSQL_PORT,
+                user=MYSQL_USER,
+                password=MYSQL_PASSWORD,
+                cursorclass=pymysql.cursors.DictCursor
+            )
+    except pymysql.MySQLError as e:
+        print(f"[ERROR DB] {e}")
+        raise e
 
 def execute_query(query, params=None, fetch_one=False, fetch_all=False):
     """
     Ejecuta una query y retorna resultados.
     """
+    query = query.replace('?', '%s')
     conn = get_connection()
-    cursor = conn.cursor()
     try:
-        cursor.execute(query, params or ())
-        if fetch_one:
-            result = cursor.fetchone()
-        elif fetch_all:
-            result = cursor.fetchall()
-        else:
-            conn.commit()
-            result = cursor.lastrowid
-        return result
+        with conn.cursor() as cursor:
+            cursor.execute(query, params or ())
+            if fetch_one:
+                result = cursor.fetchone()
+            elif fetch_all:
+                result = cursor.fetchall()
+            else:
+                conn.commit()
+                result = cursor.lastrowid
+            return result
     except Exception as e:
         conn.rollback()
+        print(f"[ERROR SQL] {e} en query: {query}")
         raise e
     finally:
-        cursor.close()
         conn.close()
 
 def execute_many(query, data_list):
     """Ejecuta una query con múltiples sets de parámetros."""
+    query = query.replace('?', '%s')
     conn = get_connection()
-    cursor = conn.cursor()
     try:
-        cursor.executemany(query, data_list)
-        conn.commit()
-        return cursor.rowcount
+        with conn.cursor() as cursor:
+            cursor.executemany(query, data_list)
+            conn.commit()
+            return cursor.rowcount
     except Exception as e:
         conn.rollback()
+        print(f"[ERROR SQL] {e} en query: {query}")
         raise e
     finally:
-        cursor.close()
         conn.close()
 
 def init_db():
-    """Inicializa la base de datos con el schema si no existe o actualiza las tablas faltantes."""
+    """Inicializa la base de datos MySQL con el schema.sql."""
+    # 1. Crear base de datos si no existe
+    try:
+        conn_no_db = get_connection(include_db=False)
+        with conn_no_db.cursor() as cursor:
+            cursor.execute(f"CREATE DATABASE IF NOT EXISTS `{MYSQL_DB}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;")
+        conn_no_db.commit()
+    except Exception as e:
+        print(f"[ERROR] Falló creación de base de datos {MYSQL_DB}: {e}")
+        return
+    finally:
+        conn_no_db.close()
+
+    # 2. Inicializar tablas
     conn = get_connection()
     try:
-        if not os.path.exists(DB_PATH):
-            schema_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'database', 'schema.sql')
-            if os.path.exists(schema_path):
-                with open(schema_path, 'r', encoding='utf-8') as f:
-                    schema = f.read()
-                conn.executescript(schema)
-                conn.commit()
-                print("[OK] Base de datos SQLite inicializada con schema.sql")
-        else:
-            # Crear la tabla licencias si no existe en la base existente
-            conn.execute("""
-                CREATE TABLE IF NOT EXISTS licencias (
-                    id                INTEGER PRIMARY KEY AUTOINCREMENT,
-                    usuario_id        INTEGER NOT NULL,
-                    tramite_id        INTEGER NOT NULL,
-                    numero_licencia   TEXT NOT NULL,
-                    categoria         TEXT NOT NULL DEFAULT 'B1',
-                    jurisdiccion      TEXT NOT NULL DEFAULT 'Provincia de Buenos Aires - Baradero',
-                    fecha_emision     TEXT NOT NULL,
-                    fecha_vencimiento TEXT NOT NULL,
-                    estado            TEXT NOT NULL DEFAULT 'vigente',
-                    foto_rostro       TEXT DEFAULT NULL,
-                    qr_code_data      TEXT DEFAULT NULL,
-                    created_at        TEXT DEFAULT (datetime('now','localtime')),
-                    FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE,
-                    FOREIGN KEY (tramite_id) REFERENCES tramites(id) ON DELETE CASCADE
-                );
-            """)
+        schema_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'database', 'schema.sql')
+        if os.path.exists(schema_path):
+            with open(schema_path, 'r', encoding='utf-8') as f:
+                schema = f.read()
+            
+            with conn.cursor() as cursor:
+                try:
+                    cursor.execute(schema)
+                except Exception as e:
+                    print(f"[ERROR SQL IMPORT] {e}")
             conn.commit()
+            print(f"[OK] Base de datos {MYSQL_DB} inicializada/verificada con schema.sql")
     except Exception as e:
-        print(f"[ERROR] Falló inicialización de base de datos: {e}")
+        print(f"[ERROR] Falló inicialización de tablas: {e}")
     finally:
         conn.close()
-
