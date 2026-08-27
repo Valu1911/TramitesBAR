@@ -1,0 +1,170 @@
+================================================================================
+PROMPT MAESTRO Y CONTEXTO TÉCNICO EXHAUSTIVO PARA GENERACIÓN DE MANUAL DE USUARIO
+PROYECTO: MuniDigital - Sistema de Trámites de Licencias de Conducir (Baradero)
+DESTINATARIO DEL PROMPT: Inteligencia Artificial (ChatGPT / Claude / DeepSeek / etc.)
+================================================================================
+
+[INSTRUCCIÓN DE ROL Y OBJETIVO PARA LA IA RECEPTORA]
+Actúa como un Redactor Técnico Senior (Lead Technical Writer), Especialista en Experiencia de Usuario (UX) y Documentación de Software Gubernamental/Institucional.
+Tu tarea es redactar de forma completa, profesional, detallada, formal y exhaustiva el **MANUAL DE USUARIO FINAL** del sistema "MuniDigital: Plataforma de Digitalización y Gestión de Trámites de Licencias de Conducir de la Municipalidad de Baradero".
+
+Debes respetar ESTRICTAMENTE y de principio a fin la siguiente ESTRUCTURA OBLIGATORIA (compuesta por 8 secciones estándar), completando cada una sin omitir detalles, utilizando un lenguaje claro, accesible pero riguroso, redactando los procedimientos en verbos en infinitivo o imperativo ("Haga clic en...", "Seleccione...", "Ingrese..."), detallando qué debe verse en cada pantalla/recuadro e incluyendo todas las alertas (Nota, Advertencia, Sugerencia), tablas de errores y datos institucionales del proyecto.
+
+================================================================================
+ESTRUCTURA OBLIGATORIA DEL MANUAL DE USUARIO
+================================================================================
+
+1. PORTADA
+   - Nombre Comercial / Institucional: MuniDigital · Sistema de Trámites de Licencias de Conducir
+   - Subtítulo: Manual de Usuario Final y Guía Operativa
+   - Versión del Documento: v1.1
+   - Entidad / Logotipos: Municipalidad de Baradero · E.E.S.T. N° 1 "Batalla de la Vuelta de Obligado"
+   - Fecha de Emisión: Agosto de 2026
+
+2. HOJA DE CONTROL
+   2.1 Ficha de Identificación del Documento:
+       - Nombre del Proyecto / Software: MuniDigital (Repositorio: TramitesBAR)
+       - Entidad / Institución: Municipalidad de Baradero / Escuela de Educación Secundaria Técnica N° 1 "Batalla de la Vuelta de Obligado" (7° 4° - Tecnicatura en Programación - PDISC)
+       - Destinatarios / Perfiles de Usuario: Ciudadanos del Partido de Baradero, Agentes Administrativos de Tránsito, Profesores e Instructores Viales, Oficiales de Salud y Finanzas Municipales.
+   2.2 Tabla de Responsables:
+       - Integrantes del Equipo de Desarrollo:
+         * Valentin Lucero (Principal Desarrollador de Software y Arquitectura Backend/Frontend)
+         * Facundo Orqueida (Desarrollador de Software y Encargado de Feedback Visual / UI)
+         * Ignacio Pignat (Encargado del Marco Teórico, Normativas e Investigación de Procesos)
+       - Redactor/a del Manual: Equipo Técnico de Desarrollo MuniDigital
+       - Docente / Supervisor que aprueba el documento: Prof. Azul Saladín (Espacio Curricular: Proy. y Dis. Sist. Comp. - PDISC)
+   2.3 Historial de Cambios / Control de Versiones:
+       - Tabla con: Versión | Fecha | Resumen de Modificaciones | Autor del Cambio
+         * v1.0 | 15/06/2026 | Creación inicial de la estructura operativa y módulos de trámites | Valentin Lucero
+         * v1.1 | 27/08/2026 | Incorporación de Anti-Cheat con supervisión docente, escáner de DNI por cámara, integración CUD y gestión integral de infracciones | Valentin Lucero, Facundo Orqueida
+   2.4 Requerimientos Técnicos Mínimos (Para el Usuario Final):
+       - Navegadores Web Compatibles y Resolución Recomendada: Google Chrome 90+, Mozilla Firefox 88+, Microsoft Edge 90+, Safari 14+. Resolución mínima recomendada: 1280x720 px en escritorio / 360x640 px en dispositivos móviles (Diseño Mobile-First 100% responsivo).
+       - Dispositivos Soportados: PC de escritorio, Notebooks, Tablets, Smartphones Android/iOS, Cámaras web estándar (para biometría, escáner OCR y supervisión proctoring).
+       - Tipo de Conectividad Requerida: Conexión a Internet o Red Local Municipal (mínimo 1 Mbps para navegación y carga de formularios; 3 Mbps recomendados para streaming de video y examen supervisado).
+
+3. ÍNDICE GENERAL
+   - Tabla de contenidos completa y jerárquica con números de sección y títulos claros.
+
+4. INTRODUCCIÓN Y MARCO GENERAL
+   4.1 Propósito del Manual: Qué encontrará el usuario en el documento, cómo orientarse y sacar el máximo provecho de cada herramienta.
+   4.2 Descripción Ejecutiva del Sistema:
+       - Problemática que resuelve: Elimina la presencialidad innecesaria, reduce colas y esperas en la Dirección de Tránsito de Baradero, digitaliza el expediente en papel (ahorro de más de 85.000 impresiones anuales), evita rechazos en mostrador mediante pre-validación digital y automatiza la agenda de turnos.
+       - Propuesta de valor: Plataforma Web SPA integral con login seguro por DNI, verificación de infracciones, cursos viales interactivos, declaración de salud, examen teórico anti-cheat con supervisión en vivo por docentes, pasarela de pago y credencial digital con código QR oficial según normativa de la Provincia de Buenos Aires.
+   4.3 Glosario de Convenciones Visuales:
+       - Íconos principales del sistema (Vehículo, Escudo, Ojo/Cámara, Check verde, Calendario, Tarjeta de crédito, etc.).
+       - Botones de acción (Primarios, Secundarios, Peligro, Éxito).
+       - Cajas de Alerta:
+         * [NOTA]: Aclaraciones contextuales y recordatorios importantes.
+         * [ADVERTENCIA]: Indicaciones sobre acciones críticas o irreversibles.
+         * [SUGERENCIA]: Consejos de uso para agilizar trámites y evitar demoras.
+
+5. GUÍA DE INICIO RÁPIDO
+   5.1 Acceso al Sistema:
+       - URL de acceso ciudadano: http://localhost:5000 (o dominio institucional https://tramites.baradero.gob.ar).
+       - URL de acceso administrativo: http://localhost:5000/#admin-login.
+   5.2 Autenticación e Inicio de Sesión:
+       - Ingreso por primera vez y uso de credenciales: Ingreso de número de DNI (7 u 8 dígitos sin puntos). Si el usuario no existe, derivación automática al formulario de Registro de Usuario.
+       - Registro Inteligente con Escáner de DNI por Cámara Web (detección visual de datos patronales y autorrelleno instantáneo).
+       - Registro y validación del Certificado Único de Discapacidad (CUD) con atención prioritaria.
+       - Contraseña segura de 6 o más caracteres.
+   5.3 Navegación General por la Interfaz:
+       - Anatomía de la pantalla (Navbar superior con logo "Muni Digital", selector de Modo Demo, botón de Modo Oscuro / Modo Claro, botón de Ayuda "TramitBot", visor de usuario activo y botón de Cerrar Sesión).
+       - Área de Trabajo Central (Hero con saludo personalizado, ficha de datos del ciudadano, catálogo de trámites y barra de progreso porcentual).
+
+6. MÓDULOS OPERATIVOS Y FLUJOS DE TRABAJO
+   (Cada módulo debe incluir: Objetivo de la sección, Procedimiento Paso a Paso con verbos en infinitivo/imperativo, Descripción de capturas de pantalla / diagramas con llamadas numéricas [1][2][3], Resultado esperado de la acción, y Cajas de Advertencia / Casos Borde).
+
+   Módulo 6.1: Registro de Usuario y Escáner Inteligente de DNI
+   Módulo 6.2: Verificación de Cuenta e Infracciones de Tránsito (Gestión de Multas, Inbox y botón "¡Ya pagué!")
+   Módulo 6.3: Catálogo y Selección de Trámites (Licencia Nueva, Renovación, Vencida, Subir Categoría, Profesional, Extravío/Robo)
+   Módulo 6.4: Charlas en Video de Seguridad Vial (Visualización obligatoria y secuencial de módulos viales)
+   Módulo 6.5: Declaración Jurada y Formularios de Salud (Carga de datos médicos y certificados adjuntos)
+   Módulo 6.6: Examen Teórico Supervisado (Sistema Anti-Cheat, Proctoring por Cámara/Pantalla, Detección de Fuga de Pestañas y Dictamen Docente)
+   Módulo 6.7: Centro de Comercio y Pago del Arancel Municipal (Transferencia bancaria CBU/Alias, Tarjetas y validación de comprobante)
+   Módulo 6.8: Examen Práctico, Turnero y Registro Biométrico (Reserva de fecha/hora, toma de huella dactilar y foto biométrica)
+   Módulo 6.9: Entrega de Licencia y Credencial Digital PBA (Envío a domicilio vs. retiro presencial, cálculo de vigencia según edad y código QR dinámico)
+   Módulo 6.10: Paneles de Administración (Backoffice Municipal para Cuentas/Infracciones, Profesores/Examen, Pagos, Salud y Turnos)
+
+7. RESOLUCIÓN DE PROBLEMAS Y PREGUNTAS FRECUENTES (FAQ)
+   7.1 Tabla de Mensajes de Error Habituales (Mensaje en Pantalla | Causa del Problema | Solución Sugerida).
+   7.2 Respuestas a Dudas Frecuentes de Uso Cotidiano (Ciudadanos y Personal Operativo).
+
+8. CANALES DE SOPORTE Y CONTACTO
+   8.1 Contacto de Mesa de Ayuda y Dependencias Municipales (Dirección de Tránsito y Control Urbano de Baradero).
+   8.2 Soporte Técnico del Sistema (Equipo de Desarrollo E.E.S.T. N° 1).
+   8.3 Horarios de Atención y Tiempos Estimados de Respuesta.
+
+================================================================================
+INFORMACIÓN TÉCNICA DETALLADA DEL PROYECTO (BASE DE CONOCIMIENTO REAL DEL CÓDIGO)
+================================================================================
+
+A continuación se detalla la lógica de negocios real, endpoints, validaciones y modelos extraídos del código fuente para que redactes el manual con máxima fidelidad técnica:
+
+1. ARQUITECTURA GENERAL:
+   - Frontend: Single Page Application (SPA) en Vanilla HTML5, CSS3 moderno (paleta institucional azul y celeste, glassmorphism, modo claro/oscuro) y JavaScript modular ES6+. Asistente interactivo guiado "TramitBot" en SVG con animaciones contextuales.
+   - Backend: Python 3 + Flask API RESTful con CORS y autenticación mediante JWT (JSON Web Tokens con expiración de 24h para ciudadanos y 8h para administradores).
+   - Base de Datos: SQLite relacional (con soporte para migración MySQL), modelo relacional normalizado con claves foráneas e integridad referencial.
+   - Algoritmo de Vigencia de Licencia (según Ley de Tránsito PBA):
+     * Menores de 18 años (16-17): 1 año de vigencia.
+     * Adultos (18 a 65 años): 5 años de vigencia.
+     * Adultos mayores (66 a 70 años): 3 años de vigencia.
+     * Mayores de 70 años: 1 año de vigencia.
+
+2. ROLES DE USUARIO Y CREDENCIALES:
+   A) CIUDADANOS / VECINOS:
+      - Identificador: Número de DNI (7 u 8 dígitos numéricos).
+      - Flujo de alta: DNI + Nombre + Apellido + Fecha de Nacimiento (DD/MM/AAAA) + Email + Teléfono + Dirección + CUD (Opcional, con verificación) + Contraseña (mínimo 6 caracteres).
+      - Estados de Cuenta:
+        1. 'pendiente': La cuenta está creada pero bloqueada en espera de verificación de antecedentes por el oficial de cuentas.
+        2. 'rechazada_multas': La cuenta posee infracciones impagas. Se exhibe el panel rojo con monto adeudado, detalle del Juzgado de Faltas, acceso al Inbox municipal y botón verde "¡Ya Pagué!" para adjuntar comprobante.
+        3. 'aprobada': Acceso libre a todos los módulos y trámites habilitados.
+        4. 'papelera': Cuenta dada de baja o archivada.
+   B) ADMINISTRADORES Y AGENTES PÚBLICOS:
+      - admin_cuentas (password: admin123): Rol 'cuentas'. Verificación de identidad y multas de ciudadanos, gestión del Inbox y cambio de estados.
+      - admin_profesores (password: admin123): Rol 'profesores'. Configuración de modalidades de examen (Plantilla, Personalizado, Híbrido), creación/edición de preguntas, monitoreo en tiempo real de exámenes activos con proctoring (cámara y pantalla), revisión de exámenes y dictamen final (aprobación/desaprobación/justificación).
+      - admin_pagos (password: admin123): Rol 'pagos'. Revisión de transferencias, comprobantes adjuntos y tarjetas de débito. Aprobación o rechazo con observaciones.
+      - admin_salud (password: admin123): Rol 'salud'. Revisión de fichas médicas, aptitud psicofísica y certificados médicos adjuntos.
+      - admin_turnos (password: admin123): Rol 'turnos'. Control de cupos de turnos prácticos, registro de examen práctico de manejo en circuito y confirmación de toma de Huella Dactilar y Fotografía Biométrica.
+
+3. FLUJO SECUENCIAL DE LOS TRÁMITES:
+   A) Trámite "Licencia Nueva" (7 Pasos):
+      Paso 1: Charlas en Video (4 módulos obligatorios: Señales y Prioridades, Velocidades y Frenado, Conducción Defensiva y Alcohol Cero, Normativa Municipal). No permite saltear videos sin verlos.
+      Paso 2: Formularios de Salud (Declaración de grupo sanguíneo, lentes, enfermedades crónicas, medicación, contactos de emergencia y certificado adjunto en PDF/JPG).
+      Paso 3: Examen Teórico (Supervisado con cámara web y detección de pestañas. Mínimo para aprobar: 4 de 5 preguntas correctas, equivalente al 80%).
+      Paso 4: Pago del Arancel (Monto oficial: $12.500 ARS. Métodos: Transferencia con Alias MUNICIPIO.BARADERO.LICENCIAS / CBU 0110012330001234567890 o Tarjeta de Débito).
+      Paso 5: Examen Práctico y Biometría (Reserva en Circuito Municipal de Baradero + registro de huella y foto).
+      Paso 6: Entrega (Elección de retiro presencial en Dirección de Tránsito o envío a domicilio en Baradero).
+      Paso 7: Finalizado / Licencia Digital Emitida (Generación de Credencial Digital con código QR de validación fiscal e institucional).
+   B) Trámite "Renovación de Licencia":
+      Paso 1: Formularios de Salud.
+      Paso 2: Pago del Arancel.
+      Paso 3: Entrega.
+      Paso 4: Finalizado / Licencia Digital Emitida.
+   C) Otros tipos soportados: Licencia Vencida (+90 días con examen), Subir de Categoría (ampliación de clases A/B), Licencia Profesional (clases C/D/E) y Extravío/Robo (duplicado ágil).
+
+4. DETALLE DEL SISTEMA DE SUPERVISIÓN Y ANTI-CHEAT (EXAMEN TEÓRICO):
+   - Transmisión en vivo mediante WebRTC / Canvas Pings al panel docente (`/api/examen/stream/ping`).
+   - Detección de pérdida de foco / cambio de pestaña mediante `document.addEventListener('visibilitychange')`.
+   - Contador de advertencias: al registrar 3 faltas o conductas indebidas, el sistema puede bloquear o expulsar al postulante (`expulsado = 1`, `motivo_expulsion`).
+   - El docente evaluador puede enviar mensajes de justificación o requerimiento a través de la mensajería interna (`/api/admin/profesor/chat/enviar`).
+
+5. ERRORES Y CASOS DE BORDE PARA LA SECCIÓN 7:
+   - "DNI inválido (7 u 8 dígitos)": El usuario ingresó letras, espacios o longitud incorrecta.
+   - "Ya existe una cuenta con este DNI": Intento de registro duplicado.
+   - "Tu cuenta está en proceso de verificación": Acceso restringido hasta que el oficial de cuentas valide antecedentes.
+   - "Tienes Multas Pendientes": Detección de deuda en juzgado de faltas; requiere adjuntar comprobante en "¡Ya pagué!".
+   - "La contraseña debe tener al menos 6 caracteres": Clave débil en el registro.
+   - "Debes ver todos los videos para continuar": Intento de acceder a formularios sin completar las charlas.
+   - "Advertencia de Anti-Cheat: Cambio de Pestaña": Salir de la ventana del examen genera una falta.
+   - "Turno sin cupo disponible": Franja horaria completa en el circuito práctico.
+
+================================================================================
+INSTRUCCIONES DE FORMATO PARA EL MANUAL GENERADO POR LA IA:
+================================================================================
+1. Genera un documento técnico completo, exhaustivo y estructurado en Markdown profesional de alta calidad.
+2. No resumas ni utilices marcadores de posición tipo "[Completar aquí]". Desarrolla cada tabla, cada paso, cada cuadro de advertencia y cada texto con redacción final completa y elegante.
+3. Utiliza formato de tablas Markdown para: Ficha de Identificación, Tabla de Responsables, Historial de Versiones, Requerimientos Técnicos, Glosario, Comparativas de Trámites y Tabla de Resolución de Errores.
+4. Para cada módulo operativo, describe con precisión los elementos de la interfaz indicando visualmente las llamadas numéricas (ej: "[1] Campo DNI, [2] Botón Escanear Cámara, [3] Selector de Trámite...").
+5. Asegura un tono institucional, formal, didáctico y amigable para el ciudadano.
+
+¡Comienza ahora la redacción completa del Manual de Usuario Final según la estructura y datos proporcionados!
