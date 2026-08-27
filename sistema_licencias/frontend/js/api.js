@@ -400,5 +400,72 @@ class ApiService {
     static async adminGetStats() {
         return this.request('/admin/stats', { useAdmin: true });
     }
+
+    // ============================================================
+    // GESTIÓN DE CUENTAS E INFRACCIONES & INBOX
+    // ============================================================
+
+    static async adminGetCuentas(filtro = 'todos') {
+        return this.request(`/admin/cuentas?filtro=${encodeURIComponent(filtro)}`, { useAdmin: true });
+    }
+
+    static async adminGetCuentaDetalle(userId) {
+        return this.request(`/admin/cuentas/${userId}`, { useAdmin: true });
+    }
+
+    static async adminAprobarCuenta(userId) {
+        return this.request(`/admin/cuentas/${userId}/aprobar`, {
+            method: 'POST',
+            useAdmin: true
+        });
+    }
+
+    static async adminRechazarCuenta(userId, data) {
+        return this.request(`/admin/cuentas/${userId}/rechazar`, {
+            method: 'POST',
+            body: data,
+            useAdmin: true
+        });
+    }
+
+    static async adminMoverPapeleraCuenta(userId) {
+        return this.request(`/admin/cuentas/${userId}/mover-papelera`, {
+            method: 'POST',
+            useAdmin: true
+        });
+    }
+
+    static async adminDarAltaCuenta(userId) {
+        return this.request(`/admin/cuentas/${userId}/dar-alta`, {
+            method: 'POST',
+            useAdmin: true
+        });
+    }
+
+    static async getInboxMensajes(userId = null, useAdmin = false) {
+        const url = useAdmin && userId ? `/inbox/mensajes?usuario_id=${userId}` : '/inbox/mensajes';
+        return this.request(url, { useAdmin });
+    }
+
+    static async sendInboxMensaje(data, useAdmin = false) {
+        return this.request('/inbox/enviar', {
+            method: 'POST',
+            body: data,
+            useAdmin
+        });
+    }
+
+    static async notificarYaPague(data = {}) {
+        return this.request('/usuario/notificar-ya-pague', {
+            method: 'POST',
+            body: data
+        });
+    }
+
+    static async marcarBienvenidaVista() {
+        return this.request('/usuario/bienvenida-vista', {
+            method: 'POST'
+        });
+    }
 }
 

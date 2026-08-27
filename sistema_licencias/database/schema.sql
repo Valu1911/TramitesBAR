@@ -21,6 +21,14 @@ CREATE TABLE IF NOT EXISTS usuarios (
   dni_dorso     TEXT DEFAULT NULL,
   foto_rostro   TEXT DEFAULT NULL,
   tiene_cud     INTEGER DEFAULT 0,
+  numero_cud    TEXT DEFAULT '',
+  estado_cuenta TEXT DEFAULT 'pendiente', -- 'pendiente', 'aprobada', 'rechazada_multas', 'papelera'
+  multas_cantidad INTEGER DEFAULT 0,
+  multas_monto REAL DEFAULT 0.0,
+  multas_motivo TEXT DEFAULT '',
+  multas_fecha_revision TEXT DEFAULT NULL,
+  bienvenida_mostrada INTEGER DEFAULT 0,
+  infracciones_pagadas_solicitadas INTEGER DEFAULT 0,
   created_at    TEXT DEFAULT (datetime('now','localtime')),
   updated_at    TEXT DEFAULT (datetime('now','localtime'))
 );
@@ -134,14 +142,30 @@ CREATE TABLE IF NOT EXISTS config_examen (
 -- TABLA: examenes_teoricos (resultado del examen por tramite)
 -- ============================================================
 CREATE TABLE IF NOT EXISTS examenes_teoricos (
-  id              INTEGER PRIMARY KEY AUTOINCREMENT,
-  tramite_id      INTEGER NOT NULL,
-  respuestas      TEXT DEFAULT NULL,
-  puntaje         INTEGER DEFAULT 0,
-  total_preguntas INTEGER DEFAULT 0,
-  aprobado        INTEGER DEFAULT 0,
-  fecha_examen    TEXT DEFAULT (datetime('now','localtime')),
+  id                  INTEGER PRIMARY KEY AUTOINCREMENT,
+  tramite_id          INTEGER NOT NULL,
+  respuestas          TEXT DEFAULT NULL,
+  puntaje             INTEGER DEFAULT 0,
+  total_preguntas     INTEGER DEFAULT 0,
+  aprobado            INTEGER DEFAULT 0,
+  fecha_examen        TEXT DEFAULT (datetime('now','localtime')),
+  estado_revision     TEXT DEFAULT 'pendiente_revision',
+  porcentaje_acierto  REAL DEFAULT 0,
+  motivo_justificacion TEXT DEFAULT '',
+  expulsado           INTEGER DEFAULT 0,
+  motivo_expulsion    TEXT DEFAULT '',
+  created_at          TEXT DEFAULT (datetime('now','localtime')),
   FOREIGN KEY (tramite_id) REFERENCES tramites(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS mensajes_profesor (
+  id                INTEGER PRIMARY KEY AUTOINCREMENT,
+  tramite_id        INTEGER NOT NULL,
+  usuario_id        INTEGER NOT NULL,
+  profesor_nombre   TEXT DEFAULT 'Profesor Evaluador',
+  mensaje           TEXT NOT NULL,
+  tipo              TEXT DEFAULT 'justificacion',
+  created_at        TEXT DEFAULT (datetime('now','localtime'))
 );
 
 -- ============================================================
@@ -233,6 +257,23 @@ CREATE TABLE IF NOT EXISTS entregas (
   FOREIGN KEY (tramite_id) REFERENCES tramites(id) ON DELETE CASCADE
 );
 
+-- ============================================================
+-- TABLA: inbox_cuentas (mensajes y comprobantes de multas entre usuario y admin)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS inbox_cuentas (
+  id                INTEGER PRIMARY KEY AUTOINCREMENT,
+  usuario_id        INTEGER NOT NULL,
+  admin_id          INTEGER DEFAULT NULL,
+  emisor            TEXT NOT NULL, -- 'usuario' o 'admin'
+  mensaje           TEXT NOT NULL,
+  adjunto_url       TEXT DEFAULT NULL,
+  adjunto_nombre    TEXT DEFAULT NULL,
+  leido             INTEGER DEFAULT 0,
+  created_at        TEXT DEFAULT (datetime('now','localtime')),
+  FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE,
+  FOREIGN KEY (admin_id) REFERENCES admins(id) ON DELETE SET NULL
+);
+
 
 -- ============================================================
 -- DATOS INICIALES
@@ -240,6 +281,7 @@ CREATE TABLE IF NOT EXISTS entregas (
 
 -- Admins (passwords: admin123 - se actualizan al iniciar app.py)
 INSERT INTO admins (usuario, password_hash, nombre, rol) VALUES
+('admin_cuentas', 'PENDING_HASH', 'Admin Cuentas e Infracciones', 'cuentas'),
 ('admin_pagos', 'PENDING_HASH', 'Admin Pagos', 'pagos'),
 ('admin_salud', 'PENDING_HASH', 'Admin Salud', 'salud'),
 ('admin_turnos', 'PENDING_HASH', 'Admin Turnos', 'turnos'),

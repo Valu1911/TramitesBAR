@@ -415,6 +415,39 @@ class TutorialSystem {
                 return [];
         }
     }
+
+    /**
+     * Muestra a Tramibot felicitando al usuario por la aprobación de su cuenta
+     */
+    showApprovalGreeting(nombre = '') {
+        this.init();
+        this.isActive = true;
+        if (this.overlay) this.overlay.classList.add('active');
+        if (this.container) {
+            this.container.classList.add('active');
+            this.container.style.position = 'fixed';
+            this.container.style.bottom = '40px';
+            this.container.style.right = '40px';
+            this.container.style.left = 'auto';
+            this.container.style.top = 'auto';
+            this.container.style.transform = 'none';
+        }
+        
+        const titleEl = document.getElementById('tutorial-title');
+        const textEl = document.getElementById('tutorial-text');
+        const skipBtn = document.getElementById('tutorial-btn-skip');
+        const nextBtn = document.getElementById('tutorial-btn-next');
+        
+        if (titleEl) titleEl.innerText = `¡Cuenta Aprobada con Éxito, ${nombre || 'Ciudadano'}! 🎉`;
+        if (textEl) textEl.innerHTML = `¡Excelentes noticias! El área de Tránsito ha verificado tus antecedentes e infracciones y <strong>tu cuenta ha sido aprobada con éxito</strong>.<br><br>Ya tenés acceso libre y completo para comenzar a gestionar tu licencia de conducir digital.`;
+        if (skipBtn) skipBtn.style.display = 'none';
+        if (nextBtn) {
+            nextBtn.innerText = '¡Entendido, Comenzar Trámite! 🚀';
+            nextBtn.onclick = () => {
+                this.endTutorial(true);
+            };
+        }
+    }
 }
 
 // Instancia global

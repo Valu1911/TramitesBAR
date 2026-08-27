@@ -74,7 +74,7 @@ def admin_required(rol=None):
             if not data or data.get('tipo') != 'admin':
                 return jsonify({'error': 'Acceso denegado'}), 403
             user_rol = data.get('rol')
-            if rol and user_rol != rol and user_rol not in ('profesores', 'superadmin', 'admin'):
+            if rol and user_rol != rol and user_rol not in ('profesores', 'superadmin', 'admin', 'cuentas'):
                 return jsonify({'error': f'Se requiere rol: {rol}'}), 403
             request.admin_data = data
             return f(*args, **kwargs)
@@ -241,8 +241,8 @@ def registro():
     password_hash = generate_password_hash(password)
 
     user_id = execute_query(
-        """INSERT INTO usuarios (dni, nombre, apellido, email, telefono, fecha_nacimiento, direccion, tiene_cud, numero_cud, password_hash)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+        """INSERT INTO usuarios (dni, nombre, apellido, email, telefono, fecha_nacimiento, direccion, tiene_cud, numero_cud, password_hash, estado_cuenta, multas_cantidad, multas_monto, multas_motivo, bienvenida_mostrada, infracciones_pagadas_solicitadas)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pendiente', 0, 0.0, '', 0, 0)""",
         (dni, nombre, apellido, email, telefono, fecha_nac, direccion, tiene_cud, numero_cud, password_hash)
     )
 
@@ -270,7 +270,13 @@ def registro():
             'numero_cud': numero_cud,
             'tipo_tramite': tipo_tramite,
             'tramite_id': tramite_id,
-            'paso_actual': paso_inicial
+            'paso_actual': paso_inicial,
+            'estado_cuenta': 'pendiente',
+            'multas_cantidad': 0,
+            'multas_monto': 0.0,
+            'multas_motivo': '',
+            'bienvenida_mostrada': 0,
+            'infracciones_pagadas_solicitadas': 0
         }
     }), 201
 
@@ -309,7 +315,7 @@ def login():
         return jsonify({'error': 'Contraseña requerida'}), 400
 
     user = execute_query(
-        "SELECT id, dni, nombre, apellido, fecha_nacimiento, tiene_cud, numero_cud, password_hash FROM usuarios WHERE dni=?",
+        "SELECT id, dni, nombre, apellido, fecha_nacimiento, tiene_cud, numero_cud, password_hash, estado_cuenta, multas_cantidad, multas_monto, multas_motivo, multas_fecha_revision, bienvenida_mostrada, infracciones_pagadas_solicitadas FROM usuarios WHERE dni=?",
         (dni,), fetch_one=True
     )
 
@@ -360,7 +366,14 @@ def login():
             'numero_cud': user.get('numero_cud', ''),
             'tramite_id': tramite_id,
             'tipo_tramite': tipo_tramite,
-            'paso_actual': paso_actual
+            'paso_actual': paso_actual,
+            'estado_cuenta': user.get('estado_cuenta') or 'pendiente',
+            'multas_cantidad': user.get('multas_cantidad') or 0,
+            'multas_monto': float(user.get('multas_monto') or 0.0),
+            'multas_motivo': user.get('multas_motivo') or '',
+            'multas_fecha_revision': user.get('multas_fecha_revision'),
+            'bienvenida_mostrada': int(user.get('bienvenida_mostrada') or 0),
+            'infracciones_pagadas_solicitadas': int(user.get('infracciones_pagadas_solicitadas') or 0)
         }
     })
 
@@ -550,12 +563,18 @@ def get_progreso():
         })
 
     usuario = execute_query(
-        "SELECT id, nombre, apellido, dni, fecha_nacimiento, email, telefono, direccion, tiene_cud FROM usuarios WHERE id=?",
+        "SELECT id, nombre, apellido, dni, fecha_nacimiento, email, telefono, direccion, tiene_cud, numero_cud, estado_cuenta, multas_cantidad, multas_monto, multas_motivo, multas_fecha_revision, bienvenida_mostrada, infracciones_pagadas_solicitadas FROM usuarios WHERE id=?",
         (tramite['usuario_id'],), fetch_one=True
     )
     if usuario:
         usuario['edad'] = calcular_edad(usuario.get('fecha_nacimiento'))
         usuario['tiene_cud'] = bool(usuario.get('tiene_cud', 0))
+        usuario['estado_cuenta'] = usuario.get('estado_cuenta') or 'pendiente'
+        usuario['multas_cantidad'] = usuario.get('multas_cantidad') or 0
+        usuario['multas_monto'] = float(usuario.get('multas_monto') or 0.0)
+        usuario['multas_motivo'] = usuario.get('multas_motivo') or ''
+        usuario['bienvenida_mostrada'] = int(usuario.get('bienvenida_mostrada') or 0)
+        usuario['infracciones_pagadas_solicitadas'] = int(usuario.get('infracciones_pagadas_solicitadas') or 0)
 
     licencia = execute_query(
         "SELECT * FROM licencias WHERE usuario_id=? ORDER BY id DESC LIMIT 1",
@@ -578,7 +597,13 @@ def get_progreso():
         'pasos': pasos_info,
         'usuario': usuario,
         'licencia': licencia,
-        'progreso_porcentaje': progreso_pct
+        'progreso_porcentaje': progreso_pct,
+        'estado_cuenta': usuario.get('estado_cuenta') if usuario else 'pendiente',
+        'multas_cantidad': usuario.get('multas_cantidad', 0) if usuario else 0,
+        'multas_monto': usuario.get('multas_monto', 0.0) if usuario else 0.0,
+        'multas_motivo': usuario.get('multas_motivo', '') if usuario else '',
+        'bienvenida_mostrada': usuario.get('bienvenida_mostrada', 0) if usuario else 0,
+        'infracciones_pagadas_solicitadas': usuario.get('infracciones_pagadas_solicitadas', 0) if usuario else 0
     })
 
 
@@ -853,7 +878,8 @@ def entregar_examen():
     minimo = max(1, int(total * 0.70)) if total > 0 else 1
     porcentaje = round((puntaje / total) * 100, 1) if total > 0 else 0.0
 
-    auto_aprobar = request.args.get('auto_aprobar') == '1' or (request.json and request.json.get('auto_aprobar') is True)
+    desactivar_auto = request.args.get('auto_aprobar') == '0' or (request.json and request.json.get('auto_aprobar') is False)
+    auto_aprobar = not desactivar_auto
 
     if auto_aprobar:
         aprobado = 1 if puntaje >= minimo else 0
@@ -1845,6 +1871,269 @@ def get_chat_mensajes_profesor():
     ) or []
     return jsonify({'mensajes': mensajes})
 
+
+# ============================================================
+# ADMIN - GESTIÓN Y VERIFICACIÓN DE CUENTAS E INFRACCIONES
+# ============================================================
+
+@app.route('/api/admin/cuentas', methods=['GET'])
+@admin_required(rol='cuentas')
+def admin_get_cuentas():
+    filtro = request.args.get('filtro', 'todos')
+    
+    if filtro == 'pendiente':
+        query = "SELECT * FROM usuarios WHERE estado_cuenta='pendiente' ORDER BY id DESC"
+        params = ()
+    elif filtro == 'aprobada':
+        query = "SELECT * FROM usuarios WHERE estado_cuenta='aprobada' ORDER BY id DESC"
+        params = ()
+    elif filtro == 'rechazada_multas':
+        query = "SELECT * FROM usuarios WHERE estado_cuenta='rechazada_multas' ORDER BY id DESC"
+        params = ()
+    elif filtro == 'papelera':
+        query = "SELECT * FROM usuarios WHERE estado_cuenta='papelera' ORDER BY id DESC"
+        params = ()
+    else: # todos excluyendo papelera
+        query = "SELECT * FROM usuarios WHERE estado_cuenta != 'papelera' ORDER BY id DESC"
+        params = ()
+        
+    usuarios = execute_query(query, params, fetch_all=True) or []
+    
+    for u in usuarios:
+        u['edad'] = calcular_edad(u.get('fecha_nacimiento'))
+        u['tiene_cud'] = bool(u.get('tiene_cud', 0))
+        u['multas_monto'] = float(u.get('multas_monto') or 0.0)
+        u['multas_cantidad'] = int(u.get('multas_cantidad') or 0)
+        unread = execute_query(
+            "SELECT COUNT(*) as c FROM inbox_cuentas WHERE usuario_id=? AND emisor='usuario' AND leido=0",
+            (u['id'],), fetch_one=True
+        )
+        u['mensajes_sin_leer'] = unread['c'] if unread else 0
+        
+    pendientes_count = execute_query("SELECT COUNT(*) as c FROM usuarios WHERE estado_cuenta='pendiente'", fetch_one=True)['c']
+    con_multas_count = execute_query("SELECT COUNT(*) as c FROM usuarios WHERE estado_cuenta='rechazada_multas'", fetch_one=True)['c']
+    aprobados_count = execute_query("SELECT COUNT(*) as c FROM usuarios WHERE estado_cuenta='aprobada'", fetch_one=True)['c']
+    papelera_count = execute_query("SELECT COUNT(*) as c FROM usuarios WHERE estado_cuenta='papelera'", fetch_one=True)['c']
+    
+    return jsonify({
+        'usuarios': usuarios,
+        'pendientes': pendientes_count,
+        'con_multas': con_multas_count,
+        'aprobados': aprobados_count,
+        'papelera': papelera_count
+    })
+
+
+@app.route('/api/admin/cuentas/<int:user_id>', methods=['GET'])
+@admin_required(rol='cuentas')
+def admin_get_cuenta_detalle(user_id):
+    usuario = execute_query("SELECT * FROM usuarios WHERE id=?", (user_id,), fetch_one=True)
+    if not usuario:
+        return jsonify({'error': 'Usuario no encontrado'}), 404
+        
+    usuario['edad'] = calcular_edad(usuario.get('fecha_nacimiento'))
+    usuario['tiene_cud'] = bool(usuario.get('tiene_cud', 0))
+    usuario['multas_monto'] = float(usuario.get('multas_monto') or 0.0)
+    usuario['multas_cantidad'] = int(usuario.get('multas_cantidad') or 0)
+    
+    tramite = execute_query("SELECT * FROM tramites WHERE usuario_id=? ORDER BY id DESC LIMIT 1", (user_id,), fetch_one=True)
+    mensajes = execute_query("SELECT * FROM inbox_cuentas WHERE usuario_id=? ORDER BY created_at ASC", (user_id,), fetch_all=True) or []
+    
+    execute_query("UPDATE inbox_cuentas SET leido=1 WHERE usuario_id=? AND emisor='usuario'", (user_id,))
+    
+    return jsonify({
+        'usuario': usuario,
+        'tramite': tramite,
+        'mensajes': mensajes
+    })
+
+
+@app.route('/api/admin/cuentas/<int:user_id>/aprobar', methods=['POST'])
+@admin_required(rol='cuentas')
+def admin_aprobar_cuenta(user_id):
+    admin_id = request.admin_data.get('admin_id')
+    
+    usuario = execute_query("SELECT * FROM usuarios WHERE id=?", (user_id,), fetch_one=True)
+    if not usuario:
+        return jsonify({'error': 'Usuario no encontrado'}), 404
+        
+    execute_query(
+        """UPDATE usuarios 
+           SET estado_cuenta='aprobada', multas_cantidad=0, multas_monto=0.0, 
+               multas_motivo='', infracciones_pagadas_solicitadas=0, bienvenida_mostrada=0,
+               multas_fecha_revision=datetime('now','localtime'), updated_at=datetime('now','localtime')
+           WHERE id=?""",
+        (user_id,)
+    )
+    
+    execute_query(
+        """INSERT INTO inbox_cuentas (usuario_id, admin_id, emisor, mensaje, leido)
+           VALUES (?, ?, 'admin', '¡Tu cuenta ha sido aprobada por el área de Tránsito! Ya podés comenzar con los pasos de tu licencia.', 0)""",
+        (user_id, admin_id)
+    )
+    
+    return jsonify({'message': f'Cuenta de {usuario["nombre"]} {usuario["apellido"]} (DNI: {usuario["dni"]}) aprobada con éxito.'})
+
+
+@app.route('/api/admin/cuentas/<int:user_id>/rechazar', methods=['POST'])
+@admin_required(rol='cuentas')
+def admin_rechazar_cuenta(user_id):
+    admin_id = request.admin_data.get('admin_id')
+    data = request.json or {}
+    
+    cantidad_multas = int(data.get('cantidad_multas', 1))
+    monto_total = float(data.get('monto_total', 0.0))
+    motivo = data.get('mensaje', '').strip() or 'Infracciones de tránsito detectadas en el Registro Provincial/Nacional de Antecedentes.'
+    
+    usuario = execute_query("SELECT * FROM usuarios WHERE id=?", (user_id,), fetch_one=True)
+    if not usuario:
+        return jsonify({'error': 'Usuario no encontrado'}), 404
+        
+    execute_query(
+        """UPDATE usuarios 
+           SET estado_cuenta='rechazada_multas', multas_cantidad=?, multas_monto=?, 
+               multas_motivo=?, infracciones_pagadas_solicitadas=0,
+               multas_fecha_revision=datetime('now','localtime'), updated_at=datetime('now','localtime')
+           WHERE id=?""",
+        (cantidad_multas, monto_total, motivo, user_id)
+    )
+    
+    msg_template = f"Estimado/a {usuario['nombre']} {usuario['apellido']}: Tras consultar las bases de datos de seguridad vial se detectaron {cantidad_multas} infracción(es) pendiente(s) por un monto total de ${monto_total:,.2f}. Motivo: {motivo}. Por favor, regularice su situación y presione 'Ya pagué' adjuntando su comprobante."
+    
+    execute_query(
+        """INSERT INTO inbox_cuentas (usuario_id, admin_id, emisor, mensaje, leido)
+           VALUES (?, ?, 'admin', ?, 0)""",
+        (user_id, admin_id, msg_template)
+    )
+    
+    return jsonify({'message': f'Cuenta de {usuario["nombre"]} actualizada con {cantidad_multas} infracción(es). Notificación enviada.'})
+
+
+@app.route('/api/admin/cuentas/<int:user_id>/mover-papelera', methods=['POST'])
+@admin_required(rol='cuentas')
+def admin_mover_papelera_cuenta(user_id):
+    usuario = execute_query("SELECT * FROM usuarios WHERE id=?", (user_id,), fetch_one=True)
+    if not usuario:
+        return jsonify({'error': 'Usuario no encontrado'}), 404
+        
+    execute_query("UPDATE usuarios SET estado_cuenta='papelera', updated_at=datetime('now','localtime') WHERE id=?", (user_id,))
+    return jsonify({'message': f'Usuario {usuario["nombre"]} {usuario["apellido"]} movido a la papelera.'})
+
+
+@app.route('/api/admin/cuentas/<int:user_id>/dar-alta', methods=['POST'])
+@admin_required(rol='cuentas')
+def admin_dar_alta_cuenta(user_id):
+    usuario = execute_query("SELECT * FROM usuarios WHERE id=?", (user_id,), fetch_one=True)
+    if not usuario:
+        return jsonify({'error': 'Usuario no encontrado'}), 404
+        
+    execute_query("UPDATE usuarios SET estado_cuenta='aprobada', updated_at=datetime('now','localtime') WHERE id=?", (user_id,))
+    return jsonify({'message': f'Usuario {usuario["nombre"]} {usuario["apellido"]} dado de alta correctamente.'})
+
+
+# ============================================================
+# INBOX / MENSAJERÍA CIUDADANO <-> ADMIN CUENTAS
+# ============================================================
+
+@app.route('/api/inbox/mensajes', methods=['GET'])
+def get_inbox_mensajes():
+    token = request.headers.get('Authorization', '').replace('Bearer ', '')
+    if not token:
+        return jsonify({'error': 'Token requerido'}), 401
+        
+    data = decode_token(token)
+    if not data:
+        return jsonify({'error': 'Token inválido'}), 401
+        
+    if data.get('tipo') == 'admin':
+        usuario_id = request.args.get('usuario_id')
+        if not usuario_id:
+            return jsonify({'error': 'usuario_id requerido para admin'}), 400
+        mensajes = execute_query(
+            "SELECT * FROM inbox_cuentas WHERE usuario_id=? ORDER BY created_at ASC",
+            (usuario_id,), fetch_all=True
+        ) or []
+        execute_query("UPDATE inbox_cuentas SET leido=1 WHERE usuario_id=? AND emisor='usuario'", (usuario_id,))
+    else:
+        usuario_id = data.get('usuario_id')
+        mensajes = execute_query(
+            "SELECT * FROM inbox_cuentas WHERE usuario_id=? ORDER BY created_at ASC",
+            (usuario_id,), fetch_all=True
+        ) or []
+        execute_query("UPDATE inbox_cuentas SET leido=1 WHERE usuario_id=? AND emisor='admin'", (usuario_id,))
+        
+    return jsonify({'mensajes': mensajes})
+
+
+@app.route('/api/inbox/enviar', methods=['POST'])
+def send_inbox_mensaje():
+    token = request.headers.get('Authorization', '').replace('Bearer ', '')
+    if not token:
+        return jsonify({'error': 'Token requerido'}), 401
+        
+    data_token = decode_token(token)
+    if not data_token:
+        return jsonify({'error': 'Token inválido'}), 401
+        
+    payload = request.json or {}
+    mensaje = payload.get('mensaje', '').strip()
+    adjunto_url = payload.get('adjunto_url')
+    adjunto_nombre = payload.get('adjunto_nombre')
+    
+    if not mensaje and not adjunto_url:
+        return jsonify({'error': 'Debe ingresar un mensaje o adjuntar un archivo'}), 400
+        
+    if data_token.get('tipo') == 'admin':
+        admin_id = data_token.get('admin_id')
+        usuario_id = payload.get('usuario_id')
+        if not usuario_id:
+            return jsonify({'error': 'usuario_id requerido'}), 400
+        emisor = 'admin'
+    else:
+        usuario_id = data_token.get('usuario_id')
+        admin_id = None
+        emisor = 'usuario'
+        
+    msg_id = execute_query(
+        """INSERT INTO inbox_cuentas (usuario_id, admin_id, emisor, mensaje, adjunto_url, adjunto_nombre, leido)
+           VALUES (?, ?, ?, ?, ?, ?, 0)""",
+        (usuario_id, admin_id, emisor, mensaje or 'Comprobante adjunto', adjunto_url, adjunto_nombre)
+    )
+    
+    nuevo_msg = execute_query("SELECT * FROM inbox_cuentas WHERE id=?", (msg_id,), fetch_one=True)
+    return jsonify({'message': 'Mensaje enviado', 'mensaje': nuevo_msg}), 201
+
+
+@app.route('/api/usuario/notificar-ya-pague', methods=['POST'])
+@token_required
+def usuario_notificar_ya_pague():
+    usuario_id = request.user_data.get('usuario_id')
+    payload = request.json or {}
+    mensaje_adicional = payload.get('mensaje', '').strip()
+    adjunto_url = payload.get('adjunto_url')
+    adjunto_nombre = payload.get('adjunto_nombre')
+    
+    execute_query("UPDATE usuarios SET infracciones_pagadas_solicitadas=1, updated_at=datetime('now','localtime') WHERE id=?", (usuario_id,))
+    
+    msg_texto = f"📌 [NOTIFICACIÓN DE PAGO]: El ciudadano ha marcado 'Ya pagué' y solicita la revisión de multas."
+    if mensaje_adicional:
+        msg_texto += f"\nMensaje: {mensaje_adicional}"
+        
+    execute_query(
+        """INSERT INTO inbox_cuentas (usuario_id, admin_id, emisor, mensaje, adjunto_url, adjunto_nombre, leido)
+           VALUES (?, NULL, 'usuario', ?, ?, ?, 0)""",
+        (usuario_id, msg_texto, adjunto_url, adjunto_nombre)
+    )
+    
+    return jsonify({'message': 'Notificación de pago enviada al administrador con éxito.'})
+
+
+@app.route('/api/usuario/bienvenida-vista', methods=['POST'])
+@token_required
+def usuario_bienvenida_vista():
+    usuario_id = request.user_data.get('usuario_id')
+    execute_query("UPDATE usuarios SET bienvenida_mostrada=1 WHERE id=?", (usuario_id,))
+    return jsonify({'message': 'Bienvenida marcada como vista'})
 
 
 # ============================================================

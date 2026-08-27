@@ -36,7 +36,7 @@ class AdminLoginPage {
                         <span style="display:flex;align-items:center">${Icons.info}</span>
                         <div style="font-size:0.75rem">
                             <strong>Usuarios disponibles:</strong><br>
-                            admin_profesores · admin_pagos · admin_salud · admin_turnos<br>
+                            admin_cuentas · admin_profesores · admin_pagos · admin_salud · admin_turnos<br>
                             <strong>Contraseña:</strong> admin123
                         </div>
                     </div>
@@ -77,12 +77,13 @@ class AdminLoginPage {
 
             // Redirigir según rol
             const redirectMap = {
+                'cuentas': 'admin-cuentas',
                 'profesores': 'admin-profesores',
                 'pagos': 'admin-pagos',
                 'salud': 'admin-salud',
                 'turnos': 'admin-turnos'
             };
-            Router.navigate(redirectMap[result.admin.rol] || 'admin-profesores');
+            Router.navigate(redirectMap[result.admin.rol] || 'admin-cuentas');
         } catch (err) {
             errorEl.textContent = err.message || 'Error de autenticación';
             errorEl.style.display = 'block';

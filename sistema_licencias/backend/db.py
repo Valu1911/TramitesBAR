@@ -16,8 +16,13 @@ def dict_factory(cursor, row):
 
 def get_connection():
     """Obtiene una conexión a la base de datos SQLite."""
-    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
+    conn = sqlite3.connect(DB_PATH, timeout=30.0, check_same_thread=False)
     conn.row_factory = dict_factory
+    try:
+        conn.execute("PRAGMA journal_mode=WAL;")
+        conn.execute("PRAGMA foreign_keys=ON;")
+    except Exception:
+        pass
     return conn
 
 def execute_query(query, params=None, fetch_one=False, fetch_all=False):
@@ -138,6 +143,11 @@ def init_db():
             except sqlite3.OperationalError:
                 pass
 
+            try:
+                conn.execute("INSERT OR IGNORE INTO admins (usuario, password_hash, nombre, rol) VALUES ('admin_cuentas', 'PENDING_HASH', 'Admin Cuentas e Infracciones', 'cuentas')")
+            except sqlite3.OperationalError:
+                pass
+
             conn.execute("""
                 CREATE TABLE IF NOT EXISTS mensajes_profesor (
                     id                INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -149,6 +159,37 @@ def init_db():
                     created_at        TEXT DEFAULT (datetime('now','localtime'))
                 );
             """)
+
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS inbox_cuentas (
+                    id                INTEGER PRIMARY KEY AUTOINCREMENT,
+                    usuario_id        INTEGER NOT NULL,
+                    admin_id          INTEGER DEFAULT NULL,
+                    emisor            TEXT NOT NULL,
+                    mensaje           TEXT NOT NULL,
+                    adjunto_url       TEXT DEFAULT NULL,
+                    adjunto_nombre    TEXT DEFAULT NULL,
+                    leido             INTEGER DEFAULT 0,
+                    created_at        TEXT DEFAULT (datetime('now','localtime')),
+                    FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE,
+                    FOREIGN KEY (admin_id) REFERENCES admins(id) ON DELETE SET NULL
+                );
+            """)
+
+            # Columnas de estado de cuenta e infracciones para usuarios
+            for col, col_type, default_val in [
+                ('estado_cuenta', 'TEXT', "'pendiente'"),
+                ('multas_cantidad', 'INTEGER', "0"),
+                ('multas_monto', 'REAL', "0.0"),
+                ('multas_motivo', 'TEXT', "''"),
+                ('multas_fecha_revision', 'TEXT', "NULL"),
+                ('bienvenida_mostrada', 'INTEGER', "0"),
+                ('infracciones_pagadas_solicitadas', 'INTEGER', "0"),
+            ]:
+                try:
+                    conn.execute(f"ALTER TABLE usuarios ADD COLUMN {col} {col_type} DEFAULT {default_val}")
+                except sqlite3.OperationalError:
+                    pass
 
             try:
                 conn.execute("ALTER TABLE examenes_teoricos ADD COLUMN estado_revision TEXT DEFAULT 'pendiente_revision'")
@@ -172,6 +213,16 @@ def init_db():
 
             try:
                 conn.execute("ALTER TABLE examenes_teoricos ADD COLUMN motivo_expulsion TEXT DEFAULT ''")
+            except sqlite3.OperationalError:
+                pass
+
+            try:
+                conn.execute("ALTER TABLE examenes_teoricos ADD COLUMN created_at TEXT")
+            except sqlite3.OperationalError:
+                pass
+
+            try:
+                conn.execute("UPDATE examenes_teoricos SET created_at = COALESCE(fecha_examen, datetime('now','localtime')) WHERE created_at IS NULL OR created_at = ''")
             except sqlite3.OperationalError:
                 pass
 

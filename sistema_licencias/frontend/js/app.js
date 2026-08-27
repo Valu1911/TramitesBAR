@@ -72,7 +72,7 @@ class Router {
 
         // Auth guard
         const publicPages = ['login', 'registro', 'admin-login'];
-        const adminPages = ['admin-pagos', 'admin-salud', 'admin-turnos', 'admin-profesores'];
+        const adminPages = ['admin-pagos', 'admin-salud', 'admin-turnos', 'admin-profesores', 'admin-cuentas'];
 
         if (!publicPages.includes(page) && !adminPages.includes(page)) {
             const token = ApiService.getToken();
@@ -121,6 +121,9 @@ class Router {
                 break;
             case 'admin-login':
                 AdminLoginPage.render(app);
+                break;
+            case 'admin-cuentas':
+                AdminCuentasPage.render(app);
                 break;
             case 'admin-pagos':
                 AdminPagosPage.render(app);
@@ -227,6 +230,7 @@ function renderAdminNavbar(admin) {
                 <button class="btn btn-ghost btn-sm" onclick="toggleDarkMode()" title="Cambiar tema" style="color:rgba(255,255,255,0.6)" id="darkModeAdminBtn">
                     <span style="display:flex;align-items:center">${document.body.classList.contains('dark') ? Icons.sun : Icons.moon}</span>
                 </button>
+                <button class="btn btn-ghost btn-sm" style="color:${admin?.rol==='cuentas'?'#38bdf8':'rgba(255,255,255,0.6)'}; display:flex;align-items:center;gap:4px" onclick="Router.navigate('admin-cuentas')">${Icons.shield} Cuentas</button>
                 <button class="btn btn-ghost btn-sm" style="color:${admin?.rol==='profesores'?'#38bdf8':'rgba(255,255,255,0.6)'}; display:flex;align-items:center;gap:4px" onclick="Router.navigate('admin-profesores')">${Icons.teacher} Profesores</button>
                 <button class="btn btn-ghost btn-sm" style="color:${admin?.rol==='pagos'?'#38bdf8':'rgba(255,255,255,0.6)'}; display:flex;align-items:center;gap:4px" onclick="Router.navigate('admin-pagos')">${Icons.money} Pagos</button>
                 <button class="btn btn-ghost btn-sm" style="color:${admin?.rol==='salud'?'#38bdf8':'rgba(255,255,255,0.6)'}; display:flex;align-items:center;gap:4px" onclick="Router.navigate('admin-salud')">${Icons.heart} Salud</button>
