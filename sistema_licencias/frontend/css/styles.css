@@ -2365,4 +2365,207 @@ select.form-input {
     color: rgba(255, 255, 255, 0.85) !important;
 }
 
+/* ============================================================
+   WIDGET LECTOR INTELIGENTE DE DNI (FRENTE / DORSO)
+   ============================================================ */
+.dni-scanner-widget {
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.06), rgba(147, 197, 253, 0.12));
+    border: 1px solid var(--primary-light, #93c5fd);
+    border-radius: var(--radius-lg);
+    padding: 16px;
+    box-shadow: 0 4px 16px rgba(37, 99, 235, 0.08);
+    transition: all 0.25s ease;
+}
+
+.dni-scanner-header {
+    text-align: center;
+    margin-bottom: 12px;
+}
+
+.dni-scanner-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(37, 99, 235, 0.1);
+    border: 1px solid var(--primary-light, #93c5fd);
+    padding: 4px 12px;
+    border-radius: 9999px;
+}
+
+.dni-scanner-tabs {
+    display: flex;
+    gap: 6px;
+    background: rgba(0, 0, 0, 0.04);
+    padding: 4px;
+    border-radius: var(--radius-md);
+    margin-bottom: 14px;
+}
+
+.dni-tab-btn {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 10px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.dni-tab-btn:hover {
+    color: var(--primary);
+    background: rgba(255, 255, 255, 0.4);
+}
+
+.dni-tab-btn.active {
+    background: var(--primary);
+    color: #ffffff;
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+}
+
+/* DROPZONE DE SUBIDA DE ARCHIVO */
+.dni-dropzone {
+    border: 2px dashed var(--primary);
+    background: rgba(255, 255, 255, 0.4);
+    border-radius: var(--radius-md);
+    padding: 24px 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.dni-dropzone:hover,
+.dni-dropzone.drag-over {
+    background: rgba(37, 99, 235, 0.12);
+    border-color: var(--primary-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
+}
+
+.dni-dropzone-icon {
+    margin-bottom: 2px;
+    animation: bounceIn 0.4s ease;
+}
+
+.dni-dropzone-text strong {
+    display: block;
+    font-size: 0.88rem;
+    color: var(--text);
+    margin-bottom: 2px;
+}
+
+/* VIEWPORT DE CÁMARA Y MARCO HOLOGRÁFICO */
+.dni-camera-viewport {
+    position: relative;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    border: 2px solid var(--primary);
+    background: #000;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+}
+
+.dni-target-frame {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    right: 14px;
+    bottom: 14px;
+    border: 2px dashed #60a5fa;
+    border-radius: 10px;
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 10px;
+    box-shadow: inset 0 0 20px rgba(37, 99, 235, 0.45);
+}
+
+.dni-frame-top,
+.dni-frame-bottom {
+    display: flex;
+    justify-content: space-between;
+    color: #60a5fa;
+    font-weight: 800;
+    font-size: 0.75rem;
+    letter-spacing: 0.5px;
+}
+
+.dni-frame-center {
+    text-align: center;
+}
+
+.dni-frame-hint {
+    background: rgba(0, 0, 0, 0.75);
+    color: #ffffff;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.72rem;
+    border: 1px solid #60a5fa;
+}
+
+/* LÍNEA LÁSER ANIMADA */
+.dni-scan-beam {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, #38bdf8, #60a5fa, #38bdf8, transparent);
+    box-shadow: 0 0 12px #38bdf8, 0 0 24px #60a5fa;
+    animation: laserScan 1.8s infinite ease-in-out;
+    pointer-events: none;
+}
+
+@keyframes laserScan {
+    0% { top: 5%; opacity: 0.2; }
+    50% { top: 90%; opacity: 1; }
+    100% { top: 5%; opacity: 0.2; }
+}
+
+/* FEEDBACK DE ESTADO */
+.dni-scanner-status {
+    margin-top: 12px;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 0.78rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.dni-scanner-status.status-loading {
+    background: rgba(37, 99, 235, 0.1);
+    color: var(--primary);
+    border: 1px solid rgba(37, 99, 235, 0.2);
+}
+
+.dni-scanner-status.status-success {
+    background: #dcfce7;
+    color: #15803d;
+    border: 1px solid #86efac;
+}
+
+.dni-scanner-status.status-error {
+    background: #fee2e2;
+    color: #b91c1c;
+    border: 1px solid #fca5a5;
+}
+
+.dni-scanner-status.status-info {
+    background: #e0f2fe;
+    color: #0369a1;
+    border: 1px solid #7dd3fc;
+}
+
 

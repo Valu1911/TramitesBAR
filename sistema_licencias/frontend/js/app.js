@@ -177,8 +177,10 @@ function renderNavbar(user) {
                 <button class="btn btn-primary btn-sm tutorial-pulse-btn" onclick="if(window.Tutorial) window.Tutorial.startTutorialWithContext(window.location.hash.replace('#', '') || 'dashboard', true)" title="Ver tutorial">
                     <span style="display:flex;align-items:center;gap:4px">Ayuda</span>
                 </button>
-                <div class="navbar__user">
-                    <span style="display:flex;align-items:center">${Icons.user}</span>
+                <div class="navbar__user" style="display:flex;align-items:center;gap:8px;">
+                    <div style="width:28px;height:28px;border-radius:50%;overflow:hidden;border:1.5px solid var(--primary);background:var(--bg-card);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                        ${user?.foto_rostro ? `<img src="${user.foto_rostro}" alt="Avatar" style="width:100%;height:100%;object-fit:cover;">` : Icons.user}
+                    </div>
                     <span>${user?.nombre || 'Usuario'} ${user?.apellido || ''}</span>
                 </div>
                 <button class="btn btn-ghost btn-sm" onclick="logout()" title="Cerrar sesión">

@@ -80,7 +80,33 @@ class ApiService {
         }
     }
 
-    // ---- AUTH ----
+    // ---- AUTH & DNI ----
+    static async procesarDni(imageOrPayload) {
+        let body = {};
+        if (typeof imageOrPayload === 'string') {
+            body = { image: imageOrPayload };
+        } else if (imageOrPayload && typeof imageOrPayload === 'object') {
+            body = imageOrPayload;
+        }
+        return this.request('/dni/procesar', {
+            method: 'POST',
+            body: body
+        });
+    }
+
+    static async actualizarFotoPerfil(fotoRostro) {
+        const data = await this.request('/usuario/foto-perfil', {
+            method: 'POST',
+            body: { foto_rostro: fotoRostro }
+        });
+        const current = this.getUsuario();
+        if (current) {
+            current.foto_rostro = fotoRostro;
+            this.setUsuario(current);
+        }
+        return data;
+    }
+
     static async checkDni(dni) {
         return this.request('/auth/check-dni', {
             method: 'POST',

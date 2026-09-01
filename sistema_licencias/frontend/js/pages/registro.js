@@ -1,12 +1,25 @@
 /**
- * Página de Registro - Nuevo usuario por DNI con Escáner de Cámara Inline y Validación de CUD
+ * Página de Registro - Nuevo usuario por DNI con Lector Inteligente de DNI y Foto de Perfil
  */
 class RegistroPage {
-    static activeStream = null;
-    static animFrameId = null;
+    static fotoRostro = null;
 
     static render(app) {
         const dni = sessionStorage.getItem('registro_dni') || '';
+        const nombre = sessionStorage.getItem('registro_nombre') || '';
+        const apellido = sessionStorage.getItem('registro_apellido') || '';
+        const rawFecha = sessionStorage.getItem('registro_fecha_nac') || '';
+        let fechaNac = '';
+        if (rawFecha) {
+            if (rawFecha.includes('-')) {
+                const parts = rawFecha.split('-');
+                if (parts.length === 3) fechaNac = `${parts[2]}/${parts[1]}/${parts[0]}`;
+            } else {
+                fechaNac = rawFecha;
+            }
+        }
+        
+        this.fotoRostro = sessionStorage.getItem('registro_foto_rostro') || null;
 
         app.innerHTML = `
         <div class="login-page">
@@ -16,51 +29,31 @@ class RegistroPage {
                 <p class="login-logo__sub">Completá tus datos para crear tu cuenta de ciudadano</p>
             </div>
 
-            <div class="login-card animate-slideUp" style="max-width:540px">
+            <div class="login-card animate-slideUp" style="max-width:560px">
+                <!-- WIDGET DE ESCÁNER DE DNI EN REGISTRO -->
+                <div id="registroDniScannerWrapper" style="margin-bottom:16px;"></div>
+
                 <div class="glass-card p-6">
-                    <!-- BOTÓN ESCANEAR DNI CON CÁMARA (INLINE BELOW) -->
-                    <div style="background:linear-gradient(135deg, rgba(37,99,235,0.12), rgba(147,197,253,0.25));border:1px dashed var(--primary);border-radius:var(--radius-md);padding:16px;margin-bottom:20px;text-align:center">
-                        <div style="display:flex;align-items:center;justify-content:center;gap:8px;font-weight:700;color:var(--primary);margin-bottom:4px">
-                            <span style="display:flex;align-items:center">${Icons.scan}</span> Escáner Inteligente de DNI
-                        </div>
-                        <p class="text-xs text-muted mb-3">Presioná para desplegar tu cámara web abajo y autorrellenar tus datos al instante</p>
-                        <button type="button" class="btn btn-primary btn-block btn-lg" style="display:inline-flex;align-items:center;justify-content:center;gap:6px" onclick="RegistroPage.abrirEscanerDni()">
-                            ${Icons.camera} Activar Cámara para Escanear DNI
-                        </button>
-
-                        <!-- RECUADRO DE CÁMARA INLINE DEBAJO DEL BOTÓN -->
-                        <div id="cameraInlineContainer" style="display:none;margin-top:14px;background:#000;border-radius:var(--radius-md);overflow:hidden;border:2px solid var(--primary);position:relative">
-                            <video id="dniWebcam" autoplay playsinline muted style="width:100%;height:240px;object-fit:cover;display:block"></video>
-                            <canvas id="dniLiveCanvas" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;display:none"></canvas>
-                            
-                            <!-- MARCO TARGET SOBRE EL VIDEO EN VIVO -->
-                            <div style="position:absolute;top:15px;left:15px;right:15px;bottom:15px;border:2px dashed #60a5fa;border-radius:10px;pointer-events:none;display:flex;flex-direction:column;justify-content:space-between;padding:10px;box-shadow:inset 0 0 20px rgba(37,99,235,0.5)">
-                                <div style="display:flex;justify-content:space-between;color:#60a5fa;font-weight:bold;font-size:0.75rem">
-                                    <span>┌ DNI ARGENTINO</span>
-                                    <span>┐</span>
-                                </div>
-                                <div style="text-align:center">
-                                    <span style="background:rgba(0,0,0,0.8);color:#fff;padding:4px 10px;border-radius:12px;font-size:0.75rem;border:1px solid #60a5fa">
-                                        Ubique el frente del DNI o código PDF417 aquí
-                                    </span>
-                                </div>
-                                <div style="display:flex;justify-content:space-between;color:#60a5fa;font-weight:bold;font-size:0.75rem">
-                                    <span>└</span>
-                                    <span>┘</span>
-                                </div>
+                    <!-- TARJETA DE VISTA PREVIA DE FOTO DE PERFIL / ROSTRO EXTRAÍDO -->
+                    <div id="regFotoPreviewCard" style="display:${this.fotoRostro ? 'block' : 'none'};background:rgba(37,99,235,0.08);border:1px dashed var(--primary);border-radius:var(--radius-md);padding:14px;margin-bottom:18px;" class="animate-fadeIn">
+                        <div style="display:flex;align-items:center;gap:14px;">
+                            <div id="regFotoAvatar" style="width:64px;height:64px;border-radius:50%;border:2px solid var(--primary);overflow:hidden;background:#e2e8f0;flex-shrink:0;box-shadow:0 4px 10px rgba(37,99,235,0.2);">
+                                ${this.fotoRostro ? `<img src="${this.fotoRostro}" alt="Foto DNI" style="width:100%;height:100%;object-fit:cover;">` : ''}
                             </div>
-                        </div>
-
-                        <!-- CONTROLES Y ESTADO DE CÁMARA INLINE -->
-                        <div id="cameraControlsInline" style="display:none;margin-top:12px">
-                            <div id="dniScanStatus" class="text-xs font-semibold text-primary mb-2">Cámara activa. Listo para escanear...</div>
-                            <div style="display:flex;gap:10px;justify-content:center">
-                                <button type="button" class="btn btn-success btn-sm" onclick="RegistroPage.capturarYEscanearDni()" style="background:var(--success);color:#fff;font-weight:700;display:inline-flex;align-items:center;gap:6px">
-                                    ${Icons.scan} Capturar y Leer DNI
-                                </button>
-                                <button type="button" class="btn btn-ghost btn-sm" onclick="RegistroPage.cerrarEscanerDni()">
-                                    Cerrar Cámara
-                                </button>
+                            <div style="flex:1;">
+                                <div style="font-weight:700;font-size:0.9rem;color:var(--text);display:flex;align-items:center;gap:6px;">
+                                    <span style="color:var(--success);display:flex;align-items:center;">${Icons.check}</span> Foto de perfil vinculada al DNI
+                                </div>
+                                <div class="text-xs text-muted mt-1">Esta imagen será tu foto oficial en la credencial de tu Licencia Digital y panel de ciudadano.</div>
+                                <div style="margin-top:6px;display:flex;gap:8px;">
+                                    <label class="btn btn-ghost btn-sm" style="font-size:0.7rem;padding:2px 8px;cursor:pointer;border:1px solid var(--border);">
+                                        Cambiar foto
+                                        <input type="file" accept="image/*" style="display:none;" onchange="RegistroPage.handleCustomPhoto(event)">
+                                    </label>
+                                    <button type="button" class="btn btn-ghost btn-sm text-danger" style="font-size:0.7rem;padding:2px 8px;" onclick="RegistroPage.removePhoto()">
+                                        Quitar
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -76,11 +69,11 @@ class RegistroPage {
                             <div class="grid-2">
                                 <div class="form-group">
                                     <label class="form-label">Nombre *</label>
-                                    <input type="text" id="regNombre" class="form-input" placeholder="Tu nombre" required>
+                                    <input type="text" id="regNombre" class="form-input" value="${nombre}" placeholder="Tu nombre" required>
                                 </div>
                                 <div class="form-group">
                                     <label class="form-label">Apellido *</label>
-                                    <input type="text" id="regApellido" class="form-input" placeholder="Tu apellido" required>
+                                    <input type="text" id="regApellido" class="form-input" value="${apellido}" placeholder="Tu apellido" required>
                                 </div>
                             </div>
 
@@ -96,7 +89,7 @@ class RegistroPage {
 
                             <div class="form-group">
                                 <label class="form-label">Fecha de nacimiento * <span style="font-size:0.75rem;color:var(--text-muted)">(DD/MM/AAAA)</span></label>
-                                <input type="text" id="regFechaNac" class="form-input" placeholder="DD/MM/AAAA" maxlength="10" required oninput="this.value=this.value.replace(/^(\\d\\d)(\\d)$/g,'$1/$2').replace(/^(\\d\\d\\/\\d\\d)(\\d+)$/g,'$1/$2').replace(/[^\\d\\/]/g,'')">
+                                <input type="text" id="regFechaNac" class="form-input" value="${fechaNac}" placeholder="DD/MM/AAAA" maxlength="10" required oninput="this.value=this.value.replace(/^(\\d\\d)(\\d)$/g,'$1/$2').replace(/^(\\d\\d\\/\\d\\d)(\\d+)$/g,'$1/$2').replace(/[^\\d\\/]/g,'')">
                             </div>
 
                             <div class="form-group">
@@ -166,6 +159,84 @@ class RegistroPage {
 
             <p class="login-footer">Muni Digital · Municipalidad de Baradero © 2026</p>
         </div>`;
+
+        // Renderizar el escáner de DNI en Registro
+        setTimeout(() => {
+            DniScanner.render('registroDniScannerWrapper', {
+                mode: 'registro',
+                title: 'Escáner Inteligente de DNI Argentino',
+                subtitle: 'Subí la foto o escaneá con la cámara para rellenar automáticamente todos tus datos y tu foto oficial',
+                onResult: (result) => RegistroPage.handleDniScanResult(result)
+            });
+        }, 50);
+    }
+
+    static handleDniScanResult(result) {
+        if (!result) return;
+
+        if (result.dni) {
+            const dniEl = document.getElementById('regDni');
+            if (dniEl) dniEl.value = result.dni;
+        }
+
+        if (result.nombre) {
+            const nomEl = document.getElementById('regNombre');
+            if (nomEl) nomEl.value = result.nombre;
+        }
+
+        if (result.apellido) {
+            const apeEl = document.getElementById('regApellido');
+            if (apeEl) apeEl.value = result.apellido;
+        }
+
+        if (result.fecha_nacimiento) {
+            const fnEl = document.getElementById('regFechaNac');
+            if (fnEl) {
+                if (result.fecha_nacimiento.includes('-')) {
+                    const p = result.fecha_nacimiento.split('-');
+                    if (p.length === 3) fnEl.value = `${p[2]}/${p[1]}/${p[0]}`;
+                } else {
+                    fnEl.value = result.fecha_nacimiento;
+                }
+            }
+        }
+
+        if (result.foto_rostro) {
+            this.fotoRostro = result.foto_rostro;
+            const previewCard = document.getElementById('regFotoPreviewCard');
+            const avatarEl = document.getElementById('regFotoAvatar');
+            if (previewCard) previewCard.style.display = 'block';
+            if (avatarEl) {
+                avatarEl.innerHTML = `<img src="${result.foto_rostro}" alt="Foto DNI" style="width:100%;height:100%;object-fit:cover;">`;
+            }
+        }
+
+        Toast.success('✓ Datos y foto extraídos del DNI argentino cargados en el formulario.');
+    }
+
+    static handleCustomPhoto(e) {
+        if (e.target.files && e.target.files.length > 0) {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                this.fotoRostro = event.target.result;
+                const previewCard = document.getElementById('regFotoPreviewCard');
+                const avatarEl = document.getElementById('regFotoAvatar');
+                if (previewCard) previewCard.style.display = 'block';
+                if (avatarEl) {
+                    avatarEl.innerHTML = `<img src="${this.fotoRostro}" alt="Foto DNI" style="width:100%;height:100%;object-fit:cover;">`;
+                }
+                Toast.success('Foto de perfil actualizada.');
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    static removePhoto() {
+        this.fotoRostro = null;
+        const previewCard = document.getElementById('regFotoPreviewCard');
+        if (previewCard) previewCard.style.display = 'none';
+        Toast.info('Foto de perfil removida.');
     }
 
     static toggleCudInput(show) {
@@ -194,123 +265,6 @@ class RegistroPage {
         }
     }
 
-    static async abrirEscanerDni() {
-        const container = document.getElementById('cameraInlineContainer');
-        const controls = document.getElementById('cameraControlsInline');
-        const statusEl = document.getElementById('dniScanStatus');
-        const liveCanvas = document.getElementById('dniLiveCanvas');
-
-        if (container) container.style.display = 'block';
-        if (controls) controls.style.display = 'block';
-
-        if (statusEl) statusEl.textContent = 'Conectando visor de cámara...';
-
-        let stream = null;
-        const video = document.getElementById('dniWebcam');
-
-        const constraintsList = [
-            { video: true },
-            { video: { width: { ideal: 1280 }, height: { ideal: 720 } } },
-            { video: { facingMode: 'user' } },
-            { video: { facingMode: 'environment' } }
-        ];
-
-        for (const constraints of constraintsList) {
-            try {
-                stream = await navigator.mediaDevices.getUserMedia(constraints);
-                if (stream) break;
-            } catch (e) {}
-        }
-
-        if (stream && video) {
-            this.activeStream = stream;
-            video.srcObject = stream;
-            if (liveCanvas) liveCanvas.style.display = 'none';
-            video.style.display = 'block';
-            video.play().catch(() => {});
-            if (statusEl) statusEl.textContent = '🟢 Cámara web activa. Encuadrá tu DNI frente a la lente.';
-            Toast.success('📷 Cámara web conectada en vivo');
-        } else {
-            // Renderizar simulador dinámico en vivo en el canvas para que NUNCA quede en negro
-            if (video) video.style.display = 'none';
-            if (liveCanvas) {
-                liveCanvas.style.display = 'block';
-                liveCanvas.width = 480;
-                liveCanvas.height = 240;
-                const ctx = liveCanvas.getContext('2d');
-                
-                let t = 0;
-                const renderSimulation = () => {
-                    t += 0.05;
-                    ctx.fillStyle = '#0f172a';
-                    ctx.fillRect(0, 0, 480, 240);
-                    
-                    // Dibujar rejilla de escáner animada
-                    ctx.strokeStyle = 'rgba(59, 130, 246, 0.4)';
-                    ctx.lineWidth = 1;
-                    const yScan = (Math.sin(t) * 0.5 + 0.5) * 240;
-                    ctx.beginPath();
-                    ctx.moveTo(0, yScan);
-                    ctx.lineTo(480, yScan);
-                    ctx.stroke();
-
-                    ctx.fillStyle = '#38bdf8';
-                    ctx.font = 'bold 12px sans-serif';
-                    ctx.fillText('🔴 Visor Inteligente de Cámara Activo', 120, 125);
-                    this.animFrameId = requestAnimationFrame(renderSimulation);
-                };
-                renderSimulation();
-            }
-            if (statusEl) statusEl.textContent = '🟢 Visor activado. Presioná "Capturar y Leer DNI" para procesar.';
-            Toast.info('📷 Visor de escáner activado');
-        }
-    }
-
-    static cerrarEscanerDni() {
-        if (this.activeStream) {
-            this.activeStream.getTracks().forEach(t => t.stop());
-            this.activeStream = null;
-        }
-        if (this.animFrameId) {
-            cancelAnimationFrame(this.animFrameId);
-            this.animFrameId = null;
-        }
-        const container = document.getElementById('cameraInlineContainer');
-        const controls = document.getElementById('cameraControlsInline');
-        if (container) container.style.display = 'none';
-        if (controls) controls.style.display = 'none';
-    }
-
-    static capturarYEscanearDni() {
-        // Capturar fotograma de cámara
-        try {
-            const video = document.getElementById('dniWebcam');
-            const canvas = document.createElement('canvas');
-            if (video && video.readyState === 4) {
-                canvas.width = video.videoWidth || 640;
-                canvas.height = video.videoHeight || 480;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            }
-        } catch (e) {}
-
-        // Extracción / Reconocimiento de patrones de DNI argentino
-        const dnisDemo = ['38492012', '41203948', '35912834', '42819302', '39128471'];
-        const nombresDemo = ['Juan Carlos', 'María Belén', 'Gonzalo Esteban', 'Sofía Lucía', 'Lucas Nahuel'];
-        const apellidosDemo = ['Rodríguez', 'Gómez', 'Fernández', 'Pérez', 'López'];
-        const fechasDemo = ['14/05/1994', '22/08/1998', '03/11/1991', '19/02/2000', '10/09/1996'];
-
-        const idx = Math.floor(Math.random() * dnisDemo.length);
-        
-        document.getElementById('regDni').value = dnisDemo[idx];
-        document.getElementById('regNombre').value = nombresDemo[idx];
-        document.getElementById('regApellido').value = apellidosDemo[idx];
-        document.getElementById('regFechaNac').value = fechasDemo[idx];
-
-        Toast.success('✓ DNI Argentino detectado por la cámara y datos cargados en el formulario.');
-        this.cerrarEscanerDni();
-    }
-
     static async handleSubmit(e) {
         e.preventDefault();
         const btn = document.getElementById('regBtn');
@@ -337,6 +291,7 @@ class RegistroPage {
             telefono: document.getElementById('regTelefono').value.trim(),
             fecha_nacimiento: fechaFormateada,
             direccion: document.getElementById('regDireccion').value.trim(),
+            foto_rostro: this.fotoRostro,
             tiene_cud: tieneCud,
             numero_cud: numeroCud,
             tipo_tramite: document.getElementById('regTipo').value,
@@ -374,7 +329,12 @@ class RegistroPage {
         try {
             const result = await ApiService.registro(formData);
             sessionStorage.removeItem('registro_dni');
-            Toast.success(`¡Bienvenido/a, ${result.usuario.nombre}! Tu usuario fue creado con tu CUD registrado.`);
+            sessionStorage.removeItem('registro_nombre');
+            sessionStorage.removeItem('registro_apellido');
+            sessionStorage.removeItem('registro_fecha_nac');
+            sessionStorage.removeItem('registro_foto_rostro');
+            
+            Toast.success(`¡Bienvenido/a, ${result.usuario.nombre}! Tu usuario fue creado con tu foto de DNI y perfil asignados.`);
             Router.navigate('dashboard');
         } catch (err) {
             errorEl.textContent = err.message || 'Error al registrar';

@@ -1,5 +1,5 @@
 /**
- * Página de Login - Ingreso por DNI y Contraseña
+ * Página de Login - Ingreso por DNI y Contraseña con Lector Inteligente de DNI
  */
 class LoginPage {
     static render(app) {
@@ -11,11 +11,32 @@ class LoginPage {
                 <p class="login-logo__sub">Sistema de Licencias de Conducir · Municipalidad de Baradero</p>
             </div>
 
-            <div class="login-card animate-slideUp">
+            <div class="login-card animate-slideUp" style="max-width:520px">
+                <!-- WIDGET DE ESCÁNER DE DNI EN LOGIN -->
+                <div id="loginDniScannerWrapper" style="margin-bottom:16px;"></div>
+
                 <div class="glass-card p-6">
-                    <div style="display:flex;align-items:center;gap:8px;color:var(--primary);margin-bottom:16px">
-                        <span style="display:flex;align-items:center;justify-content:center">${Icons.shield}</span>
-                        <span class="font-semibold text-sm">Verificación de identidad</span>
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+                        <div style="display:flex;align-items:center;gap:8px;color:var(--primary)">
+                            <span style="display:flex;align-items:center;justify-content:center">${Icons.shield}</span>
+                            <span class="font-semibold text-sm">Verificación de identidad</span>
+                        </div>
+                    </div>
+
+                    <!-- BANNER DE BIENVENIDA CON AVATAR CUANDO SE ESCANEA UN DNI EXISTENTE -->
+                    <div id="loginUserDetectedCard" style="display:none;background:rgba(37,99,235,0.08);border:1px solid var(--primary-light,#93c5fd);border-radius:var(--radius-md);padding:14px;margin-bottom:16px;" class="animate-fadeIn">
+                        <div style="display:flex;align-items:center;gap:12px;">
+                            <div id="loginUserAvatar" style="width:48px;height:48px;border-radius:50%;border:2px solid var(--primary);overflow:hidden;background:#e2e8f0;flex-shrink:0;display:flex;align-items:center;justify-content:center;">
+                                ${Icons.user}
+                            </div>
+                            <div style="flex:1;">
+                                <div style="font-weight:700;font-size:0.95rem;color:var(--text);" id="loginUserName">¡Hola!</div>
+                                <div class="text-xs text-muted" id="loginUserSubtitle">DNI verificado. Ingresá tu contraseña para entrar.</div>
+                            </div>
+                            <button type="button" class="btn btn-ghost btn-sm" onclick="LoginPage.resetScannedUser()" title="Cambiar usuario" style="font-size:0.75rem;padding:4px 8px;">
+                                ✕
+                            </button>
+                        </div>
                     </div>
 
                     <form id="loginForm" onsubmit="LoginPage.handleSubmit(event)">
@@ -23,7 +44,7 @@ class LoginPage {
                             <label class="form-label">Documento Nacional de Identidad</label>
                             <input type="text" id="loginDni" class="form-input" 
                                    placeholder="Ej: 35123456" inputmode="numeric" maxlength="10"
-                                   autocomplete="off">
+                                   autocomplete="off" oninput="LoginPage.handleDniTyping(this.value)">
                         </div>
                         <div class="form-group mb-4">
                             <label class="form-label">Contraseña</label>
@@ -51,6 +72,101 @@ class LoginPage {
 
             <p class="login-footer">Muni Digital · Municipalidad de Baradero © 2026</p>
         </div>`;
+
+        // Renderizar el escáner de DNI dentro del wrapper
+        setTimeout(() => {
+            DniScanner.render('loginDniScannerWrapper', {
+                mode: 'login',
+                title: 'Lector de DNI Argentino (Frente / Dorso)',
+                subtitle: 'Subí la foto o escaneá con la cámara para ingresar o registrarte automáticamente',
+                onResult: (result) => LoginPage.handleDniScanResult(result)
+            });
+        }, 50);
+    }
+
+    static handleDniScanResult(result) {
+        if (!result) return;
+
+        const dni = (result.dni || '').toString().trim().replace(/\D/g, '');
+        const dniInput = document.getElementById('loginDni');
+        const passInput = document.getElementById('loginPassword');
+        const userCard = document.getElementById('loginUserDetectedCard');
+        const nameEl = document.getElementById('loginUserName');
+        const avatarEl = document.getElementById('loginUserAvatar');
+        const subEl = document.getElementById('loginUserSubtitle');
+
+        if (dniInput && dni) {
+            dniInput.value = dni;
+        }
+
+        // Si el usuario existe en la base de datos
+        if (result.user_exists && result.usuario_existente) {
+            const u = result.usuario_existente;
+            if (userCard) userCard.style.display = 'block';
+            if (nameEl) nameEl.textContent = `¡Hola, ${u.nombre || result.nombre || 'Ciudadano'}!`;
+            if (subEl) subEl.textContent = `DNI ${dni} verificado. Ingresá tu contraseña:`;
+
+            const photo = result.foto_rostro || u.foto_rostro;
+            if (avatarEl) {
+                if (photo) {
+                    avatarEl.innerHTML = `<img src="${photo}" alt="Foto DNI" style="width:100%;height:100%;object-fit:cover;">`;
+                } else {
+                    avatarEl.innerHTML = Icons.user;
+                }
+            }
+
+            Toast.success(`✓ DNI de ${u.nombre || result.nombre} detectado. Ingresá tu contraseña.`);
+            if (passInput) {
+                passInput.focus();
+            }
+        } else if (dni) {
+            // No existe -> transferir datos al Registro
+            sessionStorage.setItem('registro_dni', dni);
+            if (result.nombre) sessionStorage.setItem('registro_nombre', result.nombre);
+            if (result.apellido) sessionStorage.setItem('registro_apellido', result.apellido);
+            if (result.fecha_nacimiento) sessionStorage.setItem('registro_fecha_nac', result.fecha_nacimiento);
+            if (result.foto_rostro) sessionStorage.setItem('registro_foto_rostro', result.foto_rostro);
+
+            Toast.info(`DNI ${dni} detectado. Redirigiendo al formulario de registro con tus datos...`);
+            setTimeout(() => {
+                Router.navigate('registro');
+            }, 800);
+        }
+    }
+
+    static resetScannedUser() {
+        const userCard = document.getElementById('loginUserDetectedCard');
+        const dniInput = document.getElementById('loginDni');
+        const passInput = document.getElementById('loginPassword');
+        if (userCard) userCard.style.display = 'none';
+        if (dniInput) dniInput.value = '';
+        if (passInput) passInput.value = '';
+    }
+
+    static async handleDniTyping(val) {
+        const clean = (val || '').replace(/\D/g, '');
+        if (clean.length >= 7 && clean.length <= 8) {
+            try {
+                const res = await ApiService.checkDni(clean);
+                if (res.exists) {
+                    const userCard = document.getElementById('loginUserDetectedCard');
+                    const nameEl = document.getElementById('loginUserName');
+                    const avatarEl = document.getElementById('loginUserAvatar');
+                    const subEl = document.getElementById('loginUserSubtitle');
+                    
+                    if (userCard) userCard.style.display = 'block';
+                    if (nameEl) nameEl.textContent = `¡Hola, ${res.nombre || 'Ciudadano'}!`;
+                    if (subEl) subEl.textContent = `DNI ${clean} verificado. Ingresá tu contraseña:`;
+                    if (avatarEl) {
+                        if (res.foto_rostro) {
+                            avatarEl.innerHTML = `<img src="${res.foto_rostro}" alt="Foto DNI" style="width:100%;height:100%;object-fit:cover;">`;
+                        } else {
+                            avatarEl.innerHTML = Icons.user;
+                        }
+                    }
+                }
+            } catch (e) {}
+        }
     }
 
     static async handleSubmit(e) {
@@ -81,12 +197,10 @@ class LoginPage {
             const checkResult = await ApiService.checkDni(dni);
 
             if (checkResult.exists) {
-                // Login directo sin re-preguntar CUD
                 const loginResult = await ApiService.login(dni, password);
                 Toast.success(`¡Bienvenido/a, ${loginResult.usuario.nombre}!`);
                 Router.navigate('dashboard');
             } else {
-                // Necesita registro
                 sessionStorage.setItem('registro_dni', dni);
                 Router.navigate('registro');
             }

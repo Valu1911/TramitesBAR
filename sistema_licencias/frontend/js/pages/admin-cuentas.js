@@ -127,8 +127,8 @@ class AdminCuentasPage {
                     <div class="admin-item cuenta-item animate-slideUp" data-dni="${u.dni}" data-nombre="${(u.nombre + ' ' + u.apellido).toLowerCase()}" style="cursor:pointer;transition:all 0.2s ease" onclick="AdminCuentasPage.abrirModalVerificacion(${u.id})">
                         <div class="admin-item__header">
                             <div style="display:flex;align-items:center;gap:12px">
-                                <div style="width:42px;height:42px;border-radius:50%;background:var(--primary-soft);display:flex;align-items:center;justify-content:center;color:var(--primary);font-weight:700;font-size:1.1rem">
-                                    ${u.nombre ? u.nombre.charAt(0).toUpperCase() : 'U'}
+                                <div style="width:42px;height:42px;border-radius:50%;border:1.5px solid var(--primary);overflow:hidden;background:var(--primary-soft);display:flex;align-items:center;justify-content:center;color:var(--primary);font-weight:700;font-size:1.1rem;flex-shrink:0;">
+                                    ${u.foto_rostro ? `<img src="${u.foto_rostro}" alt="Foto" style="width:100%;height:100%;object-fit:cover;">` : (u.nombre ? u.nombre.charAt(0).toUpperCase() : 'U')}
                                 </div>
                                 <div>
                                     <div class="admin-item__user" style="display:flex;align-items:center;gap:8px">

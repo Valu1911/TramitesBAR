@@ -185,6 +185,9 @@ def init_db():
                 ('multas_fecha_revision', 'TEXT', "NULL"),
                 ('bienvenida_mostrada', 'INTEGER', "0"),
                 ('infracciones_pagadas_solicitadas', 'INTEGER', "0"),
+                ('foto_rostro', 'TEXT', "NULL"),
+                ('dni_frente', 'TEXT', "NULL"),
+                ('dni_dorso', 'TEXT', "NULL"),
             ]:
                 try:
                     conn.execute(f"ALTER TABLE usuarios ADD COLUMN {col} {col_type} DEFAULT {default_val}")

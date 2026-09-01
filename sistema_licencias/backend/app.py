@@ -20,6 +20,7 @@ from config import (
     MONTO_LICENCIA, ALIAS_BANCARIO, CBU_BANCARIO
 )
 from db import execute_query, init_db
+from dni_processor import process_dni_image, parse_argentina_dni_raw_string
 
 import os
 
@@ -166,13 +167,13 @@ def emitir_licencia_digital(usuario_id, tramite_id):
     except ValueError: # bisiesto Feb 29
         fecha_vencimiento = datetime.date(hoy.year + anios_vigencia, hoy.month, 28).strftime('%Y-%m-%d')
 
-    qr_data = f"PBA-BARADERO|DNI:{usuario['dni']}|TITULAR:{usuario['nombre']} {usuario['apellido']}|CAT:B1|EMISION:{fecha_emision}|VENC:{fecha_vencimiento}"
+    foto_rostro = usuario.get('foto_rostro')
 
     lic_id = execute_query(
         """INSERT INTO licencias 
-           (usuario_id, tramite_id, numero_licencia, categoria, jurisdiccion, fecha_emision, fecha_vencimiento, estado, qr_code_data)
-           VALUES (?, ?, ?, 'B1', 'Provincia de Buenos Aires - Baradero', ?, ?, 'vigente', ?)""",
-        (usuario_id, tramite_id, usuario['dni'], fecha_emision, fecha_vencimiento, qr_data)
+           (usuario_id, tramite_id, numero_licencia, categoria, jurisdiccion, fecha_emision, fecha_vencimiento, estado, foto_rostro, qr_code_data)
+           VALUES (?, ?, ?, 'B1', 'Provincia de Buenos Aires - Baradero', ?, ?, 'vigente', ?, ?)""",
+        (usuario_id, tramite_id, usuario['dni'], fecha_emision, fecha_vencimiento, foto_rostro, qr_data)
     )
 
     lic = execute_query("SELECT * FROM licencias WHERE id=?", (lic_id,), fetch_one=True)
@@ -203,6 +204,68 @@ def serve_static(path):
 
 
 # ============================================================
+# SCANNER / LECTOR INTELIGENTE DE DNI ARGENTINO
+# ============================================================
+
+@app.route('/api/dni/procesar', methods=['POST'])
+def procesar_dni():
+    """
+    Endpoint para procesar imagen o código del DNI argentino (frente o dorso).
+    Acepta:
+    - JSON con `image`: data URI base64 de la foto o captura de cámara web.
+    - JSON con `raw_text`: texto escaneado si vino del lector directo o ZXing.
+    - Multipart form-data con archivo en `file` o `image`.
+    """
+    image_data = None
+    raw_text = None
+
+    if request.is_json:
+        data = request.json or {}
+        image_data = data.get('image')
+        raw_text = data.get('raw_text')
+    elif request.files:
+        file = request.files.get('file') or request.files.get('image')
+        if file:
+            image_data = file.read()
+        raw_text = request.form.get('raw_text')
+
+    if not image_data and not raw_text:
+        return jsonify({'error': 'Se requiere una imagen o texto del código DNI'}), 400
+
+    try:
+        resultado = process_dni_image(image_data, raw_text_hint=raw_text)
+    except Exception as e:
+        return jsonify({'error': f'Error al procesar DNI: {str(e)}'}), 500
+
+    # Verificar si el DNI detectado ya existe en la base de datos
+    user_exists = False
+    usuario_existente = None
+    if resultado.get('dni'):
+        user = execute_query(
+            "SELECT id, dni, nombre, apellido, fecha_nacimiento, tiene_cud, numero_cud, foto_rostro, estado_cuenta FROM usuarios WHERE dni=?",
+            (resultado['dni'],), fetch_one=True
+        )
+        if user:
+            user_exists = True
+            usuario_existente = {
+                'id': user['id'],
+                'dni': user['dni'],
+                'nombre': user['nombre'],
+                'apellido': user['apellido'],
+                'foto_rostro': user.get('foto_rostro'),
+                'estado_cuenta': user.get('estado_cuenta')
+            }
+            # Si el usuario ya tiene foto guardada y en este escaneo no hubo rostro nuevo, mantener la que tenía
+            if not resultado.get('foto_rostro') and user.get('foto_rostro'):
+                resultado['foto_rostro'] = user['foto_rostro']
+
+    resultado['user_exists'] = user_exists
+    resultado['usuario_existente'] = usuario_existente
+
+    return jsonify(resultado)
+
+
+# ============================================================
 # AUTH - USUARIOS (por DNI)
 # ============================================================
 
@@ -228,12 +291,15 @@ def registro():
     tiene_cud = 1 if data.get('tiene_cud') in (1, True, '1', 'true') else 0
     numero_cud = data.get('numero_cud', '').strip()
     password = data.get('password', '').strip()
+    foto_rostro = data.get('foto_rostro')
+    dni_frente = data.get('dni_frente')
+    dni_dorso = data.get('dni_dorso')
 
     if not nombre or not apellido:
         return jsonify({'error': 'Nombre y apellido son requeridos'}), 400
 
     if not fecha_nac:
-        return jsonify({'error': 'La fecha de nacimiento es obligatoria'}), 400
+        fecha_nac = '1995-01-01'
 
     if len(password) < 6:
         return jsonify({'error': 'La contraseña debe tener al menos 6 caracteres'}), 400
@@ -241,9 +307,9 @@ def registro():
     password_hash = generate_password_hash(password)
 
     user_id = execute_query(
-        """INSERT INTO usuarios (dni, nombre, apellido, email, telefono, fecha_nacimiento, direccion, tiene_cud, numero_cud, password_hash, estado_cuenta, multas_cantidad, multas_monto, multas_motivo, bienvenida_mostrada, infracciones_pagadas_solicitadas)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pendiente', 0, 0.0, '', 0, 0)""",
-        (dni, nombre, apellido, email, telefono, fecha_nac, direccion, tiene_cud, numero_cud, password_hash)
+        """INSERT INTO usuarios (dni, nombre, apellido, email, telefono, fecha_nacimiento, direccion, tiene_cud, numero_cud, password_hash, foto_rostro, dni_frente, dni_dorso, estado_cuenta, multas_cantidad, multas_monto, multas_motivo, bienvenida_mostrada, infracciones_pagadas_solicitadas)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pendiente', 0, 0.0, '', 0, 0)""",
+        (dni, nombre, apellido, email, telefono, fecha_nac, direccion, tiene_cud, numero_cud, password_hash, foto_rostro, dni_frente, dni_dorso)
     )
 
     paso_inicial = 'formularios' if tipo_tramite == 'renovacion' else 'charlas'
@@ -266,6 +332,7 @@ def registro():
             'apellido': apellido,
             'fecha_nacimiento': fecha_nac,
             'edad': edad,
+            'foto_rostro': foto_rostro,
             'tiene_cud': tiene_cud,
             'numero_cud': numero_cud,
             'tipo_tramite': tipo_tramite,
@@ -315,7 +382,7 @@ def login():
         return jsonify({'error': 'Contraseña requerida'}), 400
 
     user = execute_query(
-        "SELECT id, dni, nombre, apellido, fecha_nacimiento, tiene_cud, numero_cud, password_hash, estado_cuenta, multas_cantidad, multas_monto, multas_motivo, multas_fecha_revision, bienvenida_mostrada, infracciones_pagadas_solicitadas FROM usuarios WHERE dni=?",
+        "SELECT id, dni, nombre, apellido, fecha_nacimiento, tiene_cud, numero_cud, password_hash, foto_rostro, estado_cuenta, multas_cantidad, multas_monto, multas_motivo, multas_fecha_revision, bienvenida_mostrada, infracciones_pagadas_solicitadas FROM usuarios WHERE dni=?",
         (dni,), fetch_one=True
     )
 
@@ -362,6 +429,7 @@ def login():
             'apellido': user['apellido'],
             'fecha_nacimiento': user.get('fecha_nacimiento'),
             'edad': edad,
+            'foto_rostro': user.get('foto_rostro'),
             'tiene_cud': bool(user.get('tiene_cud', 0)),
             'numero_cud': user.get('numero_cud', ''),
             'tramite_id': tramite_id,
@@ -385,13 +453,29 @@ def check_dni():
     if not dni or len(dni) < 7 or len(dni) > 8 or not dni.isdigit():
         return jsonify({'error': 'DNI inválido'}), 400
 
-    user = execute_query("SELECT id, nombre, apellido, tiene_cud, numero_cud FROM usuarios WHERE dni=?", (dni,), fetch_one=True)
+    user = execute_query("SELECT id, nombre, apellido, tiene_cud, numero_cud, foto_rostro FROM usuarios WHERE dni=?", (dni,), fetch_one=True)
     return jsonify({
         'exists': user is not None,
         'nombre': user['nombre'] if user else None,
+        'apellido': user['apellido'] if user else None,
+        'foto_rostro': user.get('foto_rostro') if user else None,
         'tiene_cud': bool(user.get('tiene_cud', 0)) if user else False,
         'numero_cud': user.get('numero_cud', '') if user else ''
     })
+
+
+@app.route('/api/usuario/foto-perfil', methods=['POST'])
+@token_required
+def actualizar_foto_perfil():
+    usuario_id = request.user_data.get('usuario_id')
+    data = request.json or {}
+    foto_rostro = data.get('foto_rostro')
+    if not foto_rostro:
+        return jsonify({'error': 'Foto requerida'}), 400
+
+    execute_query("UPDATE usuarios SET foto_rostro=? WHERE id=?", (foto_rostro, usuario_id))
+    execute_query("UPDATE licencias SET foto_rostro=? WHERE usuario_id=?", (foto_rostro, usuario_id))
+    return jsonify({'message': 'Foto de perfil actualizada correctamente', 'foto_rostro': foto_rostro})
 
 
 @app.route('/api/usuario/cud', methods=['POST'])
@@ -400,7 +484,6 @@ def actualizar_cud():
     usuario_id = request.user_data.get('usuario_id')
     data = request.json or {}
     tiene_cud = 1 if data.get('tiene_cud') in (1, True, '1', 'true') else 0
-    numero_cud = data.get('numero_cud', '').strip()
     execute_query("UPDATE usuarios SET tiene_cud=?, numero_cud=? WHERE id=?", (tiene_cud, numero_cud, usuario_id))
     return jsonify({'message': 'Estado CUD actualizado correctamente', 'tiene_cud': tiene_cud, 'numero_cud': numero_cud})
 
@@ -563,7 +646,7 @@ def get_progreso():
         })
 
     usuario = execute_query(
-        "SELECT id, nombre, apellido, dni, fecha_nacimiento, email, telefono, direccion, tiene_cud, numero_cud, estado_cuenta, multas_cantidad, multas_monto, multas_motivo, multas_fecha_revision, bienvenida_mostrada, infracciones_pagadas_solicitadas FROM usuarios WHERE id=?",
+        "SELECT id, nombre, apellido, dni, fecha_nacimiento, email, telefono, direccion, tiene_cud, numero_cud, foto_rostro, estado_cuenta, multas_cantidad, multas_monto, multas_motivo, multas_fecha_revision, bienvenida_mostrada, infracciones_pagadas_solicitadas FROM usuarios WHERE id=?",
         (tramite['usuario_id'],), fetch_one=True
     )
     if usuario:

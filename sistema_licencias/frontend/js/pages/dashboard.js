@@ -202,9 +202,9 @@ class DashboardPage {
             <!-- PANEL DE DATOS PERSONALES DEL CIUDADANO -->
             <section class="glass-card p-6" style="border-left: 4px solid var(--primary)">
                 <div class="flex-between mb-4">
-                    <div style="display:flex;align-items:center;gap:12px">
-                        <div style="width:48px;height:48px;border-radius:50%;background:var(--primary-soft);display:flex;align-items:center;justify-content:center;font-size:1.5rem;color:var(--primary)">
-                            ${Icons.user}
+                    <div style="display:flex;align-items:center;gap:14px">
+                        <div style="width:58px;height:58px;border-radius:50%;border:2.5px solid var(--primary);overflow:hidden;background:var(--primary-soft);display:flex;align-items:center;justify-content:center;font-size:1.6rem;color:var(--primary);flex-shrink:0;box-shadow:0 3px 12px rgba(37,99,235,0.25);">
+                            ${citizen.foto_rostro ? `<img src="${citizen.foto_rostro}" alt="Foto DNI" style="width:100%;height:100%;object-fit:cover;">` : Icons.user}
                         </div>
                         <div>
                             <h2 class="font-bold text-lg mb-0">${citizen.nombre || ''} ${citizen.apellido || ''}</h2>
@@ -557,12 +557,78 @@ class DashboardPage {
 
     static openLicenciaModal() {
         const data = this.currentData || {};
+        const citizen = data.usuario || ApiService.getUsuario() || {};
+        const lic = data.licencia || {};
         const isCompletado = data.progreso_porcentaje === 100 || data.estado === 'completado' || data.paso_actual === 'finalizado';
-        if (!data.licencia && !isCompletado) {
-            Toast.warning(`Tu trámite está al ${data.progreso_porcentaje || 0}%.`);
-            return;
+        
+        let container = document.getElementById('citizenLicenciaModalContainer');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'citizenLicenciaModalContainer';
+            document.body.appendChild(container);
         }
-        const modal = document.getElementById('licenciaModal');
-        if (modal) modal.classList.add('active');
+
+        const foto = citizen.foto_rostro || lic.foto_rostro || null;
+
+        container.innerHTML = `
+        <div class="modal-backdrop" style="position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(5px);" onclick="if(event.target===this) this.remove()">
+            <div class="modal-content glass-card p-6 animate-slideUp" style="max-width:480px;width:100%;border:2px solid var(--primary);box-shadow:var(--shadow-lg);position:relative;">
+                <button type="button" class="btn btn-ghost btn-sm" onclick="this.closest('.modal-backdrop').remove()" style="position:absolute;top:12px;right:12px;font-size:1.1rem;padding:4px 8px;">✕</button>
+                
+                <div class="licencia-digital-card" style="background:linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #2563eb 100%);color:#fff;border-radius:14px;padding:20px;box-shadow:0 10px 25px rgba(0,0,0,0.35);position:relative;overflow:hidden;border:1px solid rgba(255,255,255,0.25);">
+                    <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(255,255,255,0.2);padding-bottom:10px;margin-bottom:14px;">
+                        <div>
+                            <div style="font-size:0.65rem;text-transform:uppercase;letter-spacing:1px;color:#93c5fd;font-weight:700;">REPÚBLICA ARGENTINA</div>
+                            <div style="font-size:0.95rem;font-weight:800;letter-spacing:0.5px;">LICENCIA NACIONAL DE CONDUCIR</div>
+                            <div style="font-size:0.7rem;color:#bfdbfe;">Provincia de Buenos Aires · Baradero</div>
+                        </div>
+                        <div style="font-size:1.8rem;">🚗</div>
+                    </div>
+
+                    <div style="display:flex;gap:14px;align-items:center;">
+                        <div style="width:96px;height:120px;border-radius:8px;border:2px solid #fff;overflow:hidden;background:#cbd5e1;flex-shrink:0;box-shadow:0 4px 10px rgba(0,0,0,0.25);">
+                            ${foto ? `<img src="${foto}" alt="Rostro DNI" style="width:100%;height:100%;object-fit:cover;">` : '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#1e3a8a;font-size:2.2rem;">👤</div>'}
+                        </div>
+                        <div style="flex:1;font-size:0.75rem;line-height:1.4;">
+                            <div style="color:#93c5fd;font-size:0.65rem;text-transform:uppercase;">Apellido y Nombres</div>
+                            <div style="font-weight:800;font-size:0.95rem;margin-bottom:6px;color:#fff;">${citizen.apellido || ''}, ${citizen.nombre || ''}</div>
+                            
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+                                <div>
+                                    <span style="color:#93c5fd;font-size:0.65rem;">DNI</span><br>
+                                    <strong style="font-size:0.85rem;">${citizen.dni || ''}</strong>
+                                </div>
+                                <div>
+                                    <span style="color:#93c5fd;font-size:0.65rem;">CLASE</span><br>
+                                    <strong style="color:#fde047;font-size:0.9rem;">${lic.categoria || 'B1'}</strong>
+                                </div>
+                                <div>
+                                    <span style="color:#93c5fd;font-size:0.65rem;">FECHA EMISIÓN</span><br>
+                                    <span>${lic.fecha_emision || new Date().toISOString().split('T')[0]}</span>
+                                </div>
+                                <div>
+                                    <span style="color:#93c5fd;font-size:0.65rem;">VENCIMIENTO</span><br>
+                                    <strong style="color:#86efac;">${lic.fecha_vencimiento || '2031-08-31'}</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top:14px;padding-top:8px;border-top:1px dashed rgba(255,255,255,0.25);display:flex;justify-content:space-between;align-items:center;font-size:0.7rem;color:#bfdbfe;">
+                        <span>N° Licencia: <strong>${citizen.dni || ''}</strong></span>
+                        <span style="background:rgba(34,197,94,0.3);color:#86efac;padding:2px 8px;border-radius:4px;font-weight:700;">OFICIAL VIGENTE</span>
+                    </div>
+                </div>
+
+                <div style="margin-top:16px;display:flex;gap:10px;justify-content:center;">
+                    <button type="button" class="btn btn-primary btn-sm" onclick="window.print()" style="display:inline-flex;align-items:center;gap:6px;">
+                        ${Icons.file || '📄'} Imprimir Credencial
+                    </button>
+                    <button type="button" class="btn btn-ghost btn-sm" onclick="this.closest('.modal-backdrop').remove()">
+                        Cerrar
+                    </button>
+                </div>
+            </div>
+        </div>`;
     }
 }
