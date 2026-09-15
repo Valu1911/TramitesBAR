@@ -1,7 +1,11 @@
 /**
- * Dashboard - Panel principal del usuario con elección de trámite y progreso específico
+ * Dashboard - Panel principal del usuario con elección de trámite, progreso específico,
+ * verificación de cuenta e infracciones, pantalla de multas e inbox.
  */
 class DashboardPage {
+    static selectedFileData = null;
+    static selectedFileName = null;
+
     static async render(app) {
         const user = ApiService.getUsuario();
         
@@ -37,29 +41,144 @@ class DashboardPage {
 
     static renderContent(app, data, user) {
         const citizen = data.usuario || user || {};
+        this.currentData = data;
+        const estadoCuenta = citizen.estado_cuenta || data.estado_cuenta || 'pendiente';
+
+        // ============================================================
+        // CASO 1: CUENTA EN PROCESO DE VERIFICACIÓN (BLOQUEADO)
+        // ============================================================
+        if (estadoCuenta === 'pendiente') {
+            app.innerHTML = `
+            ${renderNavbar(citizen)}
+            <div class="page-content container-md animate-fadeIn" style="padding-top:40px">
+                <div class="glass-card p-8 text-center" style="border:2px solid #f59e0b;background:rgba(245,158,11,0.03);box-shadow:var(--shadow-lg);border-radius:var(--radius-lg)">
+                    <div style="width:80px;height:80px;border-radius:50%;background:#fef3c7;color:#d97706;display:flex;align-items:center;justify-content:center;font-size:2.4rem;margin:0 auto 20px auto;border:2px solid #fde68a">
+                        ${Icons.clock}
+                    </div>
+                    <div class="badge badge-warning mb-3" style="font-size:0.85rem;padding:6px 14px">
+                        Estado: En Verificación Inicial
+                    </div>
+                    <h1 class="font-bold text-2xl mb-3" style="color:var(--text)">Tu cuenta está en proceso de verificación</h1>
+                    <p class="text-muted mb-6" style="max-width:560px;margin:0 auto;line-height:1.6;font-size:1rem">
+                        Serás avisado cuando la misma esté activa. Nuestro equipo de Tránsito e Infracciones está revisando tus antecedentes e identidad en las bases oficiales. Mientras tanto, el acceso a los trámites permanece temporalmente reservado.
+                    </p>
+
+                    <div style="background:var(--bg-card);padding:14px 20px;border-radius:var(--radius-md);max-width:480px;margin:0 auto 24px auto;border:1px solid var(--border);text-align:left;font-size:0.85rem">
+                        <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+                            <span class="text-muted">Titular:</span> <strong>${citizen.nombre || ''} ${citizen.apellido || ''}</strong>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+                            <span class="text-muted">DNI:</span> <strong>${citizen.dni || ''}</strong>
+                        </div>
+                        <div style="display:flex;justify-content:space-between">
+                            <span class="text-muted">Fecha de Solicitud:</span> <span>${citizen.created_at || 'Hoy'}</span>
+                        </div>
+                    </div>
+
+                    <div style="display:flex;justify-content:center;gap:14px;flex-wrap:wrap">
+                        <button class="btn btn-primary btn-lg" onclick="DashboardPage.render(document.getElementById('app'))" style="display:inline-flex;align-items:center;gap:8px;font-weight:700">
+                            ${Icons.refresh} Comprobar Estado de mi Cuenta
+                        </button>
+                        <button class="btn btn-ghost btn-lg" onclick="logout()">
+                            ${Icons.logout} Cerrar Sesión
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div id="citizenInboxModalContainer"></div>
+            `;
+            return;
+        }
+
+        // ============================================================
+        // CASO 2: CUENTA CON MULTAS PENDIENTES (ALERTA Y YA PAGUÉ)
+        // ============================================================
+        if (estadoCuenta === 'rechazada_multas') {
+            const multasCant = citizen.multas_cantidad || data.multas_cantidad || 1;
+            const multasMonto = citizen.multas_monto || data.multas_monto || 0;
+            const multasMotivo = citizen.multas_motivo || data.multas_motivo || 'Infracciones de tránsito pendientes detectadas en Registro Oficial.';
+            const notificado = citizen.infracciones_pagadas_solicitadas || data.infracciones_pagadas_solicitadas;
+
+            app.innerHTML = `
+            ${renderNavbar(citizen)}
+            <div class="page-content container-md animate-fadeIn" style="padding-top:30px">
+                <div class="glass-card p-8" style="border:2px solid var(--danger,#ef4444);background:rgba(239,68,68,0.02);box-shadow:var(--shadow-lg);border-radius:var(--radius-lg)">
+                    
+                    <div class="flex-between mb-4" style="flex-wrap:wrap;gap:12px;border-bottom:1px solid var(--border);padding-bottom:16px">
+                        <div style="display:flex;align-items:center;gap:14px">
+                            <div style="width:60px;height:60px;border-radius:50%;background:#fee2e2;color:#dc2626;display:flex;align-items:center;justify-content:center;font-size:1.8rem">
+                                ${Icons.alert}
+                            </div>
+                            <div>
+                                <h1 class="font-bold text-2xl mb-1" style="color:var(--danger,#ef4444)">Tienes Multas Pendientes</h1>
+                                <p class="text-sm text-muted mb-0">Se detectaron infracciones impagas asociadas a tu DNI <strong>${citizen.dni}</strong></p>
+                            </div>
+                        </div>
+                        <span class="badge badge-danger" style="font-size:0.9rem;padding:8px 14px;font-weight:bold">
+                            ${multasCant} Infracción(es) Registrada(s)
+                        </span>
+                    </div>
+
+                    <!-- DETALLES DE LAS MULTAS -->
+                    <div class="grid-2 mb-6" style="gap:16px">
+                        <div style="background:var(--bg-card);padding:18px;border-radius:var(--radius-md);border:1px solid var(--border)">
+                            <div class="text-xs text-muted font-bold uppercase mb-1">Monto Total a Regularizar</div>
+                            <div style="font-size:2.2rem;font-weight:900;color:var(--danger,#ef4444)">
+                                $${Number(multasMonto).toLocaleString('es-AR', { minimumFractionDigits: 2 })}
+                            </div>
+                            <div class="text-xs text-muted mt-1">Valor fijado por el Juzgado de Faltas / Registro de Seguridad Vial</div>
+                        </div>
+                        
+                        <div style="background:var(--bg-card);padding:18px;border-radius:var(--radius-md);border:1px solid var(--border)">
+                            <div class="text-xs text-muted font-bold uppercase mb-1">Motivo / Detalle Oficial</div>
+                            <div style="font-size:0.95rem;line-height:1.5;color:var(--text)">
+                                ${multasMotivo}
+                            </div>
+                        </div>
+                    </div>
+
+                    ${notificado ? `
+                    <div style="background:#fef3c7;border:1px solid #f59e0b;padding:14px 18px;border-radius:var(--radius-md);margin-bottom:20px;color:#92400e;display:flex;align-items:center;gap:12px">
+                        <span style="font-size:1.5rem">🔔</span>
+                        <div>
+                            <strong>¡Notificación enviada!</strong> Tu comprobante y mensaje están siendo revisados por el oficial de cuentas. Te responderá a la brevedad en el Inbox.
+                        </div>
+                    </div>` : ''}
+
+                    <!-- ACCIONES DEL CIUDADANO -->
+                    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px">
+                        <button class="btn btn-ghost" onclick="DashboardPage.abrirInboxCiudadano(false)" style="display:inline-flex;align-items:center;gap:6px">
+                            ${Icons.chat} Ver Mensajes / Inbox con el Municipio
+                        </button>
+                        
+                        <button class="btn btn-success btn-lg" onclick="DashboardPage.abrirInboxCiudadano(true)" style="display:inline-flex;align-items:center;gap:8px;background:var(--success,#10b981);color:#fff;font-weight:800;padding:12px 24px">
+                            ${Icons.check} ¡Ya Pagué! Adjuntar Comprobante →
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div id="citizenInboxModalContainer"></div>
+            `;
+            return;
+        }
+
+        // ============================================================
+        // CASO 3: CUENTA APROBADA - DASHBOARD COMPLETO DE TRÁMITES
+        // ============================================================
         const tramiteSeleccionado = localStorage.getItem('tramite_activo_seleccionado') || null;
         const isRenovacion = data.tipo === 'renovacion';
         const isCompletado = data.progreso_porcentaje === 100 || data.estado === 'completado' || data.paso_actual === 'finalizado';
         const licencia = data.licencia;
 
-        this.currentData = data;
-
-        const stepIcons = {
-            charlas: Icons.video,
-            formularios: Icons.heart,
-            examen: Icons.edit,
-            pago: Icons.card,
-            practico: Icons.car,
-            entrega: Icons.id
-        };
-
-        const statusIcons = {
-            completed: '<span style="color:var(--success);display:flex;align-items:center">' + Icons.check + '</span>',
-            current: '<span style="color:#d97706;display:flex;align-items:center" title="Pendiente de verificación / acción">' + Icons.clock + '</span>',
-            locked: '<span style="color:var(--text-muted);display:flex;align-items:center">' + Icons.lock + '</span>'
-        };
-
-        const currentStep = data.pasos.find(p => p.status === 'current');
+        // Saludo de bienvenida con Tramibot si es la primera vez que ingresa aprobada
+        if (citizen.bienvenida_mostrada === 0 || data.bienvenida_mostrada === 0) {
+            setTimeout(() => {
+                if (window.Tutorial && window.Tutorial.showApprovalGreeting) {
+                    window.Tutorial.showApprovalGreeting(citizen.nombre);
+                    ApiService.marcarBienvenidaVista();
+                }
+            }, 400);
+        }
 
         app.innerHTML = `
         ${renderNavbar(citizen)}
@@ -93,20 +212,15 @@ class DashboardPage {
                         </div>
                     </div>
 
-                    <!-- BADGE CUD -->
-                    <div style="text-align:right">
+                    <!-- BADGES Y ESTADO -->
+                    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+                        <span class="badge badge-success" style="padding:6px 12px;font-size:0.8rem;display:inline-flex;align-items:center;gap:6px">
+                            ${Icons.check} Cuenta Verificada y Aprobada
+                        </span>
                         ${citizen.tiene_cud ? `
-                        <span class="badge badge-success" style="padding:6px 12px;font-size:0.8rem;display:inline-flex;align-items:center;gap:6px;background:#dcfce7;color:#15803d;border:1px solid #86efac">
-                            ${Icons.wheelchair} Posee CUD ${citizen.numero_cud ? 'N° ' + citizen.numero_cud : ''} (Atención Prioritaria)
-                        </span>` : `
-                        <span class="badge" style="padding:6px 12px;font-size:0.8rem;display:inline-flex;align-items:center;gap:6px;background:var(--bg);color:var(--text-muted);border:1px solid var(--border)">
-                            Sin CUD registrado
-                        </span>`}
-                        <div class="mt-1">
-                            <button class="btn btn-ghost btn-sm text-xs" style="display:inline-flex;align-items:center;gap:4px" onclick="DashboardPage.toggleCudModal(${citizen.tiene_cud ? 1 : 0})">
-                                ${Icons.edit} Cambiar estado CUD
-                            </button>
-                        </div>
+                        <span class="badge badge-success" style="padding:4px 10px;font-size:0.75rem;display:inline-flex;align-items:center;gap:6px;background:#dcfce7;color:#15803d;border:1px solid #86efac">
+                            ${Icons.wheelchair} CUD N° ${citizen.numero_cud || ''} (Prioridad)
+                        </span>` : ''}
                     </div>
                 </div>
 
@@ -115,7 +229,7 @@ class DashboardPage {
                     <div><strong class="text-muted">Email:</strong> ${citizen.email || 'No registrado'}</div>
                     <div><strong class="text-muted">Teléfono:</strong> ${citizen.telefono || 'No registrado'}</div>
                     <div><strong class="text-muted">Dirección:</strong> ${citizen.direccion || 'Baradero'}</div>
-                    <div><strong class="text-muted">Trámites Realizados:</strong> 1 activo</div>
+                    <div><strong class="text-muted">Infracciones:</strong> <span style="color:var(--success);font-weight:700">Libre de Deuda</span></div>
                     <div><strong class="text-muted">Estado General:</strong> En Regla</div>
                 </div>
             </section>
@@ -186,7 +300,7 @@ class DashboardPage {
                 <div style="display:flex;justify-content:center;margin-bottom:8px;color:var(--primary);font-size:1.5rem">${Icons.id}</div>
                 <h3 class="font-bold text-base mb-1">Seleccioná un Trámite para Comenzar</h3>
                 <p class="text-xs text-muted mb-0">
-                    Hacé clic en cualquiera de las 6 opciones superiores (<i>Licencia Nueva, Renovar Licencia, Licencia Vencida, Subir de Categoría, Licencia Profesional o Extravío/Robo</i>) para ver la barra de progreso específica y los pasos correspondientes a tu trámite.
+                    Hacé clic en cualquiera de las opciones superiores para ver la barra de progreso y los pasos correspondientes.
                 </p>
             </div>` : `
             
@@ -207,36 +321,6 @@ class DashboardPage {
                 </div>
             </div>
 
-            <!-- ACCESO RÁPIDO (Adaptado según Trámite) -->
-            <section class="animate-slideUp">
-                <h2 class="section-title mb-3">Acceso rápido a pasos</h2>
-                <div class="quick-grid">
-                    ${!isRenovacion ? `
-                    <button class="quick-action" onclick="Router.navigate('charlas')">
-                        <div class="quick-action__icon" style="background:var(--primary-soft);color:var(--primary)">${Icons.video}</div>
-                        <span class="quick-action__label">Charlas</span>
-                    </button>` : ''}
-                    <button class="quick-action" onclick="Router.navigate('formularios')">
-                        <div class="quick-action__icon" style="background:var(--accent-light);color:var(--accent)">${Icons.heart}</div>
-                        <span class="quick-action__label">Salud</span>
-                    </button>
-                    ${!isRenovacion ? `
-                    <button class="quick-action" onclick="Router.navigate('examen')">
-                        <div class="quick-action__icon" style="background:var(--primary-soft);color:var(--primary)">${Icons.edit}</div>
-                        <span class="quick-action__label">Examen</span>
-                    </button>` : ''}
-                    <button class="quick-action" onclick="Router.navigate('pago')">
-                        <div class="quick-action__icon" style="background:var(--accent-light);color:var(--accent)">${Icons.card}</div>
-                        <span class="quick-action__label">Pagar</span>
-                    </button>
-                    ${!isRenovacion ? `
-                    <button class="quick-action" onclick="Router.navigate('practico')">
-                        <div class="quick-action__icon" style="background:var(--primary-soft);color:var(--primary)">${Icons.car}</div>
-                        <span class="quick-action__label">Práctico</span>
-                    </button>` : ''}
-                </div>
-            </section>
-
             <!-- PASOS DEL TRÁMITE -->
             <section class="animate-slideUp">
                 <div class="flex-between mb-3">
@@ -248,122 +332,217 @@ class DashboardPage {
                     <div class="step-card step-card--${paso.status}" 
                          onclick="Router.navigate('${paso.id}')"
                          style="animation-delay:${i * 0.05}s">
-                        <div class="step-card__icon">${stepIcons[paso.id] || Icons.file}</div>
+                        <div class="step-card__icon">${paso.status === 'completed' ? Icons.check : paso.status === 'current' ? Icons.clock : Icons.lock}</div>
                         <div class="step-card__content">
-                            <div class="step-card__step-label">Paso ${i + 1}</div>
-                            <div class="step-card__title">${paso.title}</div>
-                            <div class="step-card__desc">${paso.description}</div>
+                            <h3 class="step-card__title">${paso.title}</h3>
+                            <p class="step-card__desc">${paso.description}</p>
                         </div>
                         <div class="step-card__status">
-                            <span>${statusIcons[paso.status]}</span>
-                            ${paso.status !== 'locked' ? '<span style="color:var(--text-muted)">›</span>' : ''}
+                            <span class="badge ${paso.status === 'completed' ? 'badge-success' : paso.status === 'current' ? 'badge-warning' : 'badge-muted'}">
+                                ${paso.status === 'completed' ? 'Completado' : paso.status === 'current' ? 'En curso' : 'Bloqueado'}
+                            </span>
                         </div>
                     </div>`).join('')}
                 </div>
             </section>`}
 
-            <!-- APARTADO DE MI LICENCIA DIGITAL EN DASHBOARD (SOLO SI EL PROGRESO ES EXACTAMENTE 100% Y EL ESTADO ES COMPLETADO) -->
-            ${(data.progreso_porcentaje === 100 && data.estado === 'completado' && licencia && (licencia.numero_licencia || licencia.id)) ? `
-            <section class="glass-card p-6" id="licenciaSection" style="border-left: 4px solid var(--success); margin-top: 48px !important">
-                <div class="flex-between mb-4">
-                    <div>
-                        <h2 class="font-bold text-base mb-1" style="display:flex;align-items:center;gap:8px">
-                            <span style="color:var(--primary);display:flex;align-items:center">${Icons.id}</span> Mi Licencia Digital (Mi Argentina)
-                        </h2>
-                        <p class="text-xs text-muted">Licencia de conducir emitida · Hacé click sobre la credencial para alternar Frente / Dorso</p>
-                    </div>
-                    <span class="licencia-badge" style="display:inline-flex;align-items:center;gap:4px">${Icons.check} VIGENTE · PBA</span>
-                </div>
-
-                <div style="max-width:460px;margin:0 auto;text-align:center">
-                    <div style="position:relative;cursor:pointer;border-radius:16px;overflow:hidden;box-shadow:0 12px 30px rgba(0,0,0,0.3);border:2px solid var(--primary);transition:transform 0.2s ease" 
-                         onclick="DashboardPage.toggleLicenciaImage()"
-                         onmouseover="this.style.transform='scale(1.02)'"
-                         onmouseout="this.style.transform='scale(1)'">
-                        <img id="licenciaImgDisplay" src="./img/licencia_frente.png" 
-                             style="width:100%;height:auto;max-height:285px;object-fit:cover;display:block;border-radius:14px" 
-                             alt="Licencia Digital Mi Argentina">
-                    </div>
-                    <div id="licenciaSideLabel" class="text-xs text-muted mt-2 font-bold" style="color:var(--primary);display:inline-flex;align-items:center;gap:6px">
-                        ${Icons.mapPin} Viendo: FRENTE DE LA LICENCIA (Datos personales y QR)
-                    </div>
-                </div>
+            <!-- SECCIÓN LICENCIA DIGITAL (SI ESTÁ EMITIDA) -->
+            ${licencia ? `
+            <section id="licenciaSection" class="glass-card p-6 text-center animate-slideUp" style="border:2px solid var(--success);background:rgba(16,185,129,0.04)">
+                <div style="font-size:2rem;color:var(--success);margin-bottom:8px">🎉</div>
+                <h2 class="font-bold text-xl mb-2">¡Tu Licencia Digital ya fue emitida!</h2>
+                <p class="text-sm text-muted mb-4">Podés verla y descargarla en cualquier momento desde aquí.</p>
+                <button class="btn btn-success btn-lg" onclick="DashboardPage.openLicenciaModal()" style="display:inline-flex;align-items:center;gap:8px">
+                    ${Icons.id} Ver Licencia Digital
+                </button>
             </section>` : ''}
+        </div>
+
+        <div id="citizenInboxModalContainer"></div>
+        `;
+    }
+
+    /**
+     * Abre el modal del Inbox para el ciudadano (chat con el área de tránsito)
+     */
+    static async abrirInboxCiudadano(esNotificacionPago = false) {
+        const container = document.getElementById('citizenInboxModalContainer');
+        if (!container) return;
+
+        container.innerHTML = `
+        <div class="modal-backdrop" style="position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px)">
+            <div class="modal-content glass-card p-6" style="max-width:640px;width:100%;max-height:90vh;display:flex;flex-direction:column;border:2px solid var(--primary)">
+                <div class="text-center" style="padding:40px 0">
+                    <div class="spinner" style="margin:0 auto"></div>
+                    <p class="text-muted mt-3">Cargando mensajes del municipio...</p>
+                </div>
+            </div>
         </div>`;
 
-        const is100Pct = data.progreso_porcentaje === 100 && data.estado === 'completado' && licencia;
-        if (is100Pct) {
-            const tramiteKey = 'celebrated_' + (data.tramite_id || '1');
-            if (!sessionStorage.getItem(tramiteKey)) {
-                sessionStorage.setItem(tramiteKey, '1');
-                setTimeout(() => {
-                    if (window.Tutorial) {
-                        window.Tutorial.startTutorialWithContext('licencia-completada', true);
-                    }
-                }, 400);
-            }
-        } else if (window.Tutorial) {
-            setTimeout(() => window.Tutorial.startTutorialWithContext('dashboard'), 300);
+        try {
+            const data = await ApiService.getInboxMensajes();
+            const mensajes = data.mensajes || [];
+            const user = ApiService.getUsuario() || {};
+
+            container.innerHTML = `
+            <div class="modal-backdrop" style="position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px)">
+                <div class="modal-content glass-card" style="max-width:680px;width:100%;max-height:92vh;display:flex;flex-direction:column;border:2px solid var(--primary);box-shadow:var(--shadow-lg)">
+                    
+                    <!-- HEADER INBOX -->
+                    <div class="flex-between p-4" style="background:var(--bg-card);border-bottom:1px solid var(--border);border-top-left-radius:var(--radius-md);border-top-right-radius:var(--radius-md)">
+                        <div style="display:flex;align-items:center;gap:10px">
+                            <div style="width:40px;height:40px;border-radius:50%;background:var(--primary-soft);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:1.2rem">
+                                ${Icons.chat}
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-base mb-0">Mensajería con Tránsito & Infracciones</h3>
+                                <p class="text-xs text-muted mb-0">Canal directo para notificar pagos y consultas</p>
+                            </div>
+                        </div>
+                        <button class="btn btn-ghost btn-sm" onclick="DashboardPage.cerrarInbox()">×</button>
+                    </div>
+
+                    <!-- CUERPO DE MENSAJES -->
+                    <div id="citizenMessagesBody" style="flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px;max-height:360px;background:var(--bg)">
+                        ${mensajes.length === 0 ? `
+                        <div class="empty-state" style="padding:30px 0">
+                            <p class="text-xs text-muted">Aún no hay mensajes. Podés escribir o adjuntar tu comprobante de pago abajo.</p>
+                        </div>` : mensajes.map(m => `
+                        <div style="max-width:82%;align-self:${m.emisor === 'usuario' ? 'flex-end' : 'flex-start'};background:${m.emisor === 'usuario' ? 'var(--primary)' : 'var(--bg-card)'};color:${m.emisor === 'usuario' ? '#fff' : 'inherit'};padding:10px 14px;border-radius:12px;box-shadow:var(--shadow-sm);border:1px solid ${m.emisor === 'usuario' ? 'transparent' : 'var(--border)'}">
+                            <div style="font-size:0.7rem;opacity:0.8;margin-bottom:4px;font-weight:700">
+                                ${m.emisor === 'usuario' ? 'Vos' : 'Oficial de Tránsito'} · ${m.created_at}
+                            </div>
+                            <div style="font-size:0.85rem;white-space:pre-wrap">${m.mensaje}</div>
+                            ${m.adjunto_url ? `
+                            <div style="margin-top:8px;padding-top:6px;border-top:1px solid rgba(255,255,255,0.2)">
+                                ${m.adjunto_url.startsWith('data:image') || m.adjunto_url.includes('.jpg') || m.adjunto_url.includes('.png') ? `
+                                <a href="${m.adjunto_url}" target="_blank">
+                                    <img src="${m.adjunto_url}" style="max-width:100%;max-height:140px;border-radius:6px;display:block;margin-top:4px" alt="Comprobante">
+                                </a>` : `
+                                <a href="${m.adjunto_url}" target="_blank" class="btn btn-ghost btn-sm" style="font-size:0.75rem;padding:3px 8px">
+                                    ${Icons.paperclip} Ver adjunto (${m.adjunto_nombre || 'Comprobante'})
+                                </a>`}
+                            </div>` : ''}
+                        </div>`).join('')}
+                    </div>
+
+                    <!-- FOOTER ENVÍO -->
+                    <div class="p-4" style="background:var(--bg-card);border-top:1px solid var(--border);border-bottom-left-radius:var(--radius-md);border-bottom-right-radius:var(--radius-md)">
+                        <div style="display:flex;flex-direction:column;gap:10px">
+                            
+                            <!-- ADJUNTO SELECCIONADO PREVIEW -->
+                            <div id="citizenAttachmentPreview" style="display:none;background:var(--primary-soft);padding:6px 12px;border-radius:var(--radius-sm);font-size:0.8rem;color:var(--primary);align-items:center;justify-content:space-between">
+                                <span id="citizenAttachmentName"></span>
+                                <button type="button" class="btn btn-ghost btn-sm" style="padding:0 4px" onclick="DashboardPage.quitarAdjunto()">✕</button>
+                            </div>
+
+                            <div style="display:flex;gap:8px;align-items:center">
+                                <label class="btn btn-ghost btn-sm" style="cursor:pointer" title="Adjuntar comprobante o foto">
+                                    ${Icons.paperclip} Adjuntar Foto/PDF
+                                    <input type="file" id="citizenFileInput" accept="image/*,application/pdf" style="display:none" onchange="DashboardPage.handleCitizenFileSelect(event)">
+                                </label>
+                                
+                                <input type="text" id="citizenMsgInput" class="form-input" 
+                                       placeholder="${esNotificacionPago ? 'Ej: Adjunto comprobante de pago de las multas...' : 'Escribir mensaje...'}" 
+                                       value="${esNotificacionPago ? 'Ya realicé el pago de las multas pendientes. Adjunto comprobante para verificación.' : ''}"
+                                       style="flex:1" onkeydown="if(event.key==='Enter') DashboardPage.enviarMensajeCiudadano(${esNotificacionPago})">
+
+                                <button class="btn btn-primary btn-sm" onclick="DashboardPage.enviarMensajeCiudadano(${esNotificacionPago})" style="display:inline-flex;align-items:center;gap:6px;font-weight:700">
+                                    ${Icons.send} Enviar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>`;
+        } catch (err) {
+            Toast.error(err.message || 'Error al cargar mensajes');
+            this.cerrarInbox();
         }
     }
 
-    static toggleLicenciaImage() {
-        const img = document.getElementById('licenciaImgDisplay');
-        const label = document.getElementById('licenciaSideLabel');
-        if (!img) return;
+    static handleCitizenFileSelect(event) {
+        const file = event.target.files[0];
+        if (!file) return;
 
-        if (img.src.includes('licencia_frente.png')) {
-            img.src = './img/licencia_dorso.png';
-            if (label) label.textContent = '📍 Viendo: DORSO DE LA LICENCIA (Datos médicos y firma)';
-        } else {
-            img.src = './img/licencia_frente.png';
-            if (label) label.textContent = '📍 Viendo: FRENTE DE LA LICENCIA (Datos personales y QR)';
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            DashboardPage.selectedFileData = e.target.result;
+            DashboardPage.selectedFileName = file.name;
+            const prev = document.getElementById('citizenAttachmentPreview');
+            const nameEl = document.getElementById('citizenAttachmentName');
+            if (prev && nameEl) {
+                nameEl.innerText = `📎 ${file.name}`;
+                prev.style.display = 'flex';
+            }
+            Toast.info(`Comprobante ${file.name} seleccionado.`);
+        };
+        reader.readAsDataURL(file);
+    }
+
+    static quitarAdjunto() {
+        DashboardPage.selectedFileData = null;
+        DashboardPage.selectedFileName = null;
+        const prev = document.getElementById('citizenAttachmentPreview');
+        if (prev) prev.style.display = 'none';
+        const fileInp = document.getElementById('citizenFileInput');
+        if (fileInp) fileInp.value = '';
+    }
+
+    static async enviarMensajeCiudadano(esNotificacionPago = false) {
+        const input = document.getElementById('citizenMsgInput');
+        if (!input) return;
+
+        const msg = input.value.trim();
+        const fileData = DashboardPage.selectedFileData || null;
+        const fileName = DashboardPage.selectedFileName || null;
+
+        if (!msg && !fileData) {
+            Toast.warning('Escribí un mensaje o adjuntá un comprobante');
+            return;
         }
+
+        try {
+            if (esNotificacionPago) {
+                await ApiService.notificarYaPague({
+                    mensaje: msg,
+                    adjunto_url: fileData,
+                    adjunto_nombre: fileName
+                });
+                Toast.success('¡Comprobante y aviso de pago enviados al administrador con éxito!');
+            } else {
+                await ApiService.sendInboxMensaje({
+                    mensaje: msg,
+                    adjunto_url: fileData,
+                    adjunto_nombre: fileName
+                });
+                Toast.success('Mensaje enviado');
+            }
+
+            DashboardPage.selectedFileData = null;
+            DashboardPage.selectedFileName = null;
+            this.cerrarInbox();
+            DashboardPage.render(document.getElementById('app'));
+        } catch (err) {
+            Toast.error(err.message || 'Error al enviar');
+        }
+    }
+
+    static cerrarInbox() {
+        const container = document.getElementById('citizenInboxModalContainer');
+        if (container) container.innerHTML = '';
+        DashboardPage.selectedFileData = null;
+        DashboardPage.selectedFileName = null;
     }
 
     static async seleccionarTramite(tipo) {
         const actual = localStorage.getItem('tramite_activo_seleccionado');
-        
-        // Si se hace clic en la misma opción activa, se des-selecciona para limpiar la pantalla
         if (actual === tipo) {
             localStorage.removeItem('tramite_activo_seleccionado');
-            Toast.info('Trámite deseleccionado. Vista limpia.');
+            Toast.info('Trámite deseleccionado.');
             DashboardPage.render(document.getElementById('app'));
             return;
-        }
-
-        const data = this.currentData || {};
-        const licencia = data.licencia;
-        const citizen = data.usuario || {};
-
-        // VALIDACIÓN DE RENOVACIÓN DE LICENCIA
-        if (tipo === 'renovacion') {
-            if (!licencia || !licencia.fecha_vencimiento) {
-                Toast.warning('ℹ️ No poseés una licencia previa registrada en el sistema para renovar. Podés iniciar tu primera "Licencia Nueva".');
-                return;
-            }
-            const hoy = new Date();
-            const venc = new Date(licencia.fecha_vencimiento);
-            const diasRestantes = Math.ceil((venc - hoy) / (1000 * 60 * 60 * 24));
-            if (diasRestantes > 30) {
-                Toast.warning(`ℹ️ Tu licencia N° ${licencia.numero_licencia || citizen.dni} sigue vigente hasta el ${licencia.fecha_vencimiento} (le quedan ${diasRestantes} días). La renovación se habilita 30 días antes del vencimiento.`);
-                return;
-            }
-        }
-
-        // VALIDACIÓN DE LICENCIA VENCIDA
-        if (tipo === 'vencida') {
-            if (!licencia || !licencia.fecha_vencimiento) {
-                Toast.warning('ℹ️ No registrás una licencia previa vencida. Seleccioná "Licencia Nueva" para sacar tu primera licencia.');
-                return;
-            }
-            const hoy = new Date();
-            const venc = new Date(licencia.fecha_vencimiento);
-            const diasRestantes = Math.ceil((venc - hoy) / (1000 * 60 * 60 * 24));
-            if (diasRestantes > 0) {
-                Toast.warning(`ℹ️ Tu licencia N° ${licencia.numero_licencia || citizen.dni} aún se encuentra vigente hasta el ${licencia.fecha_vencimiento}. El trámite de Licencia Vencida es únicamente para licencias expiradas.`);
-                return;
-            }
         }
 
         try {
@@ -376,59 +555,14 @@ class DashboardPage {
         }
     }
 
-    static async toggleCudModal(actualCud) {
-        const nuevoCud = actualCud ? 0 : 1;
-        try {
-            await ApiService.actualizarCud(nuevoCud);
-            Toast.success(`Estado CUD actualizado a: ${nuevoCud ? '♿ Con CUD (Atención Prioritaria)' : 'Sin CUD'}`);
-            DashboardPage.render(document.getElementById('app'));
-        } catch (err) {
-            Toast.error(err.message || 'Error al actualizar CUD');
-        }
-    }
-
     static openLicenciaModal() {
         const data = this.currentData || {};
         const isCompletado = data.progreso_porcentaje === 100 || data.estado === 'completado' || data.paso_actual === 'finalizado';
-        const isRenovacion = data.tipo === 'renovacion';
-
-        if (!data.licencia && !isCompletado && !isRenovacion) {
-            Toast.warning(`Tu trámite está al ${data.progreso_porcentaje || 0}%. La Licencia Digital se habilitará al completar el 100% de los pasos.`);
+        if (!data.licencia && !isCompletado) {
+            Toast.warning(`Tu trámite está al ${data.progreso_porcentaje || 0}%.`);
             return;
         }
-
-        document.querySelectorAll('.licencia-card-3d').forEach(card => card.classList.remove('flipped'));
-
         const modal = document.getElementById('licenciaModal');
-        if (modal) {
-            modal.classList.add('active');
-        } else {
-            const section = document.getElementById('licenciaSection');
-            if (section) section.scrollIntoView({ behavior: 'smooth' });
-        }
-    }
-
-    static toggleLicenciaSide() {
-        const frontEl = document.getElementById('licenciaFront');
-        const backEl = document.getElementById('licenciaBack');
-        if (!frontEl || !backEl) return;
-
-        if (frontEl.style.display === 'none') {
-            backEl.style.display = 'none';
-            frontEl.style.display = 'flex';
-            Toast.info('🔄 Mostrando FRENTE de la licencia (Datos personales y QR)');
-        } else {
-            frontEl.style.display = 'none';
-            backEl.style.display = 'flex';
-            Toast.info('🔄 Mostrando DORSO de la licencia (Datos médicos y firma)');
-        }
-    }
-
-    static closeLicenciaModal() {
-        document.querySelectorAll('.licencia-card-3d').forEach(card => card.classList.remove('flipped'));
-        const modal = document.getElementById('licenciaModal');
-        if (modal) {
-            modal.classList.remove('active');
-        }
+        if (modal) modal.classList.add('active');
     }
 }
