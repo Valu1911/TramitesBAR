@@ -4,26 +4,36 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Sistema de Trámites de Licencias de Conducir - Municipalidad de Baradero. Sacá o renová tu licencia de conducir online.">
-    <meta name="theme-color" content="#2563eb">
-    <title>Muni Digital · Licencias de Conducir - Baradero</title>
+    <meta name="theme-color" content="#1565c0">
+    <title>Ciudadano Digital · Licencias de Conducir — Municipio de Baradero</title>
     
     <!-- Favicon -->
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%232563eb%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22><path d=%22M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2%22/><circle cx=%227%22 cy=%2217%22 r=%222%22/><path d=%22M9 17h6%22/><circle cx=%2217%22 cy=%2217%22 r=%222%22/></svg>">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 44 44%22 fill=%22none%22><circle cx=%2222%22 cy=%2222%22 r=%2221%22 fill=%22%23f8fafc%22 stroke=%22%23e2e8f0%22 stroke-width=%221%22/><path d=%22M12 22C12 16.477 16.477 12 22 12C25.5 12 28.5 13.8 30.2 16.5%22 stroke=%22%231976d2%22 stroke-width=%223.5%22 stroke-linecap=%22round%22/><path d=%22M32 22C32 27.523 27.523 32 22 32C18.5 32 15.5 30.2 13.8 27.5%22 stroke=%22%231976d2%22 stroke-width=%223.5%22 stroke-linecap=%22round%22/><path d=%22M17 22C17 19.239 19.239 17 22 17C23.8 17 25.3 18 26.2 19.5%22 stroke=%22%23f59e0b%22 stroke-width=%223%22 stroke-linecap=%22round%22/><path d=%22M27 22C27 24.761 24.761 27 22 27C20.2 27 18.7 26 17.8 24.5%22 stroke=%22%230284c7%22 stroke-width=%223%22 stroke-linecap=%22round%22/></svg>">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     
     <!-- Styles -->
-    <link rel="stylesheet" href="css/styles.css?v=4">
+    <link rel="stylesheet" href="css/styles.css?v=5">
 </head>
 <body>
     <!-- App Root -->
     <div id="app">
-        <!-- Loading state -->
+        <!-- Loading state - SUBI Institutional -->
         <div class="login-page">
             <div class="login-logo">
-                <div class="login-logo__icon" style="display:flex;align-items:center;justify-content:center;font-size:3rem;animation: pulse-ring 1.5s ease-in-out infinite">
-                    <svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/></svg>
+                <div class="login-logo__icon" style="display:flex;align-items:center;justify-content:center;animation: pulse-ring 1.5s ease-in-out infinite">
+                    <svg viewBox="0 0 44 44" width="48" height="48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="22" cy="22" r="21" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+                        <path d="M12 22C12 16.477 16.477 12 22 12C25.5 12 28.5 13.8 30.2 16.5" stroke="#1976d2" stroke-width="3.5" stroke-linecap="round"/>
+                        <path d="M32 22C32 27.523 27.523 32 22 32C18.5 32 15.5 30.2 13.8 27.5" stroke="#1976d2" stroke-width="3.5" stroke-linecap="round"/>
+                        <path d="M17 22C17 19.239 19.239 17 22 17C23.8 17 25.3 18 26.2 19.5" stroke="#f59e0b" stroke-width="3" stroke-linecap="round"/>
+                        <path d="M27 22C27 24.761 24.761 27 22 27C20.2 27 18.7 26 17.8 24.5" stroke="#0284c7" stroke-width="3" stroke-linecap="round"/>
+                    </svg>
                 </div>
-                <h1 class="login-logo__text">Muni Digital</h1>
-                <p class="login-logo__sub">Cargando sistema...</p>
+                <h1 class="login-logo__text" style="font-family:'Plus Jakarta Sans',Inter,sans-serif">CIUDADANO <span style="font-weight:400;color:#0284c7">DIGITAL</span></h1>
+                <p class="login-logo__sub" style="font-weight:700;letter-spacing:1.2px;text-transform:uppercase;font-size:0.68rem">LICENCIAS · MUNICIPIO DE BARADERO</p>
             </div>
         </div>
     </div>

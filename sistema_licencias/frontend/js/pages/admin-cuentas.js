@@ -61,47 +61,95 @@ class AdminCuentasPage {
         app.innerHTML = `
         ${renderAdminNavbar(admin)}
         <div class="page-content animate-fadeIn">
-            <!-- HEADER -->
-            <div class="flex-between mb-4" style="flex-wrap:wrap;gap:14px">
-                <div>
-                    <h1 style="font-size:1.4rem;font-weight:800;display:flex;align-items:center;gap:10px">
-                        <span style="color:var(--primary);display:flex;align-items:center">${Icons.shield}</span>
-                        Administrador de Cuentas e Infracciones
-                    </h1>
-                    <p class="text-sm text-muted">Verificá los antecedentes de tránsito en el sistema nacional/provincial antes de habilitar los trámites</p>
-                </div>
-                <div style="display:flex;gap:10px;align-items:center">
-                    <span class="badge ${pendientes > 0 ? 'badge-warning' : 'badge-success'}" style="padding:8px 14px;font-size:0.85rem;display:inline-flex;align-items:center;gap:6px">
-                        ${Icons.clock} ${pendientes} pendientes de verificar
-                    </span>
-                    <button class="btn btn-ghost btn-sm" onclick="AdminCuentasPage.render(document.getElementById('app'))" title="Actualizar lista">
-                        <span style="display:flex;align-items:center;gap:4px">${Icons.refresh} Refrescar</span>
-                    </button>
+            <!-- HERO ADMIN CIVIC BANNER -->
+            <div class="admin-hero">
+                <div class="flex-between" style="flex-wrap:wrap;gap:16px;position:relative;z-index:1">
+                    <div>
+                        <div class="admin-badge-pill">
+                            ${Icons.shield} Panel de Verificación & Antecedentes Viales
+                        </div>
+                        <h1 style="font-size:1.6rem;font-weight:800;color:#ffffff;margin-bottom:6px;font-family:var(--font-title);letter-spacing:-0.02em">
+                            Administración de Cuentas Ciudadanas
+                        </h1>
+                        <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;max-width:680px;margin:0">
+                            Auditoría oficial de antecedentes de tránsito e infracciones en el Registro Provincial de Seguridad Vial previo a la emisión de licencias.
+                        </p>
+                    </div>
+                    <div style="display:flex;gap:10px;align-items:center">
+                        <button class="btn btn-sm" onclick="AdminCuentasPage.render(document.getElementById('app'))" 
+                                style="background:rgba(255,255,255,0.18);color:#ffffff;border:1px solid rgba(255,255,255,0.3);backdrop-filter:blur(6px);font-weight:700;display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:10px">
+                            ${Icons.refresh} Refrescar Datos
+                        </button>
+                    </div>
                 </div>
             </div>
 
-            <!-- FILTROS Y BUSCADOR -->
-            <div class="flex-between mb-4" style="flex-wrap:wrap;gap:12px;background:var(--bg-card);padding:12px 16px;border-radius:var(--radius-md);border:1px solid var(--border)">
-                <div class="tabs" style="margin-bottom:0">
-                    <button class="tab ${this.filtro === 'todos' ? 'active' : ''}" onclick="AdminCuentasPage.setFiltro('todos')">
+            <!-- KPI METRICS GRID -->
+            <div class="admin-kpi-grid">
+                <div class="admin-kpi-card">
+                    <div class="admin-kpi-icon" style="background:#e0f2fe;color:#0284c7">
+                        ${Icons.users}
+                    </div>
+                    <div>
+                        <div class="admin-kpi-val">${usuarios.length}</div>
+                        <div class="admin-kpi-label">Total Solicitudes</div>
+                    </div>
+                </div>
+
+                <div class="admin-kpi-card" style="border-left:3px solid #f59e0b">
+                    <div class="admin-kpi-icon" style="background:#fef3c7;color:#d97706">
+                        ${Icons.clock}
+                    </div>
+                    <div>
+                        <div class="admin-kpi-val" style="color:#b45309">${pendientes}</div>
+                        <div class="admin-kpi-label">Pendientes Auditoría</div>
+                    </div>
+                </div>
+
+                <div class="admin-kpi-card" style="border-left:3px solid #ef4444">
+                    <div class="admin-kpi-icon" style="background:#fee2e2;color:#dc2626">
+                        ${Icons.alert}
+                    </div>
+                    <div>
+                        <div class="admin-kpi-val" style="color:#b91c1c">${conMultas}</div>
+                        <div class="admin-kpi-label">Con Infracciones</div>
+                    </div>
+                </div>
+
+                <div class="admin-kpi-card" style="border-left:3px solid #10b981">
+                    <div class="admin-kpi-icon" style="background:#d1fae5;color:#059669">
+                        ${Icons.check}
+                    </div>
+                    <div>
+                        <div class="admin-kpi-val" style="color:#047857">${aprobados}</div>
+                        <div class="admin-kpi-label">Cuentas Aprobadas</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FILTROS Y BUSCADOR SUBI -->
+            <div class="admin-filter-bar">
+                <div class="admin-tabs-list">
+                    <button class="admin-tab-btn ${this.filtro === 'todos' ? 'active' : ''}" onclick="AdminCuentasPage.setFiltro('todos')">
                         Todos (${usuarios.length})
                     </button>
-                    <button class="tab ${this.filtro === 'pendiente' ? 'active' : ''}" onclick="AdminCuentasPage.setFiltro('pendiente')">
+                    <button class="admin-tab-btn ${this.filtro === 'pendiente' ? 'active' : ''}" onclick="AdminCuentasPage.setFiltro('pendiente')">
                         ⏳ Pendientes (${pendientes})
                     </button>
-                    <button class="tab ${this.filtro === 'rechazada_multas' ? 'active' : ''}" onclick="AdminCuentasPage.setFiltro('rechazada_multas')">
+                    <button class="admin-tab-btn ${this.filtro === 'rechazada_multas' ? 'active' : ''}" onclick="AdminCuentasPage.setFiltro('rechazada_multas')">
                         ⚠️ Con Multas (${conMultas})
                     </button>
-                    <button class="tab ${this.filtro === 'aprobada' ? 'active' : ''}" onclick="AdminCuentasPage.setFiltro('aprobada')">
+                    <button class="admin-tab-btn ${this.filtro === 'aprobada' ? 'active' : ''}" onclick="AdminCuentasPage.setFiltro('aprobada')">
                         ✓ Aprobadas (${aprobados})
                     </button>
-                    <button class="tab ${this.filtro === 'papelera' ? 'active' : ''}" onclick="AdminCuentasPage.setFiltro('papelera')">
+                    <button class="admin-tab-btn ${this.filtro === 'papelera' ? 'active' : ''}" onclick="AdminCuentasPage.setFiltro('papelera')">
                         🗑️ Papelera (${papelera})
                     </button>
                 </div>
 
-                <div style="min-width:240px;flex:1;max-width:340px">
-                    <input type="text" class="form-input" placeholder="🔍 Buscar por DNI o Nombre..." 
+                <div class="admin-search-wrap">
+                    <span class="admin-search-icon">🔍</span>
+                    <input type="text" class="admin-search-input" placeholder="Buscar por DNI o Nombre..." 
                            value="${this.busqueda}" oninput="AdminCuentasPage.handleSearch(this.value)">
                 </div>
             </div>
@@ -109,10 +157,12 @@ class AdminCuentasPage {
             <!-- LISTA DE USUARIOS -->
             <div id="cuentasLista">
                 ${usuarios.length === 0 ? `
-                <div class="empty-state">
-                    <div class="empty-state__icon" style="display:flex;align-items:center;justify-content:center">${Icons.users}</div>
-                    <h3 class="empty-state__title">No hay usuarios</h3>
-                    <p class="empty-state__desc">No se encontraron cuentas para el filtro seleccionado (${this.filtro}).</p>
+                <div class="dash-card text-center" style="padding:48px 20px">
+                    <div style="width:60px;height:60px;background:#f1f5f9;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;color:#94a3b8">
+                        ${Icons.users}
+                    </div>
+                    <h3 style="font-size:1.1rem;font-weight:700;color:var(--text-primary);margin-bottom:6px">No se encontraron solicitudes</h3>
+                    <p style="font-size:0.85rem;color:var(--text-muted);max-width:400px;margin:0 auto">No hay expedientes ciudadanos registrados bajo el filtro seleccionado (${this.filtro}).</p>
                 </div>` : usuarios.map(u => {
                     const stMap = {
                         'pendiente': { badge: 'badge-pending', label: 'Pendiente de Verificación', icon: Icons.clock },
@@ -124,36 +174,37 @@ class AdminCuentasPage {
                     const tieneAvisoPago = u.infracciones_pagadas_solicitadas === 1;
 
                     return `
-                    <div class="admin-item cuenta-item animate-slideUp" data-dni="${u.dni}" data-nombre="${(u.nombre + ' ' + u.apellido).toLowerCase()}" style="cursor:pointer;transition:all 0.2s ease" onclick="AdminCuentasPage.abrirModalVerificacion(${u.id})">
+                    <div class="admin-item cuenta-item animate-slideUp" data-dni="${u.dni}" data-nombre="${(u.nombre + ' ' + u.apellido).toLowerCase()}" 
+                         style="cursor:pointer" onclick="AdminCuentasPage.abrirModalVerificacion(${u.id})">
                         <div class="admin-item__header">
-                            <div style="display:flex;align-items:center;gap:12px">
-                                <div style="width:42px;height:42px;border-radius:50%;border:1.5px solid var(--primary);overflow:hidden;background:var(--primary-soft);display:flex;align-items:center;justify-content:center;color:var(--primary);font-weight:700;font-size:1.1rem;flex-shrink:0;">
+                            <div style="display:flex;align-items:center;gap:14px">
+                                <div style="width:46px;height:46px;border-radius:50%;border:2px solid #0284c7;overflow:hidden;background:#e0f2fe;display:flex;align-items:center;justify-content:center;color:#0284c7;font-weight:800;font-size:1.15rem;flex-shrink:0;">
                                     ${u.foto_rostro ? `<img src="${u.foto_rostro}" alt="Foto" style="width:100%;height:100%;object-fit:cover;">` : (u.nombre ? u.nombre.charAt(0).toUpperCase() : 'U')}
                                 </div>
                                 <div>
-                                    <div class="admin-item__user" style="display:flex;align-items:center;gap:8px">
+                                    <div class="admin-item__user" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
                                         <span>${u.nombre} ${u.apellido}</span>
                                         ${u.tiene_cud ? `<span class="badge badge-success" style="font-size:0.7rem;padding:2px 6px">${Icons.wheelchair} CUD</span>` : ''}
                                         ${tieneAvisoPago ? `<span class="badge badge-warning animate-pulse" style="font-size:0.75rem;padding:3px 8px;background:#fef3c7;color:#b45309;border:1px solid #f59e0b;font-weight:bold">🔔 Notificó Pago</span>` : ''}
                                         ${u.mensajes_sin_leer > 0 ? `<span class="badge badge-danger" style="font-size:0.7rem;padding:2px 6px">${Icons.chat} ${u.mensajes_sin_leer} msj</span>` : ''}
                                     </div>
-                                    <div class="admin-item__meta" style="margin-top:2px">
+                                    <div class="admin-item__meta" style="margin-top:3px">
                                         <strong>DNI:</strong> ${u.dni} · <strong>Edad:</strong> ${u.edad || '--'} años · <strong>Tel:</strong> ${u.telefono || 'Sin tel'} · <strong>Email:</strong> ${u.email || 'Sin email'}
                                     </div>
                                 </div>
                             </div>
-                            <span class="badge ${st.badge}" style="display:inline-flex;align-items:center;gap:5px">
+                            <span class="badge ${st.badge}" style="display:inline-flex;align-items:center;gap:5px;font-size:0.8rem;padding:5px 12px">
                                 ${st.icon} ${st.label}
                             </span>
                         </div>
 
-                        <div class="admin-item__detail flex-between" style="margin-top:8px;padding-top:8px;border-top:1px dashed var(--border)">
+                        <div class="admin-item__detail flex-between" style="margin-top:10px;padding:10px 14px;border-radius:10px;background:#f8fafc;border:1px solid #e2e8f0">
                             <div class="text-xs text-muted">
-                                Registrado el: ${u.created_at || '--'} 
-                                ${u.multas_motivo ? ` · <span style="color:#b91c1c">Motivo: ${u.multas_motivo}</span>` : ''}
+                                Registrado el: <strong>${u.created_at || '--'}</strong> 
+                                ${u.multas_motivo ? ` · <span style="color:#b91c1c;font-weight:700">Infracción: ${u.multas_motivo}</span>` : ''}
                             </div>
-                            <button class="btn btn-primary btn-sm" style="display:inline-flex;align-items:center;gap:6px;font-weight:700">
-                                ${Icons.shield} Abrir Verificación & Iframe →
+                            <button class="btn btn-primary btn-sm" style="display:inline-flex;align-items:center;gap:6px;font-weight:700;border-radius:8px">
+                                ${Icons.shield} Abrir Auditoría & Consulta Oficial →
                             </button>
                         </div>
                     </div>`;

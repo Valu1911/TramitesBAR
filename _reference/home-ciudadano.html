@@ -1,0 +1,1852 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description"
+    content="SUBI - Portal del Ciudadano de Baradero. Panel unificado de trámites, legajo digital, tasas municipales y atención vecinal.">
+  <title>SUBI - Portal del Ciudadano | Municipio de Baradero</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+    rel="stylesheet">
+
+  <link rel="stylesheet" href="css/home-ciudadano.css?v=2.0">
+  <link rel="stylesheet" href="css/chatbot.css?v=1.2">
+</head>
+
+<body>
+
+  <!-- ================================================================ -->
+  <!-- 1. TOPBAR INSTITUCIONAL                                          -->
+  <!-- ================================================================ -->
+  <header class="portal-topbar">
+    <a href="home-ciudadano.html" class="portal-brand" title="SUBI Baradero - Portal del Ciudadano">
+      <div class="brand-icon-subi">
+        <svg viewBox="0 0 44 44" width="44" height="44" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="22" cy="22" r="21" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1" />
+          <path d="M12 22C12 16.477 16.477 12 22 12C25.5 12 28.5 13.8 30.2 16.5" stroke="#1976d2" stroke-width="3.5"
+            stroke-linecap="round" />
+          <path d="M32 22C32 27.523 27.523 32 22 32C18.5 32 15.5 30.2 13.8 27.5" stroke="#1976d2" stroke-width="3.5"
+            stroke-linecap="round" />
+          <path d="M17 22C17 19.239 19.239 17 22 17C23.8 17 25.3 18 26.2 19.5" stroke="#f59e0b" stroke-width="3"
+            stroke-linecap="round" />
+          <path d="M27 22C27 24.761 24.761 27 22 27C20.2 27 18.7 26 17.8 24.5" stroke="#0284c7" stroke-width="3"
+            stroke-linecap="round" />
+        </svg>
+      </div>
+      <div class="brand-text-block">
+        <div class="brand-title">CIUDADANO <span>DIGITAL</span></div>
+        <div class="brand-sub">SUBI · MUNICIPIO DE BARADERO</div>
+      </div>
+    </a>
+
+    <!-- Perfil del usuario y acciones -->
+    <div class="header-actions">
+      <!-- Chip de Identidad -->
+      <button type="button" class="user-profile-chip" id="btnOpenUserProfile"
+        title="Ver mi perfil y credencial digital">
+        <div class="user-avatar-circle" id="headerUserAvatar">CG</div>
+        <div class="user-info-text">
+          <span class="user-name" id="headerUserName">Carlos Gómez</span>
+          <span class="user-level-badge">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+            </svg>
+            Nivel 2 Verificado
+          </span>
+        </div>
+      </button>
+
+      <!-- Botón Ayuda -->
+      <a href="preguntas-frecuentes.html" class="btn-header-help" title="Centro de ayuda y preguntas frecuentes">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <circle cx="12" cy="12" r="10"></circle>
+          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+          <line x1="12" y1="17" x2="12.01" y2="17"></line>
+        </svg>
+        <span>AYUDA</span>
+      </a>
+
+      <!-- Botón Cerrar Sesión -->
+      <button type="button" class="btn-header-logout" id="btnLogout" title="Cerrar sesión de Ciudadano Digital">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+          <polyline points="16 17 21 12 16 7"></polyline>
+          <line x1="21" y1="12" x2="9" y2="12"></line>
+        </svg>
+        <span>SALIR</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ================================================================ -->
+  <!-- 2. SUBNAVEGACIÓN HORIZONTAL INSTITUCIONAL                        -->
+  <!-- ================================================================ -->
+  <nav class="portal-subnav" aria-label="Navegación del Ciudadano">
+    <ul class="subnav-links">
+      <li>
+        <a href="#inicio" class="subnav-link active" data-view="view-inicio">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+            <polyline points="9 22 9 12 15 12 15 22" />
+          </svg>
+          Inicio
+        </a>
+      </li>
+      <li>
+        <a href="#tramites" class="subnav-link" data-view="view-tramites">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+            <polyline points="14 2 14 8 20 8" />
+            <line x1="16" y1="13" x2="8" y2="13" />
+            <line x1="16" y1="17" x2="8" y2="17" />
+          </svg>
+          Mis Trámites
+        </a>
+      </li>
+      <li>
+        <a href="#tasas" class="subnav-link" data-view="view-tasas">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="2" y="5" width="20" height="14" rx="2" />
+            <line x1="2" y1="10" x2="22" y2="10" />
+          </svg>
+          Pagar Tasas
+        </a>
+      </li>
+      <li>
+        <a href="#legajo" class="subnav-link" data-view="view-legajo">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+          </svg>
+          Mi Legajo Digital
+        </a>
+      </li>
+      <li>
+        <a href="#reclamos147" class="subnav-link" data-view="view-reclamos147">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path
+              d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+          </svg>
+          Atención 147
+        </a>
+      </li>
+      <li>
+        <a href="#turnos" class="subnav-link" data-view="view-turnos">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+            <line x1="16" y1="2" x2="16" y2="6" />
+            <line x1="8" y1="2" x2="8" y2="6" />
+            <line x1="3" y1="10" x2="21" y2="10" />
+          </svg>
+          Turnos Sisalud
+        </a>
+      </li>
+      <li>
+        <a href="preguntas-frecuentes.html" class="subnav-link">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10" />
+            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+            <line x1="12" y1="17" x2="12.01" y2="17" />
+          </svg>
+          Ayuda y Preguntas
+        </a>
+      </li>
+    </ul>
+  </nav>
+
+  <!-- ================================================================ -->
+  <!-- 3. HERO AUTENTICADO                                             -->
+  <!-- ================================================================ -->
+  <section class="home-hero">
+    <div class="hero-wave-bg">
+      <svg viewBox="0 0 1440 320" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+        <path
+          d="M0,96L48,112C96,128,192,160,288,186.7C384,213,480,235,576,218.7C672,203,768,149,864,138.7C960,128,1056,160,1152,176C1248,192,1344,192,1392,192L1440,192L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"
+          fill="#ffffff" fill-opacity="0.1" />
+      </svg>
+    </div>
+
+    <div class="home-hero-content">
+      <!-- Credencial del Vecino -->
+      <div class="citizen-badge-bar">
+        <span>CUIL: <strong id="badgeCuilDisplay">20-38491024-3</strong></span>
+        <span class="badge-dot">•</span>
+        <span>Domicilio Constituido: <strong id="badgeDomDisplay">Baradero</strong></span>
+        <span class="badge-dot">•</span>
+        <span class="badge-level-verified">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+          Nivel 2 Verificado
+        </span>
+      </div>
+
+      <h1 class="home-hero-title" id="heroGreeting">¡Hola, Carlos!</h1>
+      <p class="home-hero-subtitle">¿Qué trámite o servicio necesitás realizar hoy en Baradero?</p>
+
+      <!-- Buscador en tiempo real -->
+      <div class="hero-search-wrapper">
+        <div class="hero-search-box">
+          <svg class="search-box-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#64748b"
+            stroke-width="2.5">
+            <circle cx="11" cy="11" r="8" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg>
+          <input type="text" id="heroSearchInput" class="hero-search-input"
+            placeholder="Buscá por trámite, tasa o servicio (ej: poda, tasas, sisalud, comercio)..."
+            autocomplete="off" />
+          <span class="search-kbd-hint" title="Presiona / para buscar"><kbd>/</kbd></span>
+          <button type="button" class="hero-search-btn" id="btnHeroSearch" aria-label="Buscar trámite">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <line x1="5" y1="12" x2="19" y2="12" />
+              <polyline points="12 5 19 12 12 19" />
+            </svg>
+          </button>
+        </div>
+
+        <!-- Resultados predictivos instantáneos -->
+        <div class="search-results-dropdown" id="searchResultsDropdown"></div>
+      </div>
+
+      <!-- Chips populares de acceso rápido -->
+      <div class="hero-popular-row">
+        <span class="hero-popular-label">Accesos rápidos:</span>
+        <a href="#tasas" class="popular-chip" data-view="view-tasas">Pagar Tasas (ABL)</a>
+        <a href="#turnos" class="popular-chip" data-view="view-turnos" id="btnChipSisalud">Turnos Hospital Sisalud</a>
+        <a href="#tramites" class="popular-chip" data-view="view-tramites" data-cat="ambiente">Permiso de Poda</a>
+        <button type="button" class="popular-chip" id="btnChipLibreDeuda">Libre Deuda</button>
+        <a href="#reclamos147" class="popular-chip" data-view="view-reclamos147" id="btnChipReclamo">Atención 147</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================================ -->
+  <!-- 4. CONTENIDO PRINCIPAL DEL DASHBOARD (PANELES AUTÓNOMOS)        -->
+  <!-- ================================================================ -->
+  <main class="home-container">
+
+    <!-- ============================================================== -->
+    <!-- PANEL 1: INICIO (DASHBOARD GENERAL)                            -->
+    <!-- ============================================================== -->
+    <div id="view-inicio" class="portal-view active">
+
+      <!-- 4 Tarjetas de Acción Principales -->
+      <section class="action-cards-grid" aria-label="Servicios Principales">
+        <!-- 1. Iniciar Trámite -->
+        <a href="#tramites" class="action-card" data-view="view-tramites">
+          <div class="action-card-icon-circle icon-blue">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+              <polyline points="14 2 14 8 20 8" />
+              <line x1="12" y1="18" x2="12" y2="12" />
+              <line x1="9" y1="15" x2="15" y2="15" />
+            </svg>
+          </div>
+          <div class="action-card-title">Iniciar Trámite</div>
+          <div class="action-card-desc">Catálogo unificado 100% digital sin traslados</div>
+          <span class="action-card-badge">Digital</span>
+        </a>
+
+        <!-- 2. Pagar Tasas -->
+        <a href="#tasas" class="action-card" data-view="view-tasas">
+          <div class="action-card-icon-circle icon-amber">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="5" width="20" height="14" rx="2" />
+              <line x1="2" y1="10" x2="22" y2="10" />
+              <circle cx="7" cy="15" r="1" />
+              <line x1="12" y1="15" x2="17" y2="15" />
+            </svg>
+          </div>
+          <div class="action-card-title">Pagar Tasas</div>
+          <div class="action-card-desc">Consultá tu deuda de ABL y aboná con descuento</div>
+          <span class="action-card-badge badge-amber">Online</span>
+        </a>
+
+        <!-- 3. Legajo Digital -->
+        <a href="#legajo" class="action-card" data-view="view-legajo">
+          <div class="action-card-icon-circle icon-indigo">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+              <line x1="12" y1="11" x2="12" y2="17" />
+              <line x1="9" y1="14" x2="15" y2="14" />
+            </svg>
+          </div>
+          <div class="action-card-title">Legajo Digital</div>
+          <div class="action-card-desc">Accedé a tus documentos y constancias oficiales</div>
+          <span class="action-card-badge badge-green">Validado</span>
+        </a>
+
+        <!-- 4. Atención 147 -->
+        <a href="#reclamos147" class="action-card" data-view="view-reclamos147">
+          <div class="action-card-icon-circle icon-emerald">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path
+                d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+            </svg>
+          </div>
+          <div class="action-card-title">Atención 147</div>
+          <div class="action-card-desc">Reportá reclamos urbanos y hacé seguimiento</div>
+          <span class="action-card-badge">24/7</span>
+        </a>
+      </section>
+
+      <!-- Grilla Dividida Equilibrada (62% Izquierda / 38% Derecha) -->
+      <div class="dashboard-split-grid">
+
+        <!-- Columna Izquierda: Mis Trámites + Trámites frecuentes -->
+        <div class="dashboard-left-col">
+
+          <!-- 1. Estado de mis trámites -->
+          <div class="dash-card">
+            <div class="card-header-row">
+              <div class="card-header-left">
+                <h2 class="card-header-title">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    <polyline points="14 2 14 8 20 8" />
+                    <line x1="16" y1="13" x2="8" y2="13" />
+                    <line x1="16" y1="17" x2="8" y2="17" />
+                  </svg>
+                  Estado de mis trámites
+                </h2>
+                <span class="dash-card-count" id="tramitesCountBadge">3 activos</span>
+              </div>
+              <a href="#tramites" class="card-header-link" data-view="view-tramites">
+                Ver todos
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="9 18 15 12 9 6" />
+                </svg>
+              </a>
+            </div>
+
+            <!-- Filtros de Estado con Contador -->
+            <div class="tramite-filters-bar">
+              <button type="button" class="tramite-filter-pill active" data-filter="todos">
+                Todos <span class="filter-count" id="countAll">3</span>
+              </button>
+              <button type="button" class="tramite-filter-pill" data-filter="curso">
+                En curso <span class="filter-count" id="countCurso">1</span>
+              </button>
+              <button type="button" class="tramite-filter-pill" data-filter="revision">
+                En revisión <span class="filter-count" id="countRevision">1</span>
+              </button>
+              <button type="button" class="tramite-filter-pill" data-filter="finalizado">
+                Finalizados <span class="filter-count" id="countFinalizado">1</span>
+              </button>
+            </div>
+
+            <!-- Lista dinámica de trámites -->
+            <div class="tramites-list" id="tramitesContainer">
+              <!-- Renderizado por js/home-ciudadano.js con modal click -->
+            </div>
+          </div>
+
+          <!-- 2. Trámites más utilizados por los vecinos -->
+          <div class="dash-card">
+            <div class="card-header-row">
+              <h2 class="card-header-title">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2">
+                  <polygon
+                    points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+                  </polygon>
+                </svg>
+                Trámites y servicios destacados
+              </h2>
+              <a href="#tramites" class="card-header-link" data-view="view-tramites">Catálogo completo</a>
+            </div>
+
+            <div class="frequent-grid">
+              <a href="#tramites" class="frequent-card-btn" data-view="view-tramites" data-cat="comercio">
+                <div class="frequent-card-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="4" y="2" width="16" height="20" rx="2" />
+                    <path d="M9 22v-4h6v4" />
+                  </svg>
+                </div>
+                <div class="frequent-card-text">
+                  <div class="frequent-card-title">Habilitación Comercial</div>
+                  <div class="frequent-card-sub">Inscripción y renovación digital</div>
+                </div>
+              </a>
+
+              <a href="#tramites" class="frequent-card-btn" data-view="view-tramites" data-cat="obras">
+                <div class="frequent-card-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M2 20h20" />
+                    <path d="M5 20V8l7-5 7 5v12" />
+                  </svg>
+                </div>
+                <div class="frequent-card-text">
+                  <div class="frequent-card-title">Permiso de Obra Menor</div>
+                  <div class="frequent-card-sub">Planos y visado técnico</div>
+                </div>
+              </a>
+
+              <a href="#tasas" class="frequent-card-btn" data-view="view-tasas">
+                <div class="frequent-card-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                    <polyline points="22 4 12 14.01 9 11.01" />
+                  </svg>
+                </div>
+                <div class="frequent-card-text">
+                  <div class="frequent-card-title">Libre Deuda Municipal</div>
+                  <div class="frequent-card-sub">Inmuebles y automotores</div>
+                </div>
+              </a>
+
+              <a href="#tramites" class="frequent-card-btn" data-view="view-tramites" data-cat="ambiente">
+                <div class="frequent-card-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 22v-9" />
+                    <path d="M9 9l3-3 3 3" />
+                    <path d="M5 14l7-7 7 7" />
+                  </svg>
+                </div>
+                <div class="frequent-card-text">
+                  <div class="frequent-card-title">Solicitud de Poda</div>
+                  <div class="frequent-card-sub">Inspección ambiental urbana</div>
+                </div>
+              </a>
+
+              <a href="#tramites" class="frequent-card-btn" data-view="view-tramites" data-cat="ambiente">
+                <div class="frequent-card-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="3 6 5 6 21 6" />
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                  </svg>
+                </div>
+                <div class="frequent-card-text">
+                  <div class="frequent-card-title">Punto de Ramas y Escombros</div>
+                  <div class="frequent-card-sub">Horarios y retiro programado</div>
+                </div>
+              </a>
+
+              <button type="button" class="frequent-card-btn" id="btnLaunchSisalud" data-view="view-turnos">
+                <div class="frequent-card-icon" style="background:#fef2f2; color:#ef4444; border-color:#fecaca;">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+                  </svg>
+                </div>
+                <div class="frequent-card-text">
+                  <div class="frequent-card-title">Turnos Hospital Piñeiro</div>
+                  <div class="frequent-card-sub">Reserva médica Sisalud</div>
+                </div>
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Columna Derecha: Mi Legajo + Banner USV + Novedades + 147 -->
+        <div class="dashboard-right-col">
+
+          <!-- 1. Mi Legajo Digital -->
+          <div class="legajo-summary-card">
+            <div class="card-header-row" style="margin-bottom:8px; padding-bottom:8px;">
+              <h3 class="card-header-title" style="font-size:1.02rem;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                  <circle cx="12" cy="7" r="4" />
+                </svg>
+                Mi Legajo Ciudadano
+              </h3>
+              <span class="status-badge status-green">Activo</span>
+            </div>
+            <p style="font-size:0.8rem; color:#64748b; line-height:1.4;">Documentación constatada con validez jurídica
+              municipal:</p>
+
+            <ul class="legajo-check-list">
+              <li class="legajo-check-item">
+                <svg class="check-icon-ok" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="2.5">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+                <span>DNI Tarjeta físico validado</span>
+              </li>
+              <li class="legajo-check-item">
+                <svg class="check-icon-ok" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="2.5">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+                <span>Domicilio Digital en Baradero</span>
+              </li>
+              <li class="legajo-check-item">
+                <svg class="check-icon-ok" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="2.5">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+                <span>Firma Digital Habilitada</span>
+              </li>
+            </ul>
+
+            <div class="legajo-actions-row">
+              <button type="button" class="btn-legajo-qr" id="btnOpenConstanciaModal">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="3" width="7" height="7" />
+                  <rect x="14" y="3" width="7" height="7" />
+                  <rect x="14" y="14" width="7" height="7" />
+                  <rect x="3" y="14" width="7" height="7" />
+                </svg>
+                Ver Constancia con QR
+              </button>
+              <a href="#legajo" class="btn-legajo-cta" data-view="view-legajo">
+                Abrir Legajo
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                  <polyline points="12 5 19 12 12 19" />
+                </svg>
+              </a>
+            </div>
+          </div>
+
+          <!-- 2. Banner "Una Sola Vez" -->
+          <div class="usv-banner-card">
+            <div class="usv-banner-flex">
+              <div class="usv-text-side">
+                <div class="usv-chip">MENOS FILAS, MÁS TIEMPO</div>
+                <h3 class="usv-card-title">Una Sola Vez</h3>
+                <p class="usv-card-desc">Tus datos, siempre actualizados. Presentalos una sola vez y usalos para siempre
+                  en todos tus trámites.</p>
+                <button type="button" class="btn-usv-cta" id="btnOpenUSVModal">
+                  Conocé más
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="9 18 15 12 9 6" />
+                  </svg>
+                </button>
+              </div>
+              <div class="usv-img-side">
+                <img src="assets/images/laptop_usv_mockup.png" alt="Una Sola Vez Baradero" class="usv-mockup-img" />
+              </div>
+            </div>
+          </div>
+
+          <!-- 3. Novedades Municipales -->
+          <div class="dash-card">
+            <div class="card-header-row" style="margin-bottom:12px; padding-bottom:8px;">
+              <h3 class="card-header-title" style="font-size:1.02rem;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2">
+                  <path
+                    d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+                </svg>
+                Novedades de la Ciudad
+              </h3>
+            </div>
+
+            <div class="news-mini-list">
+              <button type="button" class="news-mini-item" data-news-id="1">
+                <div class="news-mini-thumb thumb-blue">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                  </svg>
+                </div>
+                <div class="news-mini-text">
+                  <span class="news-mini-date">Esta semana · Obras Públicas</span>
+                  <div class="news-mini-title">Nuevo plan de mantenimiento y luminarias en distintos puntos de Baradero
+                  </div>
+                </div>
+              </button>
+
+              <button type="button" class="news-mini-item" data-news-id="2">
+                <div class="news-mini-thumb thumb-orange">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                    <line x1="16" y1="2" x2="16" y2="6" />
+                    <line x1="8" y1="2" x2="8" y2="6" />
+                    <line x1="3" y1="10" x2="21" y2="10" />
+                  </svg>
+                </div>
+                <div class="news-mini-text">
+                  <span class="news-mini-date">3 de mayo · Cultura</span>
+                  <div class="news-mini-title">Agenda cultural y talleres municipales con inscripción online abierta
+                  </div>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          <!-- 4. Asistencia y Atención 147 Rápida -->
+          <div class="help-147-box">
+            <div class="help-147-left">
+              <div class="help-147-badge">Línea 147</div>
+              <h3>¿Necesitás reportar algo?</h3>
+              <p>Reportá baches, luminarias o limpieza con número de seguimiento instantáneo.</p>
+            </div>
+            <div class="help-147-actions">
+              <button type="button" class="btn-create-147" id="btnOpenReclamo147Modal">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+                Nuevo Reclamo
+              </button>
+              <a href="tel:147" class="btn-call-147-link" title="Llamar al 147">Llamar 147</a>
+            </div>
+          </div>
+
+        </div> <!-- Fin .dashboard-right-col -->
+
+      </div> <!-- Fin .dashboard-split-grid -->
+
+    </div> <!-- Fin #view-inicio -->
+
+    <!-- ================================================================ -->
+    <!-- PANEL 2: MIS TRÁMITES / CATÁLOGO COMPLETO                        -->
+    <!-- ================================================================ -->
+    <div id="view-tramites" class="portal-view">
+      <div class="view-header-card">
+        <div>
+          <div class="view-breadcrumb">
+            <button type="button" class="btn-breadcrumb-home" data-view="view-inicio">← Volver al Inicio</button>
+            <span>/</span>
+            <span>Catálogo de Trámites Municipales</span>
+          </div>
+          <h2 class="view-title">Catálogo Oficial de Trámites en Línea</h2>
+          <p class="view-subtitle">Iniciá tus solicitudes de forma 100% digital sin traslados ni fotocopias. Toda tu
+            documentación es reutilizada automáticamente bajo el principio de Una Sola Vez.</p>
+        </div>
+        <button type="button" class="btn-launch-tramite" id="btnQuickLaunchTramite"
+          style="width:auto; padding:12px 22px;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="12" y1="5" x2="12" y2="19" />
+            <line x1="5" y1="12" x2="19" y2="12" />
+          </svg>
+          Iniciar Nueva Solicitud
+        </button>
+      </div>
+
+      <!-- Buscador y Filtros -->
+      <div class="catalog-search-bar">
+        <div class="catalog-search-input-wrap">
+          <svg class="catalog-search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2.5">
+            <circle cx="11" cy="11" r="8" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg>
+          <input type="text" id="catalogSearchInput" class="catalog-search-input"
+            placeholder="Buscar trámite por nombre, palabra clave o secretaría..." autocomplete="off">
+        </div>
+      </div>
+
+      <div class="catalog-pills-row" id="catalogPillsBar">
+        <button type="button" class="catalog-pill active" data-cat="all">Todos los trámites</button>
+        <button type="button" class="catalog-pill" data-cat="viales">Viales y Licencias</button>
+        <button type="button" class="catalog-pill" data-cat="ambiente">Medioambiente y Podas</button>
+        <button type="button" class="catalog-pill" data-cat="pasajes">Pasajes y Boleto</button>
+        <button type="button" class="catalog-pill" data-cat="comercio">Comercio e Industria</button>
+        <button type="button" class="catalog-pill" data-cat="obras">Obras Particulares</button>
+      </div>
+
+      <!-- Grilla de Trámites -->
+      <div class="tramites-catalog-grid" id="catalogCardsContainer">
+        <!-- Renderizado dinámicamente con alta interactividad -->
+      </div>
+    </div>
+
+    <!-- ================================================================ -->
+    <!-- PANEL 3: TASAS Y CONTRIBUCIONES MUNICIPALES                      -->
+    <!-- ================================================================ -->
+    <div id="view-tasas" class="portal-view">
+      <div class="view-header-card">
+        <div>
+          <div class="view-breadcrumb">
+            <button type="button" class="btn-breadcrumb-home" data-view="view-inicio">← Volver al Inicio</button>
+            <span>/</span>
+            <span>Tasas y Contribuciones</span>
+          </div>
+          <h2 class="view-title">Estado de Cuentas y Tasas Municipales</h2>
+          <p class="view-subtitle">Consultá tus boletas tributarias, aboná online con 15% de bonificación anual y emití
+            tu Certificado de Libre Deuda oficial con validación criptográfica QR.</p>
+        </div>
+        <button type="button" class="btn-pay-action" id="btnEmitirLibreDeudaTop"
+          style="padding:12px 20px; font-size:0.88rem;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <circle cx="12" cy="12" r="10" />
+            <path d="M8 12l2 2 4-4" />
+          </svg>
+          Certificado Libre Deuda
+        </button>
+      </div>
+
+      <!-- 3 KPIs -->
+      <div class="tasas-kpi-grid">
+        <div class="tasas-kpi-card">
+          <span class="tasas-kpi-label">Partida Inmobiliaria Principal</span>
+          <div class="tasas-kpi-value" style="font-size:1.35rem;">N° 012-48912</div>
+          <span class="tasas-kpi-sub">San Martín 450 · Baradero (Al Día)</span>
+        </div>
+        <div class="tasas-kpi-card">
+          <span class="tasas-kpi-label">Próximo Vencimiento</span>
+          <div class="tasas-kpi-value" id="kpiProximoFecha" style="color:#f59e0b;">15/03/2026</div>
+          <span class="tasas-kpi-sub" style="color:#64748b;">ABL Período 03/2026 · <strong
+              style="color:#0f172a;">$14.500</strong></span>
+        </div>
+        <div class="tasas-kpi-card">
+          <span class="tasas-kpi-label">Beneficio Vecino Cumplidor</span>
+          <div class="tasas-kpi-value" style="color:#10b981;">15% Bonificación</div>
+          <span class="tasas-kpi-sub">Aplicado automáticamente por pago a término</span>
+        </div>
+      </div>
+
+      <!-- Tabla de Boletas -->
+      <div class="tasas-table-card">
+        <div class="tasas-table-wrapper">
+          <table class="tasas-table" id="tasasTable">
+            <thead>
+              <tr>
+                <th>Concepto / Tasa</th>
+                <th>Partida / Dominio</th>
+                <th>Período</th>
+                <th>Vencimiento</th>
+                <th>Importe</th>
+                <th>Estado</th>
+                <th style="text-align:right;">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tasasTableBody">
+              <!-- Renderizado por js/home-ciudadano.js -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================================================================ -->
+    <!-- PANEL 4: MI LEGAJO DIGITAL ÚNICO                                -->
+    <!-- ================================================================ -->
+    <div id="view-legajo" class="portal-view">
+      <div class="view-header-card">
+        <div>
+          <div class="view-breadcrumb">
+            <button type="button" class="btn-breadcrumb-home" data-view="view-inicio">← Volver al Inicio</button>
+            <span>/</span>
+            <span>Mi Legajo Digital</span>
+          </div>
+          <h2 class="view-title">Legajo Digital Único del Ciudadano (RUC)</h2>
+          <p class="view-subtitle">Repositorio unificado de identidad constatada y documentos jurídicos oficiales.
+            Validados por la Municipalidad de Baradero y protegidos bajo el principio de Una Sola Vez.</p>
+        </div>
+        <button type="button" class="btn-launch-tramite" id="btnUploadDocModalTrigger"
+          style="width:auto; padding:12px 20px;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="17 8 12 3 7 8" />
+            <line x1="12" y1="3" x2="12" y2="15" />
+          </svg>
+          Subir Documento
+        </button>
+      </div>
+
+      <!-- Banner RUC Nivel 2 -->
+      <div class="legajo-banner-ruc">
+        <div class="legajo-banner-info">
+          <div class="legajo-banner-avatar" id="legajoAvatar">CG</div>
+          <div>
+            <div style="font-size:1.2rem; font-weight:800;" id="legajoCitizenName">Carlos Gómez</div>
+            <div style="font-size:0.86rem; color:#94a3b8;">CUIL: <span id="legajoCitizenCuil">20-38491024-3</span> ·
+              Domicilio: <span id="legajoCitizenDom">San Martín 450, Baradero</span></div>
+          </div>
+        </div>
+        <div style="display:flex; align-items:center; gap:12px;">
+          <span class="status-badge status-green" style="font-size:0.82rem; padding:6px 14px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+            Nivel 2 Verificado
+          </span>
+          <button type="button" class="btn-header-help" id="btnVerConstanciaFromLegajo"
+            style="background:#1e293b; color:#ffffff; border-color:#334155;">
+            Ver Credencial QR
+          </button>
+        </div>
+      </div>
+
+      <!-- Grilla de Documentos -->
+      <div class="legajo-grid" id="legajoDocsContainer">
+        <!-- Renderizado dinámicamente -->
+      </div>
+    </div>
+
+    <!-- ================================================================ -->
+    <!-- PANEL 5: ATENCIÓN CIUDADANA Y RECLAMOS 147                      -->
+    <!-- ================================================================ -->
+    <div id="view-reclamos147" class="portal-view">
+      <div class="view-header-card">
+        <div>
+          <div class="view-breadcrumb">
+            <button type="button" class="btn-breadcrumb-home" data-view="view-inicio">← Volver al Inicio</button>
+            <span>/</span>
+            <span>Atención Ciudadana 147</span>
+          </div>
+          <h2 class="view-title">Línea de Atención Vecinal 147 Baradero</h2>
+          <p class="view-subtitle">Reportá anomalías en la vía pública (baches, luminarias, pérdidas de agua, ramas
+            caídas) con seguimiento en vivo del despacho y cuadrillas municipales.</p>
+        </div>
+        <a href="tel:147" class="btn-header-help"
+          style="background:#fef2f2; color:#b91c1c; border-color:#fecaca; font-weight:800;">
+          📞 Urgencias 147 (Llamar)
+        </a>
+      </div>
+
+      <div class="reclamos-split-grid">
+        <!-- Columna Izquierda: Formulario Directo -->
+        <div class="dash-card">
+          <div class="card-header-row" style="margin-bottom:14px; padding-bottom:8px;">
+            <h3 class="card-header-title">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#b45309" stroke-width="2">
+                <path
+                  d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+              </svg>
+              Ingresar Nuevo Reclamo Urbano
+            </h3>
+          </div>
+
+          <form id="formPanelReclamo147" class="modal-form">
+            <div class="form-group">
+              <label class="form-label" for="panelRecCategoria">Motivo o Categoría del Reclamo *</label>
+              <select id="panelRecCategoria" class="form-input" required>
+                <option value="Alumbrado Público">💡 Luminaria apagada / Poste inclinado</option>
+                <option value="Bacheo y Calzada">🚧 Bache profundo / Rotura de asfalto</option>
+                <option value="Agua y Cloacas">💧 Pérdida de agua corriente / Obstrucción cloacal</option>
+                <option value="Poda y Espacios Verdes">🌳 Rama caída / Poda urgente de riesgo</option>
+                <option value="Higiene Urbana">🗑️ Microbasural / Retiro de escombros</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                <label class="form-label" for="panelRecDireccion" style="margin-bottom:0;">Dirección del Incidente
+                  *</label>
+                <button type="button" class="btn-link" id="btnPanelRecUseDomicilio"
+                  style="font-size:0.75rem; color:#0284c7; background:none; border:none; cursor:pointer; font-weight:700;">Usar
+                  mi domicilio (San Martín 450)</button>
+              </div>
+              <input type="text" id="panelRecDireccion" class="form-input" placeholder="Ej: Calle Anchorena 850"
+                required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="panelRecEntreCalles">Entre calles o punto de referencia</label>
+              <input type="text" id="panelRecEntreCalles" class="form-input"
+                placeholder="Ej: Entre Malabia y Santa María de Oro">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="panelRecDetalle">Descripción del Problema *</label>
+              <textarea id="panelRecDetalle" class="form-textarea" rows="3"
+                placeholder="Detallá el problema para orientar a la cuadrilla municipal..." required
+                minlength="8"></textarea>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="panelRecPrioridad">Nivel de Urgencia</label>
+              <select id="panelRecPrioridad" class="form-input">
+                <option value="Normal">Normal (Atención en 48-72 hs)</option>
+                <option value="Alta">Alta / Peligro en vía pública (Inmediato)</option>
+              </select>
+            </div>
+
+            <button type="submit" class="btn-launch-tramite" id="btnSubmitPanelReclamo" style="margin-top:10px;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <line x1="22" y1="2" x2="11" y2="13" />
+                <polygon points="22 2 15 22 11 13 2 9 22 2" />
+              </svg>
+              Enviar Reporte 147 Oficial
+            </button>
+          </form>
+        </div>
+
+        <!-- Columna Derecha: Mis Reclamos Registrados -->
+        <div class="dash-card">
+          <div class="card-header-row" style="margin-bottom:14px; padding-bottom:8px;">
+            <div class="card-header-left">
+              <h3 class="card-header-title">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                  <polyline points="14 2 14 8 20 8" />
+                  <line x1="16" y1="13" x2="8" y2="13" />
+                  <line x1="16" y1="17" x2="8" y2="17" />
+                </svg>
+                Mis Reclamos Registrados
+              </h3>
+              <span class="dash-card-count" id="reclamosCountBadge">2 activos</span>
+            </div>
+          </div>
+
+          <div id="panelReclamosListContainer">
+            <!-- Renderizado dinámicamente -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================================================================ -->
+    <!-- PANEL 6: TURNOS DE SALUD SISALUD                                -->
+    <!-- ================================================================ -->
+    <div id="view-turnos" class="portal-view">
+      <div class="view-header-card">
+        <div>
+          <div class="view-breadcrumb">
+            <button type="button" class="btn-breadcrumb-home" data-view="view-inicio">← Volver al Inicio</button>
+            <span>/</span>
+            <span>Salud Municipal</span>
+          </div>
+          <h2 class="view-title">Agenda de Turnos Sisalud Baradero</h2>
+          <p class="view-subtitle">Hospital Municipal Dr. Lino Piñeiro y Centros de Atención Primaria de la Salud
+            (CAPS). Gestioná tus consultas médicas con confirmación inmediata.</p>
+        </div>
+      </div>
+
+      <div class="sisalud-wizard-card">
+        <form id="formSisaludPanel">
+          <div class="sisalud-grid-steps">
+            <div>
+              <div class="form-group">
+                <label class="form-label" for="sisaludCenter">1. Centro de Atención de Salud *</label>
+                <select id="sisaludCenter" class="form-input" required>
+                  <option value="Hospital Municipal Dr. Lino Piñeiro">Hospital Municipal Dr. Lino Piñeiro (Central)
+                  </option>
+                  <option value="CAPS Bernabé de San Martín">CAPS Bernabé de San Martín</option>
+                  <option value="CAPS Barrio Pompeya">CAPS Barrio Pompeya</option>
+                  <option value="CAPS Alsina">CAPS Alsina (Localidad de Alsina)</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="sisaludSpecialty">2. Especialidad Médica *</label>
+                <select id="sisaludSpecialty" class="form-input" required>
+                  <option value="Medicina General y Clínica">Medicina General / Clínica Médica</option>
+                  <option value="Pediatría">Pediatría y Desarrollo Infantil</option>
+                  <option value="Odontología">Odontología General</option>
+                  <option value="Ginecología y Obstetricia">Ginecología y Obstetricia</option>
+                  <option value="Cardiología">Cardiología (Dr. Rossi)</option>
+                  <option value="Traumatología">Traumatología y Ortopedia</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="sisaludFecha">3. Fecha del Turno *</label>
+                <input type="date" id="sisaludFecha" class="form-input" required min="2026-09-03">
+              </div>
+            </div>
+
+            <div>
+              <div class="form-group">
+                <label class="form-label">4. Horarios Disponibles *</label>
+                <div class="slot-picker-grid" id="sisaludSlotsContainer">
+                  <button type="button" class="slot-btn active" data-slot="08:30">08:30 hs</button>
+                  <button type="button" class="slot-btn" data-slot="09:15">09:15 hs</button>
+                  <button type="button" class="slot-btn" data-slot="10:00">10:00 hs</button>
+                  <button type="button" class="slot-btn" data-slot="11:30">11:30 hs</button>
+                  <button type="button" class="slot-btn" data-slot="14:00">14:00 hs</button>
+                  <button type="button" class="slot-btn" data-slot="15:30">15:30 hs</button>
+                </div>
+              </div>
+
+              <div class="form-group" style="margin-top:16px;">
+                <label class="form-label" for="sisaludMotivo">Motivo o Síntoma de Consulta (Opcional)</label>
+                <textarea id="sisaludMotivo" class="form-textarea" rows="2"
+                  placeholder="Describí brevemente para orientar al profesional..."></textarea>
+              </div>
+
+              <div
+                style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; padding:12px; margin-top:14px; font-size:0.82rem; color:#15803d;">
+                ✓ Paciente Carlos Gómez (CUIL 20-38491024-3) verificado con Cobertura Pública Municipal.
+              </div>
+
+              <button type="submit" class="btn-launch-tramite" style="margin-top:16px;">
+                Confirmar y Emitir Comprobante de Turno
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <!-- ================================================================ -->
+  <!-- 5. FOOTER INSTITUCIONAL                                          -->
+  <!-- ================================================================ -->
+  <footer class="portal-footer">
+    <div class="footer-main">
+      <div class="footer-col">
+        <h4>CIUDADANO DIGITAL</h4>
+        <ul class="footer-links">
+          <li><a href="#inicio" data-view="view-inicio">Inicio</a></li>
+          <li><a href="#tramites" data-view="view-tramites">Mis Trámites</a></li>
+          <li><a href="preguntas-frecuentes.html#como-registrarse">¿Cómo me registro?</a></li>
+          <li><a href="preguntas-frecuentes.html#centros-constatacion">Centros de Constatación</a></li>
+          <li><a href="preguntas-frecuentes.html#como-ser-ciudadano">¿Cómo ser Ciudadano SUBI?</a></li>
+          <li><a href="preguntas-frecuentes.html#accesibilidad">Accesibilidad</a></li>
+          <li><a href="preguntas-frecuentes.html#que-es-e-tramite">¿Qué es e-trámite?</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>SOBRE NOSOTROS</h4>
+        <ul class="footer-links">
+          <li><a href="preguntas-frecuentes.html#que-es">¿Qué es?</a></li>
+          <li><a href="preguntas-frecuentes.html#niveles-acceso">Niveles de Acceso</a></li>
+          <li><a href="preguntas-frecuentes.html#normativa">Normativa</a></li>
+          <li><a href="preguntas-frecuentes.html#terminos">Términos y Condiciones</a></li>
+          <li><a href="preguntas-frecuentes.html#privacidad">Política de Privacidad</a></li>
+          <li><a href="preguntas-frecuentes.html#seguridad">Política de Seguridad</a></li>
+          <li><a href="preguntas-frecuentes.html#requerimientos">Requerimientos Técnicos</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>CONTACTO</h4>
+        <ul class="footer-links">
+          <li><a href="preguntas-frecuentes.html#contacto">Ayuda en línea</a></li>
+          <li><a href="preguntas-frecuentes.html#contacto">Centro de Contacto</a></li>
+          <li><a href="tel:08008881234">0800 888 1234</a></li>
+          <li><a href="#reclamos147" data-view="view-reclamos147">Atención Ciudadana: Línea 147</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>DESCARGÁ LA APP</h4>
+        <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 4px;">
+          <a href="#" class="store-badge-btn"
+            style="background:#0f172a; display:flex; align-items:center; gap:10px; padding:8px 16px; border-radius:10px; text-decoration:none; color:#ffffff;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path
+                d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.37c.61-.75 1.04-1.8 0.92-2.85-.9.04-2 .6-2.65 1.34-.56.64-1.06 1.71-.92 2.74 1.02.08 2.05-.51 2.65-1.23z" />
+            </svg>
+            <div style="display:flex; flex-direction:column;">
+              <span style="font-size:0.65rem; color:#94a3b8;">Descárgalo en</span>
+              <span style="font-size:0.85rem; font-weight:700;">App Store</span>
+            </div>
+          </a>
+          <a href="#" class="store-badge-btn"
+            style="background:#0f172a; display:flex; align-items:center; gap:10px; padding:8px 16px; border-radius:10px; text-decoration:none; color:#ffffff;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path
+                d="M3.609 1.814L13.793 12 3.61 22.186c-.347-.38-.56-.91-.56-1.556V3.37c0-.646.213-1.176.56-1.556zm11.236 11.237l2.259 2.26-11.75 6.78 9.491-9.04zm0-2.102L5.354 1.908l11.75 6.781-2.259 2.26zm3.328 1.051l3.037 1.752c.866.5.866 1.314 0 1.814l-3.037 1.752-2.23-2.23 2.23-2.23z" />
+            </svg>
+            <div style="display:flex; flex-direction:column;">
+              <span style="font-size:0.65rem; color:#94a3b8;">Disponible en</span>
+              <span style="font-size:0.85rem; font-weight:700;">Google Play</span>
+            </div>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-bottom-bar">
+      <div class="footer-bottom-inner">
+        <div class="baradero-footer-brand">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+          </svg>
+          Baradero <span>GOBIERNO MUNICIPAL</span>
+        </div>
+
+        <div style="display:flex; gap:12px; flex-wrap:wrap; font-size:0.78rem;">
+          <a href="preguntas-frecuentes.html#que-es" style="color:#cbd5e1; text-decoration:none;">Sobre Ciudadano
+            Digital</a> |
+          <a href="preguntas-frecuentes.html#contacto" style="color:#cbd5e1; text-decoration:none;">Contacto</a> |
+          <a href="preguntas-frecuentes.html#terminos" style="color:#cbd5e1; text-decoration:none;">Términos y
+            Condiciones</a> |
+          <a href="preguntas-frecuentes.html#privacidad" style="color:#cbd5e1; text-decoration:none;">Política de
+            Privacidad</a> |
+          <a href="preguntas-frecuentes.html#seguridad" style="color:#cbd5e1; text-decoration:none;">Política de
+            Seguridad</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ================================================================ -->
+  <!-- 6. MODALES INTERACTIVOS DE ALTA FUNCIONALIDAD                     -->
+  <!-- ================================================================ -->
+
+  <!-- Modal 1: Detalle de Trámite / Expediente -->
+  <div class="portal-modal-backdrop" id="modalExpediente" role="dialog" aria-modal="true"
+    aria-labelledby="modalExpTitle">
+    <div class="portal-modal-card">
+      <div class="modal-card-header">
+        <div class="modal-card-title-group">
+          <span class="modal-badge-tag" id="modalExpBadge">En curso</span>
+          <h3 class="modal-card-title" id="modalExpTitle">Habilitación Comercial</h3>
+          <span class="modal-card-sub" id="modalExpNum">Expediente N° EXP-2026-00412</span>
+        </div>
+        <button type="button" class="modal-close-btn" data-close="modalExpediente" aria-label="Cerrar modal">✕</button>
+      </div>
+      <div class="modal-card-body">
+        <!-- Info rápida -->
+        <div class="modal-info-grid">
+          <div class="modal-info-item">
+            <span class="modal-info-lbl">Fecha de Inicio:</span>
+            <span class="modal-info-val" id="modalExpFecha">02/09/2026 - 10:24 hs</span>
+          </div>
+          <div class="modal-info-item">
+            <span class="modal-info-lbl">Dependencia a Cargo:</span>
+            <span class="modal-info-val" id="modalExpDept">Dirección de Comercio e Inspección</span>
+          </div>
+          <div class="modal-info-item">
+            <span class="modal-info-lbl">Titular:</span>
+            <span class="modal-info-val" id="modalExpTitular">Carlos Gómez (20-38491024-3)</span>
+          </div>
+          <div class="modal-info-item">
+            <span class="modal-info-lbl">Plazo Estimado:</span>
+            <span class="modal-info-val">3 a 5 días hábiles</span>
+          </div>
+        </div>
+
+        <!-- Línea de tiempo de estados -->
+        <div class="modal-section-title">Línea de Tiempo del Trámite</div>
+        <div class="timeline-stepper" id="modalExpTimeline">
+          <!-- Inyectado dinámicamente -->
+        </div>
+      </div>
+      <div class="modal-card-footer">
+        <button type="button" class="btn-modal-secondary" data-close="modalExpediente">Cerrar</button>
+        <button type="button" class="btn-modal-primary" id="btnDescargarComprobanteExp">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="7 10 12 15 17 10" />
+            <line x1="12" y1="15" x2="12" y2="3" />
+          </svg>
+          Descargar Comprobante PDF
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 2: Constancia Digital SUBI con QR -->
+  <div class="portal-modal-backdrop" id="modalConstancia" role="dialog" aria-modal="true">
+    <div class="portal-modal-card modal-card-certificate">
+      <div class="modal-card-header">
+        <div class="modal-card-title-group">
+          <span class="modal-badge-tag badge-green">Certificado Oficial</span>
+          <h3 class="modal-card-title">Constancia Digital de Ciudadano</h3>
+          <span class="modal-card-sub">Municipalidad de Baradero · SUBI Identidad Digital</span>
+        </div>
+        <button type="button" class="modal-close-btn" data-close="modalConstancia" aria-label="Cerrar modal">✕</button>
+      </div>
+      <div class="modal-card-body">
+        <div class="cert-document-box" id="certDocumentPrintable">
+          <div class="cert-header">
+            <div class="cert-seal">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#1565c0" stroke-width="2">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+              </svg>
+            </div>
+            <div>
+              <div class="cert-heading">MUNICIPIO DE BARADERO</div>
+              <div class="cert-subheading">SISTEMA ÚNICO BARADERO DE IDENTIDAD (SUBI)</div>
+            </div>
+          </div>
+          <div class="cert-body-content">
+            <div class="cert-row"><strong>Nombre y Apellido:</strong> <span id="certNombre">Carlos Gómez</span></div>
+            <div class="cert-row"><strong>CUIL / CUIT:</strong> <span id="certCuil">20-38491024-3</span></div>
+            <div class="cert-row"><strong>DNI:</strong> <span id="certDni">38.491.024</span></div>
+            <div class="cert-row"><strong>Nivel de Seguridad:</strong> <span class="badge-level-verified">Nivel 2 -
+                Verificado Presencialmente</span></div>
+            <div class="cert-row"><strong>Domicilio Registrado:</strong> <span id="certDom">San Martín 450, Baradero
+                (Pcia. Bs. As.)</span></div>
+            <div class="cert-row"><strong>Fecha de Emisión:</strong> <span id="certFecha">02 de Septiembre de
+                2026</span></div>
+          </div>
+          <div class="cert-qr-box">
+            <!-- QR Generado con SVG vector sin dependencias -->
+            <div class="cert-qr-code" id="certQrContainer">
+              <svg viewBox="0 0 100 100" width="110" height="110">
+                <rect width="100" height="100" fill="#ffffff" />
+                <!-- Corner 1 -->
+                <rect x="10" y="10" width="25" height="25" fill="#0f172a" />
+                <rect x="15" y="15" width="15" height="15" fill="#ffffff" />
+                <rect x="18" y="18" width="9" height="9" fill="#0f172a" />
+                <!-- Corner 2 -->
+                <rect x="65" y="10" width="25" height="25" fill="#0f172a" />
+                <rect x="70" y="15" width="15" height="15" fill="#ffffff" />
+                <rect x="73" y="18" width="9" height="9" fill="#0f172a" />
+                <!-- Corner 3 -->
+                <rect x="10" y="65" width="25" height="25" fill="#0f172a" />
+                <rect x="15" y="70" width="15" height="15" fill="#ffffff" />
+                <rect x="18" y="73" width="9" height="9" fill="#0f172a" />
+                <!-- Pattern data dots -->
+                <rect x="42" y="12" width="6" height="6" fill="#0f172a" />
+                <rect x="52" y="12" width="6" height="6" fill="#0f172a" />
+                <rect x="42" y="24" width="6" height="6" fill="#0f172a" />
+                <rect x="52" y="24" width="6" height="6" fill="#0f172a" />
+                <rect x="12" y="42" width="6" height="6" fill="#0f172a" />
+                <rect x="24" y="42" width="6" height="6" fill="#0f172a" />
+                <rect x="36" y="36" width="6" height="6" fill="#0f172a" />
+                <rect x="48" y="44" width="8" height="8" fill="#1565c0" />
+                <rect x="62" y="42" width="6" height="6" fill="#0f172a" />
+                <rect x="76" y="42" width="6" height="6" fill="#0f172a" />
+                <rect x="42" y="62" width="6" height="6" fill="#0f172a" />
+                <rect x="52" y="72" width="6" height="6" fill="#0f172a" />
+                <rect x="68" y="68" width="6" height="6" fill="#0f172a" />
+                <rect x="78" y="78" width="8" height="8" fill="#0f172a" />
+              </svg>
+            </div>
+            <div class="cert-qr-text">
+              <strong>VERIFICACIÓN DIGITAL</strong>
+              <span>Código Seguro: <strong>SUBI-AUTH-38491024-N2</strong></span>
+              <span style="font-size:0.75rem; color:#64748b;">Válido ante dependencias municipales, provinciales y
+                nacionales.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-card-footer">
+        <button type="button" class="btn-modal-secondary" data-close="modalConstancia">Cerrar</button>
+        <button type="button" class="btn-modal-primary" id="btnPrintCert">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="6 9 6 2 18 2 18 9" />
+            <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+            <rect x="6" y="14" width="12" height="8" />
+          </svg>
+          Imprimir / Guardar PDF
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 3: Reclamo Rápido 147 -->
+  <div class="portal-modal-backdrop" id="modalReclamo147" role="dialog" aria-modal="true">
+    <div class="portal-modal-card">
+      <div class="modal-card-header">
+        <div class="modal-card-title-group">
+          <span class="modal-badge-tag badge-emerald">Atención Vecinal 147</span>
+          <h3 class="modal-card-title">Nuevo Reclamo Urbano</h3>
+          <span class="modal-card-sub">Reportá anomalías en vía pública con respuesta garantizada</span>
+        </div>
+        <button type="button" class="modal-close-btn" data-close="modalReclamo147" aria-label="Cerrar modal">✕</button>
+      </div>
+      <form id="formReclamo147" class="modal-card-body">
+        <div class="modal-form-group">
+          <label for="reclamoCategoria" class="modal-form-label">Tipo de Reclamo <span class="req">*</span></label>
+          <select id="reclamoCategoria" class="modal-form-input" required>
+            <option value="Luminarias y Alumbrado Público">💡 Luminarias y Alumbrado Público</option>
+            <option value="Bacheo y Reparación de Calles">🚧 Bacheo y Reparación de Calles</option>
+            <option value="Limpieza Urbana y Basurales">🧹 Limpieza Urbana y Microbasurales</option>
+            <option value="Arbolado, Poda y Desmalezamiento">🌳 Arbolado, Poda y Desmalezamiento</option>
+            <option value="Pluviales y Desagües">🌧️ Desagües y Bocas de Tormenta</option>
+            <option value="Tránsito y Señalización">🛑 Tránsito y Señalización Vial</option>
+            <option value="Otro Reclamo Municipal">📋 Otro Reclamo Municipal</option>
+          </select>
+        </div>
+
+        <div class="modal-form-group">
+          <label for="reclamoDireccion" class="modal-form-label">Ubicación / Dirección Exacta <span
+              class="req">*</span></label>
+          <input type="text" id="reclamoDireccion" class="modal-form-input" placeholder="Ej: San Martín esquina Malabia"
+            required />
+        </div>
+
+        <div class="modal-form-group">
+          <label for="reclamoDetalle" class="modal-form-label">Descripción del Problema <span
+              class="req">*</span></label>
+          <textarea id="reclamoDetalle" class="modal-form-textarea" rows="3"
+            placeholder="Detallá el inconveniente para que la cuadrilla asista con el equipamiento adecuado..."
+            required></textarea>
+        </div>
+
+        <div class="modal-form-note">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2.5">
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="16" x2="12" y2="12" />
+            <line x1="12" y1="8" x2="12.01" y2="8" />
+          </svg>
+          <span>Tus datos de contacto (Carlos Gómez, 20-38491024-3) se vincularán automáticamente al reclamo.</span>
+        </div>
+
+        <div class="modal-card-footer" style="padding: 16px 0 0; margin-top: 10px;">
+          <button type="button" class="btn-modal-secondary" data-close="modalReclamo147">Cancelar</button>
+          <button type="submit" class="btn-modal-primary" id="btnSubmitReclamo147">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+            Registrar Reclamo
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 4: Turnos Sisalud Hospital Piñeiro -->
+  <div class="portal-modal-backdrop" id="modalSisalud" role="dialog" aria-modal="true">
+    <div class="portal-modal-card">
+      <div class="modal-card-header">
+        <div class="modal-card-title-group">
+          <span class="modal-badge-tag badge-red">Salud Baradero</span>
+          <h3 class="modal-card-title">Turnos Hospital Municipal Dr. Lino Piñeiro</h3>
+          <span class="modal-card-sub">Sistema Digital Sisalud Baradero</span>
+        </div>
+        <button type="button" class="modal-close-btn" data-close="modalSisalud" aria-label="Cerrar modal">✕</button>
+      </div>
+      <form id="formTurnoSisalud" class="modal-card-body">
+        <div class="modal-form-group">
+          <label for="sisaludEspecialidad" class="modal-form-label">Especialidad Médica <span
+              class="req">*</span></label>
+          <select id="sisaludEspecialidad" class="modal-form-input" required>
+            <option value="Clínica Médica">Clínica Médica / Adultos</option>
+            <option value="Pediatría">Pediatría y Neonatología</option>
+            <option value="Odontología">Odontología General</option>
+            <option value="Traumatología">Traumatología y Ortopedia</option>
+            <option value="Ginecología y Obstetricia">Ginecología y Obstetricia</option>
+            <option value="Cardiología">Cardiología (con derivación)</option>
+          </select>
+        </div>
+
+        <div class="modal-form-group">
+          <label for="sisaludFecha" class="modal-form-label">Fecha Preferida <span class="req">*</span></label>
+          <input type="date" id="sisaludFecha" class="modal-form-input" required />
+        </div>
+
+        <div class="modal-form-group">
+          <label for="sisaludFranja" class="modal-form-label">Franja Horaria <span class="req">*</span></label>
+          <select id="sisaludFranja" class="modal-form-input" required>
+            <option value="Mañana (08:00 a 12:00 hs)">Turno Mañana (08:00 a 12:00 hs)</option>
+            <option value="Tarde (13:00 a 17:00 hs)">Turno Tarde (13:00 a 17:00 hs)</option>
+          </select>
+        </div>
+
+        <div class="modal-card-footer" style="padding: 16px 0 0; margin-top: 10px;">
+          <button type="button" class="btn-modal-secondary" data-close="modalSisalud">Cancelar</button>
+          <button type="submit" class="btn-modal-primary" style="background:#dc2626;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+            Confirmar Turno Sisalud
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 5: Principio "Una Sola Vez" -->
+  <div class="portal-modal-backdrop" id="modalUSV" role="dialog" aria-modal="true">
+    <div class="portal-modal-card">
+      <div class="modal-card-header">
+        <div class="modal-card-title-group">
+          <span class="modal-badge-tag badge-blue">Normativa Municipal</span>
+          <h3 class="modal-card-title">Principio "Una Sola Vez" (Once-Only)</h3>
+          <span class="modal-card-sub">Ordenanza Municipal de Transformación Digital</span>
+        </div>
+        <button type="button" class="modal-close-btn" data-close="modalUSV" aria-label="Cerrar modal">✕</button>
+      </div>
+      <div class="modal-card-body" style="font-size:0.88rem; color:#334155; line-height:1.6;">
+        <p style="margin-bottom:12px;">El principio <strong>"Una Sola Vez"</strong> establece que el Municipio de
+          Baradero <strong>no puede volver a solicitarle</strong> a ningún vecino o empresa documentación o datos que ya
+          hayan sido aportados previamente ante cualquier dependencia local.</p>
+        <div
+          style="background:#f0f7ff; border-left:4px solid #0284c7; padding:12px 16px; border-radius:0 8px 8px 0; margin-bottom:16px;">
+          <strong style="color:#0369a1; display:block; margin-bottom:4px;">¿Cómo te beneficia?</strong>
+          Si presentaste tu DNI, estatuto, o libre deuda para un trámite, queda validado en tu <strong>Legajo Digital
+            SUBI</strong> y se reutiliza automáticamente en habilitaciones, obras o solicitudes ambientales.
+        </div>
+        <ul style="list-style:disc; padding-left:20px; display:flex; flex-direction:column; gap:6px;">
+          <li>Menos filas y cero impresiones en papel.</li>
+          <li>Privacidad y encriptación de datos bajo estándares de seguridad bancaria.</li>
+          <li>Trazabilidad: podés ver qué área consultó tus datos y cuándo.</li>
+        </ul>
+      </div>
+      <div class="modal-card-footer">
+        <button type="button" class="btn-modal-secondary" data-close="modalUSV">Cerrar</button>
+        <a href="legajo.html" class="btn-modal-primary">Ver mi Legajo Digital</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 6: Lector de Noticia Municipal -->
+  <div class="portal-modal-backdrop" id="modalNovedad" role="dialog" aria-modal="true">
+    <div class="portal-modal-card">
+      <div class="modal-card-header">
+        <div class="modal-card-title-group">
+          <span class="modal-badge-tag" id="modalNewsCategory">Noticia Oficial</span>
+          <h3 class="modal-card-title" id="modalNewsTitle">Título de la Noticia</h3>
+          <span class="modal-card-sub" id="modalNewsDate">Fecha de publicación</span>
+        </div>
+        <button type="button" class="modal-close-btn" data-close="modalNovedad" aria-label="Cerrar modal">✕</button>
+      </div>
+      <div class="modal-card-body" id="modalNewsContent" style="font-size:0.9rem; color:#334155; line-height:1.6;">
+        <!-- Contenido dinámico -->
+      </div>
+      <div class="modal-card-footer">
+        <button type="button" class="btn-modal-secondary" data-close="modalNovedad">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 7: Perfil del Ciudadano -->
+  <div class="portal-modal-backdrop" id="modalPerfil" role="dialog" aria-modal="true">
+    <div class="portal-modal-card">
+      <div class="modal-card-header">
+        <div class="modal-card-title-group">
+          <span class="modal-badge-tag badge-green">Identidad Confirmada</span>
+          <h3 class="modal-card-title">Perfil del Ciudadano Digital</h3>
+          <span class="modal-card-sub">Información personal registrada en Baradero</span>
+        </div>
+        <button type="button" class="modal-close-btn" data-close="modalPerfil" aria-label="Cerrar modal">✕</button>
+      </div>
+      <div class="modal-card-body">
+        <div class="modal-info-grid">
+          <div class="modal-info-item">
+            <span class="modal-info-lbl">Nombre Completo:</span>
+            <span class="modal-info-val" id="profNombre">Carlos Gómez</span>
+          </div>
+          <div class="modal-info-item">
+            <span class="modal-info-lbl">CUIL:</span>
+            <span class="modal-info-val" id="profCuil">20-38491024-3</span>
+          </div>
+          <div class="modal-info-item">
+            <span class="modal-info-lbl">Correo Electrónico:</span>
+            <span class="modal-info-val" id="profEmail">carlos.gomez@baradero.gob.ar</span>
+          </div>
+          <div class="modal-info-item">
+            <span class="modal-info-lbl">Teléfono de Contacto:</span>
+            <span class="modal-info-val" id="profTel">+54 3329 481234</span>
+          </div>
+          <div class="modal-info-item" style="grid-column: span 2;">
+            <span class="modal-info-lbl">Domicilio Constituido:</span>
+            <span class="modal-info-val" id="profDom">San Martín 450, Baradero</span>
+          </div>
+        </div>
+      </div>
+      <div class="modal-card-footer">
+        <button type="button" class="btn-modal-secondary" data-close="modalPerfil">Cerrar</button>
+        <button type="button" class="btn-modal-primary" data-close="modalPerfil" data-view="view-legajo">Gestionar
+          Documentos en Legajo</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 8: Confirmación de Cierre de Sesión -->
+  <div class="portal-modal-backdrop" id="modalLogout" role="dialog" aria-modal="true">
+    <div class="portal-modal-card" style="max-width: 440px;">
+      <div class="modal-card-header">
+        <div class="modal-card-title-group">
+          <h3 class="modal-card-title">Cerrar Sesión</h3>
+          <span class="modal-card-sub">Portal Ciudadano SUBI Baradero</span>
+        </div>
+        <button type="button" class="modal-close-btn" data-close="modalLogout" aria-label="Cerrar modal">✕</button>
+      </div>
+      <div class="modal-card-body">
+        <p style="font-size:0.92rem; color:#475569; line-height:1.5;">
+          ¿Estás seguro de que deseás salir de tu cuenta de Ciudadano Digital? Para volver a ingresar deberás
+          identificarte nuevamente.
+        </p>
+      </div>
+      <div class="modal-card-footer">
+        <button type="button" class="btn-modal-secondary" data-close="modalLogout">Permanecer aquí</button>
+        <button type="button" class="btn-modal-danger" id="btnConfirmLogout">Cerrar Sesión</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================================ -->
+  <!-- MODALES DE FUNCIONALIDADES AVANZADAS (DESACOPLAMIENTO TOTAL)     -->
+  <!-- ================================================================ -->
+
+  <!-- Modal 9: Iniciar Trámite Oficial con Principio Una Sola Vez -->
+  <div class="portal-modal-backdrop" id="modalIniciarTramite" role="dialog" aria-modal="true">
+    <div class="portal-modal-card" style="max-width: 620px;">
+      <div class="modal-card-header">
+        <div class="modal-card-title-group">
+          <span class="modal-badge-tag badge-blue" id="initTramiteBadge">Viales y Licencias</span>
+          <h3 class="modal-card-title" id="initTramiteModalTitle">Iniciar Solicitud de Trámite</h3>
+          <span class="modal-card-sub">Principio de Una Sola Vez · Municipalidad de Baradero</span>
+        </div>
+        <button type="button" class="modal-close-btn" data-close="modalIniciarTramite"
+          aria-label="Cerrar modal">✕</button>
+      </div>
+      <div class="modal-card-body">
+        <form id="formIniciarTramite">
+          <!-- Alerta de USV -->
+          <div
+            style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:8px; padding:12px 14px; margin-bottom:16px; font-size:0.84rem; color:#1e40af; display:flex; gap:10px; align-items:flex-start;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              style="flex-shrink:0;">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            </svg>
+            <div>
+              <strong>Una Sola Vez Activo:</strong> Tu identidad y domicilio ya están constatados con Nivel 2. No tenés
+              que volver a presentar tu DNI ni comprobante de domicilio.
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="initTramiteTipo">Trámite Seleccionado *</label>
+            <select id="initTramiteTipo" class="form-input" required>
+              <option value="Renovación Licencia Particular (Clase B1)">Renovación Licencia Particular (Clase B1)
+              </option>
+              <option value="Primera Licencia de Conducir y Examen">Primera Licencia de Conducir y Examen</option>
+              <option value="Solicitud de Poda y Despeje de Árbol Urbano">Solicitud de Poda y Despeje de Árbol Urbano
+              </option>
+              <option value="Extracción de Ejemplar en Riesgo">Extracción de Ejemplar en Riesgo</option>
+              <option value="Retiro Programado de Restos de Poda y Escombros">Retiro Programado de Restos de Poda y
+                Escombros</option>
+              <option value="Inscripción Boleto Estudiantil Gratuito">Inscripción Boleto Estudiantil Gratuito 2026
+              </option>
+              <option value="Pase Libre por Discapacidad (CUD)">Pase Libre por Discapacidad (CUD)</option>
+              <option value="Habilitación Comercial Digital">Habilitación Comercial Digital</option>
+              <option value="Certificado de Manipulación de Alimentos">Certificado de Manipulación de Alimentos</option>
+              <option value="Permiso de Obra Menor y Refacciones">Permiso de Obra Menor y Refacciones</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="initTramiteDireccion">Dirección del Trámite o Inmueble Afectado *</label>
+            <input type="text" id="initTramiteDireccion" class="form-input" value="San Martín 450, Baradero" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="initTramiteMotivo">Motivo o Detalle de la Solicitud *</label>
+            <textarea id="initTramiteMotivo" class="form-textarea" rows="3"
+              placeholder="Detallá los motivos de la solicitud para agilizar el dictamen administrativo..." required
+              minlength="8"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="initTramiteAdjunto">Documentación Adicional / Fotografía (Opcional)</label>
+            <input type="file" id="initTramiteAdjunto" class="form-input" accept="image/*,.pdf">
+            <span style="font-size:0.75rem; color:#64748b; margin-top:3px; display:block;">Formatos permitidos: JPG, PNG
+              o PDF hasta 5MB.</span>
+          </div>
+
+          <div class="modal-card-footer" style="padding:14px 0 0; border-top:1px solid #f1f5f9; margin-top:16px;">
+            <button type="button" class="btn-modal-secondary" data-close="modalIniciarTramite">Cancelar</button>
+            <button type="submit" class="btn-modal-primary" id="btnSubmitIniciarTramite">
+              Confirmar e Ingresar Solicitud
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 10: Pasarela de Pagos Baradero Digital -->
+  <div class="portal-modal-backdrop" id="modalPasarelaPago" role="dialog" aria-modal="true">
+    <div class="portal-modal-card" style="max-width: 540px;">
+      <div class="modal-card-header">
+        <div class="modal-card-title-group">
+          <span class="modal-badge-tag badge-emerald">Pasarela Segura SSL</span>
+          <h3 class="modal-card-title">Pago Online de Tasas Municipales</h3>
+          <span class="modal-card-sub" id="pagoConceptoSub">ABL Período 03/2026 · Partida N° 012-48912</span>
+        </div>
+        <button type="button" class="modal-close-btn" data-close="modalPasarelaPago"
+          aria-label="Cerrar modal">✕</button>
+      </div>
+      <div class="modal-card-body">
+        <div
+          style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:14px 18px; margin-bottom:18px; display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <div style="font-size:0.8rem; color:#64748b; font-weight:700;">TOTAL A ABONAR</div>
+            <div style="font-size:1.4rem; font-weight:900; color:#1e293b;" id="pagoMontoDisplay">$14.500,00</div>
+          </div>
+          <span class="status-badge status-green" style="font-size:0.75rem;">15% Desc. Bonificado</span>
+        </div>
+
+        <!-- Pestañas de método de pago -->
+        <div class="payment-tabs">
+          <button type="button" class="payment-tab-btn active" data-pay-method="card">Tarjeta Débito/Crédito</button>
+          <button type="button" class="payment-tab-btn" data-pay-method="qr">QR Interoperable</button>
+          <button type="button" class="payment-tab-btn" data-pay-method="debin">Transferencia / DEBIN</button>
+        </div>
+
+        <!-- Formulario Tarjeta -->
+        <div id="payFormCard">
+          <div class="form-group">
+            <label class="form-label">Número de Tarjeta</label>
+            <input type="text" id="payCardNum" class="form-input" placeholder="4509 •••• •••• 8821" maxlength="19"
+              value="4509 8122 9311 8821">
+          </div>
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+            <div class="form-group">
+              <label class="form-label">Vencimiento</label>
+              <input type="text" id="payCardExp" class="form-input" placeholder="MM/AA" maxlength="5" value="10/28">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Código de Seguridad (CVV)</label>
+              <input type="password" id="payCardCvv" class="form-input" placeholder="•••" maxlength="4" value="742">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Titular de la Tarjeta</label>
+            <input type="text" id="payCardName" class="form-input" value="CARLOS GOMEZ">
+          </div>
+        </div>
+
+        <!-- Pestaña QR -->
+        <div id="payFormQr" style="display:none;" class="payment-qr-display">
+          <svg width="150" height="150" viewBox="0 0 100 100" fill="#0f172a">
+            <rect width="100" height="100" fill="#ffffff" />
+            <rect x="10" y="10" width="25" height="25" fill="#0f172a" />
+            <rect x="15" y="15" width="15" height="15" fill="#ffffff" />
+            <rect x="18" y="18" width="9" height="9" fill="#0f172a" />
+            <rect x="65" y="10" width="25" height="25" fill="#0f172a" />
+            <rect x="70" y="15" width="15" height="15" fill="#ffffff" />
+            <rect x="73" y="18" width="9" height="9" fill="#0f172a" />
+            <rect x="10" y="65" width="25" height="25" fill="#0f172a" />
+            <rect x="15" y="70" width="15" height="15" fill="#ffffff" />
+            <rect x="18" y="73" width="9" height="9" fill="#0f172a" />
+            <rect x="45" y="20" width="10" height="10" fill="#0284c7" />
+            <rect x="45" y="45" width="15" height="15" fill="#0284c7" />
+            <rect x="70" y="45" width="10" height="20" fill="#0f172a" />
+            <rect x="45" y="70" width="20" height="10" fill="#0f172a" />
+            <rect x="75" y="75" width="15" height="15" fill="#10b981" />
+          </svg>
+          <div style="font-size:0.86rem; font-weight:700; color:#1e293b; margin-top:10px;">Escaneá con cualquier
+            billetera virtual</div>
+          <div style="font-size:0.75rem; color:#64748b;">Mercado Pago · Cuenta DNI · MODO · BNA+ · Santander</div>
+        </div>
+
+        <!-- Pestaña DEBIN -->
+        <div id="payFormDebin"
+          style="display:none; padding:12px; background:#f8fafc; border-radius:8px; font-size:0.85rem; color:#334155;">
+          <div><strong>Alias CBU Oficial:</strong> <code>TESORERIA.MUNI.BARADERO</code></div>
+          <div style="margin-top:6px;"><strong>CUIT Municipalidad:</strong> 30-99901423-1</div>
+          <div style="margin-top:6px; font-size:0.78rem; color:#64748b;">Una vez realizada la transferencia, la
+            acreditación es automática e instantánea.</div>
+        </div>
+      </div>
+      <div class="modal-card-footer">
+        <button type="button" class="btn-modal-secondary" data-close="modalPasarelaPago">Cancelar</button>
+        <button type="button" class="btn-modal-primary" id="btnConfirmarPagoOnline"
+          style="background:#10b981; border-color:#10b981;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+          Abonar Ahora
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 11: Comprobante Oficial de Pago Municipal -->
+  <div class="portal-modal-backdrop" id="modalComprobantePago" role="dialog" aria-modal="true">
+    <div class="portal-modal-card modal-card-certificate" style="max-width: 580px;">
+      <div class="modal-card-header">
+        <div class="modal-card-title-group">
+          <span class="modal-badge-tag badge-emerald">Pago Aprobado y Asentado</span>
+          <h3 class="modal-card-title">Comprobante Oficial de Pago</h3>
+          <span class="modal-card-sub" id="reciboCodigoTrans">Transacción N° TRX-2026-98124</span>
+        </div>
+        <button type="button" class="modal-close-btn" data-close="modalComprobantePago"
+          aria-label="Cerrar modal">✕</button>
+      </div>
+      <div class="modal-card-body">
+        <div class="cert-document-box" id="reciboDocumentPrintable">
+          <div class="cert-header" style="border-bottom:2px solid #e2e8f0; padding-bottom:12px; margin-bottom:14px;">
+            <div style="font-size:1.1rem; font-weight:800; color:#0f172a;">MUNICIPALIDAD DE BARADERO</div>
+            <div style="font-size:0.76rem; color:#64748b; font-weight:700;">TESORERÍA GENERAL · CONSTANCIA TRIBUTARIA
+              DIGITAL</div>
+          </div>
+          <div class="cert-grid-info" style="font-size:0.86rem; line-height:1.6;">
+            <div><strong>Contribuyente:</strong> Carlos Gómez (CUIL 20-38491024-3)</div>
+            <div><strong>Tasa / Concepto:</strong> <span id="reciboConceptoTxt">ABL Servicios Generales</span></div>
+            <div><strong>Partida Inmobiliaria:</strong> N° 012-48912</div>
+            <div><strong>Importe Abonado:</strong> <span id="reciboMontoTxt"
+                style="font-weight:800; color:#059669;">$14.500,00</span></div>
+            <div><strong>Fecha y Hora de Pago:</strong> <span id="reciboFechaTxt">Hoy, 10:45 hs</span></div>
+            <div><strong>Canal de Cobro:</strong> Red Electrónica SUBI Pagos (Aprobado)</div>
+          </div>
+          <div
+            style="margin-top:16px; padding:12px; background:#f8fafc; border-radius:8px; border:1px dashed #cbd5e1; text-align:center;">
+            <span style="font-size:0.72rem; color:#64748b; font-family:monospace;" id="reciboFirmaHash">HASH:
+              8f9b4a1c72e391b420da783c4892110c7bf39210</span>
+          </div>
+        </div>
+      </div>
+      <div class="modal-card-footer">
+        <button type="button" class="btn-modal-secondary" data-close="modalComprobantePago">Cerrar</button>
+        <button type="button" class="btn-modal-primary" id="btnPrintRecibo">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="6 9 6 2 18 2 18 9" />
+            <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+            <rect x="6" y="14" width="12" height="8" />
+          </svg>
+          Descargar / Imprimir Recibo
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 12: Certificado Oficial de Libre Deuda -->
+  <div class="portal-modal-backdrop" id="modalLibreDeuda" role="dialog" aria-modal="true">
+    <div class="portal-modal-card modal-card-certificate" style="max-width: 640px;">
+      <div class="modal-card-header">
+        <div class="modal-card-title-group">
+          <span class="modal-badge-tag badge-emerald">Certificado Legal</span>
+          <h3 class="modal-card-title">Certificado de Libre Deuda Municipal</h3>
+          <span class="modal-card-sub">Dirección de Rentas y Finanzas · Baradero</span>
+        </div>
+        <button type="button" class="modal-close-btn" data-close="modalLibreDeuda" aria-label="Cerrar modal">✕</button>
+      </div>
+      <div class="modal-card-body">
+        <div class="cert-document-box" id="libreDeudaDocumentPrintable">
+          <div class="cert-header"
+            style="display:block; text-align:center; margin-bottom:16px; border-bottom:2px solid #0284c7; padding-bottom:10px;">
+            <div style="font-size:0.85rem; font-weight:600; color:#94a3b8; display:block;">Municipio de Baradero:
+              Subsecretaria de Hacienda y Administración</div>
+            <div style="font-size:0.85rem; font-weight:700; color:#0284c7; display:block; margin-top:4px;">CERTIFICADO
+              DE LIBRE DEUDA INMOBILIARIO Y CONTRAVENCIONAL</div>
+          </div>
+          <p style="font-size:0.88rem; color:#334155; line-height:1.6; text-align:justify; margin-bottom:14px;">
+            Se hace constar que el contribuyente <strong>Carlos Gómez</strong>, titular del DNI
+            <strong>38.491.024</strong> y CUIL <strong>20-38491024-3</strong>, respecto a la Partida Inmobiliaria
+            <strong>N° 012-48912</strong> (sita en calle San Martín 450 de la Ciudad de Baradero), <strong>NO REGISTRA
+              DEUDA LÍQUIDA Y EXIGIBLE</strong> por tasas municipales generales, sanitarias, de red vial ni
+            contravenciones a la fecha de expedición.
+          </p>
+          <div
+            style="display:flex; justify-content:space-between; align-items:flex-end; border-top:1px dashed #cbd5e1; padding-top:12px; margin-top:16px;">
+            <div style="font-size:0.75rem; color:#64748b;">
+              <div><strong>Fecha de Emisión:</strong> 02/09/2026</div>
+              <div><strong>Validez Legal:</strong> 30 días corridos</div>
+              <div><strong>Código de Verificación:</strong> CLD-2026-BAR-89120</div>
+            </div>
+            <div style="text-align:center;">
+              <svg width="60" height="60" viewBox="0 0 100 100" fill="#0f172a">
+                <rect width="100" height="100" fill="#ffffff" />
+                <rect x="10" y="10" width="25" height="25" fill="#0f172a" />
+                <rect x="65" y="10" width="25" height="25" fill="#0f172a" />
+                <rect x="10" y="65" width="25" height="25" fill="#0f172a" />
+                <rect x="40" y="40" width="20" height="20" fill="#0284c7" />
+              </svg>
+              <div style="font-size:0.65rem; color:#64748b; font-weight:700;">QR VERIFICADO</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-card-footer">
+        <button type="button" class="btn-modal-secondary" data-close="modalLibreDeuda">Cerrar</button>
+        <button type="button" class="btn-modal-primary" id="btnPrintLibreDeuda">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="7 10 12 15 17 10" />
+            <line x1="12" y1="15" x2="12" y2="3" />
+          </svg>
+          Descargar Certificado Firmado
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 13: Subir Documento al Legajo -->
+  <div class="portal-modal-backdrop" id="modalSubirDoc" role="dialog" aria-modal="true">
+    <div class="portal-modal-card" style="max-width: 500px;">
+      <div class="modal-card-header">
+        <div class="modal-card-title-group">
+          <span class="modal-badge-tag badge-blue">Legajo Digital RUC</span>
+          <h3 class="modal-card-title">Subir Documento al Legajo</h3>
+          <span class="modal-card-sub">Almacenamiento seguro en la nube municipal</span>
+        </div>
+        <button type="button" class="modal-close-btn" data-close="modalSubirDoc" aria-label="Cerrar modal">✕</button>
+      </div>
+      <div class="modal-card-body">
+        <form id="formSubirDocumentoLegajo">
+          <div class="form-group">
+            <label class="form-label" for="legajoDocTipo">Tipo de Documento *</label>
+            <select id="legajoDocTipo" class="form-input" required>
+              <option value="DNI Digital (Frente y Dorso)">DNI Tarjeta (Frente y Dorso)</option>
+              <option value="Licencia de Conducir">Licencia de Conducir</option>
+              <option value="Constancia de CUIL">Constancia Oficial de CUIL</option>
+              <option value="Certificado de Discapacidad (CUD)">Certificado de Discapacidad (CUD)</option>
+              <option value="Título de Propiedad / Alquiler">Título de Propiedad o Contrato de Alquiler</option>
+              <option value="Certificado Médico">Certificado Médico Oficial</option>
+              <option value="Otro Documento">Otro Documento de Interés Municipal</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="legajoFileInput">Seleccionar Archivo (PDF, JPG, PNG) *</label>
+            <input type="file" id="legajoFileInput" class="form-input" accept=".pdf,image/png,image/jpeg" required>
+            <span style="font-size:0.75rem; color:#64748b; margin-top:4px; display:block;">Tamaño máximo: 5 MB por
+              archivo. Encriptación SHA-256 aplicada.</span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="legajoDocNotas">Observaciones o Vencimiento (Opcional)</label>
+            <input type="text" id="legajoDocNotas" class="form-input" placeholder="Ej: Renovado en fecha...">
+          </div>
+
+          <div class="modal-card-footer" style="padding:14px 0 0; border-top:1px solid #f1f5f9; margin-top:16px;">
+            <button type="button" class="btn-modal-secondary" data-close="modalSubirDoc">Cancelar</button>
+            <button type="submit" class="btn-modal-primary" id="btnSubmitDocLegajo">Subir y Validar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contenedor flotante de Toast Notificaciones -->
+  <div class="portal-toast-container" id="portalToastContainer" aria-live="polite"></div>
+
+  <!-- Chatbot Widget & Tutorial (SUBI Asistente IA) -->
+  <button class="chatbot-fab" id="chatbot-fab" type="button" aria-label="Abrir asistente SUBI">
+    <span class="fab-icon-chat">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+      </svg>
+    </span>
+    <span class="fab-icon-close">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18" />
+        <line x1="6" y1="6" x2="18" y2="18" />
+      </svg>
+    </span>
+    <span class="chatbot-fab-dot"></span>
+  </button>
+
+  <div class="chatbot-panel" id="chatbot-panel">
+    <div class="chatbot-header">
+      <div class="chatbot-header-avatar">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10" />
+          <path d="M8 14s1.5 2 4 2 4-2 4-2" />
+          <line x1="9" y1="9" x2="9.01" y2="9" />
+          <line x1="15" y1="9" x2="15.01" y2="9" />
+        </svg>
+      </div>
+      <div class="chatbot-header-info">
+        <div class="chatbot-header-name">SUBI Asistente</div>
+        <div class="chatbot-header-status">Portal Municipal de Baradero</div>
+      </div>
+      <button class="chatbot-close-btn" id="chatbot-close" type="button" aria-label="Cerrar chat">✕</button>
+    </div>
+
+    <div class="chatbot-body" id="chatbot-body">
+      <div class="chat-msg bot">
+        <div class="chat-bubble">
+          ¡Hola! Soy tu asistente de <strong>SUBI Baradero</strong>. ¿En qué trámite o consulta puedo ayudarte hoy?
+        </div>
+      </div>
+    </div>
+
+    <div class="chatbot-footer">
+      <input type="text" class="chatbot-input" id="chatbot-input" placeholder="Escribí tu consulta a SUBI..."
+        autocomplete="off" />
+      <button class="chatbot-send-btn" id="chatbot-send" aria-label="Enviar">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <line x1="22" y1="2" x2="11" y2="13" />
+          <polygon points="22 2 15 22 11 13 2 9 22 2" />
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/home-ciudadano.js?v=2.0"></script>
+  <script src="js/chatbot.js?v=1.2"></script>
+</body>
+
+</html>

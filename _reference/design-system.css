@@ -1,0 +1,760 @@
+/* ===================================================================
+   SUBI — Portal Municipal "Municipio de Baradero"
+   Design System v6.0 — Clean Minimalist & Azul Institucional (Slate Dual-Theme)
+   - Paleta Oficial: Deep Slate (#0b0f19 / #0f172a) + Azul Cívico (#0284c7 / #38bdf8)
+   - Espaciado Descomprimido & Aireado (UX Ergonómica sin amontonamiento)
+   - Soporte Total Modo Oscuro / Modo Claro Instantáneo
+   - Cero Emojis / Iconografía Vectorial SVG Lineal Estricta
+   - Blindaje Estricto de Avatares & Principio "Una Sola Vez"
+   =================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+  /* ── 1. Paleta de Superficies Modo Oscuro (Deep Slate Default) ── */
+  --surface-base:       #0b0f19; /* Canvas principal profundo */
+  --surface-raised:     #0f172a; /* Sidebar y Topbar */
+  --surface-card:       #1e293b; /* Tarjetas principales */
+  --surface-card-solid: #1e293b;
+  --surface-card-hover: #273549; /* Hover elevado */
+  --surface-input:      #1e293b; /* Inputs con fondo oscuro */
+  --surface-hover:      rgba(255, 255, 255, 0.05);
+  --surface-active:     rgba(255, 255, 255, 0.09);
+  --surface-overlay:    rgba(3, 7, 18, 0.8);
+  --surface-hero:       linear-gradient(135deg, #131d31 0%, #0f172a 60%, #11222e 100%);
+
+  /* ── 2. Acentos Baradero (Dark Mode) ── */
+  --color-primary:       #38bdf8; /* Azul Cívico Vibrante */
+  --color-primary-hover: #7dd3fc;
+  --color-primary-glow:  rgba(56, 189, 248, 0.25);
+  --color-primary-light: rgba(56, 189, 248, 0.12);
+  --color-primary-container: #1e3a5f;
+  --color-on-primary-container: #e0f2fe;
+
+  --color-success:       #4ade80; /* Verde Verificado */
+  --color-success-bg:    rgba(74, 222, 128, 0.12);
+  --color-success-border:rgba(74, 222, 128, 0.3);
+
+  --color-warning:       #fbbf24; /* Ámbar Pendiente */
+  --color-warning-bg:    rgba(251, 191, 36, 0.12);
+  --color-warning-border:rgba(251, 191, 36, 0.3);
+
+  --color-danger:        #f87171; /* Rojo Alerta / Rechazo */
+  --color-danger-bg:     rgba(248, 113, 113, 0.14);
+  --color-danger-border: rgba(248, 113, 113, 0.35);
+
+  --color-cyan-500:      #38bdf8;
+  --color-green-500:     #4ade80;
+  --color-amber-500:     #fbbf24;
+  --color-rose-500:      #f87171;
+
+  /* ── 3. Bordes y Delimitadores (Dark) ── */
+  --border-subtle:  #1e293b;
+  --border-default: #334155;
+  --border-strong:  #475569;
+  --border-focus:   #38bdf8;
+  --border-accent:  rgba(56, 189, 248, 0.4);
+
+  /* ── 4. Tipografía y Textos (Dark) ── */
+  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-body:   var(--font-family);
+  --font-title:  'Plus Jakarta Sans', var(--font-family);
+  --font-mono:   'JetBrains Mono', monospace;
+
+  --text-primary:   #f8fafc; /* Texto principal nítido */
+  --text-secondary: #94a3b8; /* Secundario suave */
+  --text-tertiary:  #64748b;
+  --text-muted:     #64748b;
+  --text-inverse:   #0f172a;
+  --text-accent:    #38bdf8;
+  --text-success:   #4ade80;
+  --text-warning:   #fbbf24;
+  --text-danger:    #f87171;
+
+  /* ── 5. Sombras & Elevaciones ── */
+  --shadow-none: none;
+  --shadow-xs:   0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-sm:   0 2px 4px rgba(0, 0, 0, 0.25);
+  --shadow-md:   0 4px 12px rgba(0, 0, 0, 0.35);
+  --shadow-lg:   0 10px 25px rgba(0, 0, 0, 0.45);
+  --shadow-xl:   0 20px 40px rgba(0, 0, 0, 0.6);
+  --shadow-modal:0 24px 60px rgba(0, 0, 0, 0.7);
+
+  /* ── 6. Dimensiones & Espaciado Generoso ── */
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-8:  32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  --radius-xs:   4px;
+  --radius-sm:   8px;
+  --radius-md:   12px;
+  --radius-lg:   16px;
+  --radius-xl:   20px;
+  --radius-2xl:  24px;
+  --radius-full: 9999px;
+
+  --duration-fast:   150ms;
+  --duration-normal: 250ms;
+  --duration-slow:   350ms;
+  --ease-out:    cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  --z-sticky:   100;
+  --z-dropdown: 200;
+  --z-overlay:  300;
+  --z-modal:    400;
+  --z-toast:    500;
+  --z-chatbot:  9999;
+}
+
+/* ===================================================================
+   Modo Claro Oficial (Azul Institucional & Slate Soft Canvas)
+   =================================================================== */
+[data-theme="light"] {
+  --surface-base:       #f8fafc; /* Canvas suave y aireado */
+  --surface-raised:     #ffffff; /* Topbar y Sidebar blancos nítidos */
+  --surface-card:       #ffffff; /* Tarjetas blancas con elevación */
+  --surface-card-solid: #ffffff;
+  --surface-card-hover: #f1f5f9;
+  --surface-input:      #ffffff;
+  --surface-hover:      rgba(15, 23, 42, 0.04);
+  --surface-active:     rgba(15, 23, 42, 0.08);
+  --surface-overlay:    rgba(15, 23, 42, 0.6);
+  --surface-hero:       linear-gradient(135deg, #f0f7ff 0%, #ffffff 60%, #f4fbf7 100%);
+
+  --color-primary:       #0284c7; /* Azul Institucional Baradero */
+  --color-primary-hover: #0369a1;
+  --color-primary-glow:  rgba(2, 132, 199, 0.18);
+  --color-primary-light: #e0f2fe;
+  --color-primary-container: #e0f2fe;
+  --color-on-primary-container: #0369a1;
+
+  --color-success:       #15803d;
+  --color-success-bg:    #dcfce7;
+  --color-success-border:#bbf7d0;
+
+  --color-warning:       #b45309;
+  --color-warning-bg:    #fef3c7;
+  --color-warning-border:#fde68a;
+
+  --color-danger:        #b91c1c;
+  --color-danger-bg:     #fee2e2;
+  --color-danger-border: #fecaca;
+
+  --color-cyan-500:      #0284c7;
+  --color-green-500:     #15803d;
+  --color-amber-500:     #b45309;
+  --color-rose-500:      #b91c1c;
+
+  --border-subtle:  #e2e8f0;
+  --border-default: #cbd5e1;
+  --border-strong:  #94a3b8;
+  --border-focus:   #0284c7;
+  --border-accent:  rgba(2, 132, 199, 0.35);
+
+  --text-primary:   #0f172a; /* Alto contraste legible */
+  --text-secondary: #475569;
+  --text-tertiary:  #64748b;
+  --text-muted:     #64748b;
+  --text-inverse:   #ffffff;
+  --text-accent:    #0284c7;
+  --text-success:   #15803d;
+  --text-warning:   #b45309;
+  --text-danger:    #b91c1c;
+
+  --shadow-xs:   0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-sm:   0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-md:   0 4px 10px rgba(15, 23, 42, 0.06);
+  --shadow-lg:   0 10px 20px rgba(15, 23, 42, 0.08);
+  --shadow-xl:   0 20px 30px rgba(15, 23, 42, 0.1);
+  --shadow-modal:0 24px 50px rgba(15, 23, 42, 0.18);
+}
+
+/* ===================================================================
+   Reset Global & Base Semántica
+   =================================================================== */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-family: var(--font-body);
+  font-size: 15px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--surface-base);
+  color: var(--text-primary);
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--surface-base);
+  color: var(--text-primary);
+  line-height: 1.55;
+  transition: background-color var(--duration-normal) ease, color var(--duration-normal) ease;
+}
+
+/* ===================================================================
+   Contenedores & Grillas Aireadas (Descomprimidas)
+   =================================================================== */
+.container {
+  width: 100%;
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.container-wide {
+  width: 100%;
+  max-width: 1420px;
+  margin: 0 auto;
+  padding: 0 28px;
+}
+
+.container-narrow {
+  width: 100%;
+  max-width: 840px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+@media (max-width: 768px) {
+  .container, .container-wide, .container-narrow {
+    padding: 0 16px;
+  }
+}
+
+/* ===================================================================
+   Tipografía & Jerarquía Visual Limpia
+   =================================================================== */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-title);
+  color: var(--text-primary);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+h1 { font-size: 1.85rem; line-height: 1.25; margin-bottom: 8px; }
+h2 { font-size: 1.45rem; line-height: 1.3; margin-bottom: 6px; }
+h3 { font-size: 1.2rem; line-height: 1.35; margin-bottom: 4px; }
+h4 { font-size: 1.05rem; line-height: 1.4; }
+
+p { color: var(--text-secondary); font-size: 0.95rem; line-height: 1.6; }
+.text-muted { color: var(--text-muted); font-size: 0.86rem; }
+.text-sm { font-size: 0.84rem; }
+.text-xs { font-size: 0.78rem; }
+.text-bold { font-weight: 700; }
+.text-semibold { font-weight: 600; }
+
+/* ===================================================================
+   Universal Avatar System (Blindaje Estricto Anti-Desbordamiento)
+   =================================================================== */
+.avatar {
+  width: 36px !important;
+  height: 36px !important;
+  min-width: 36px !important;
+  min-height: 36px !important;
+  max-width: 36px !important;
+  max-height: 36px !important;
+  border-radius: 50% !important;
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  color: #ffffff !important;
+  font-weight: 700;
+  font-size: 13px;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+  overflow: hidden !important;
+  position: relative !important;
+  border: 1.5px solid var(--border-subtle);
+  box-sizing: border-box !important;
+}
+
+.avatar img {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  min-width: 100% !important;
+  min-height: 100% !important;
+  object-fit: cover !important;
+  object-position: center !important;
+  display: block !important;
+  border-radius: 50% !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+}
+
+.avatar-sm {
+  width: 34px !important;
+  height: 34px !important;
+  min-width: 34px !important;
+  min-height: 34px !important;
+  max-width: 34px !important;
+  max-height: 34px !important;
+  font-size: 12px;
+}
+
+.avatar-md {
+  width: 46px !important;
+  height: 46px !important;
+  min-width: 46px !important;
+  min-height: 46px !important;
+  max-width: 46px !important;
+  max-height: 46px !important;
+  font-size: 16px;
+}
+
+.avatar-lg {
+  width: 60px !important;
+  height: 60px !important;
+  min-width: 60px !important;
+  min-height: 60px !important;
+  max-width: 60px !important;
+  max-height: 60px !important;
+  font-size: 20px;
+}
+
+.avatar-xl {
+  width: 88px !important;
+  height: 88px !important;
+  min-width: 88px !important;
+  min-height: 88px !important;
+  max-width: 88px !important;
+  max-height: 88px !important;
+  font-size: 26px;
+}
+
+/* ===================================================================
+   Botones Primarios, Secundarios & Outline
+   =================================================================== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 20px;
+  font-family: var(--font-body);
+  font-size: 0.92rem;
+  font-weight: 600;
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all var(--duration-fast) ease;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+.btn-primary {
+  background: var(--color-primary);
+  color: #ffffff !important;
+  border-color: var(--color-primary);
+  box-shadow: 0 2px 6px var(--color-primary-glow);
+}
+
+.btn-primary:hover {
+  background: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px var(--color-primary-glow);
+}
+
+.btn-secondary {
+  background: var(--surface-card);
+  color: var(--text-primary);
+  border-color: var(--border-default);
+}
+
+.btn-secondary:hover {
+  background: var(--surface-card-hover);
+  border-color: var(--border-strong);
+  transform: translateY(-1px);
+}
+
+.btn-outline {
+  background: transparent;
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.btn-outline:hover {
+  background: var(--color-primary-light);
+  transform: translateY(-1px);
+}
+
+.btn-danger {
+  background: var(--color-danger);
+  color: #ffffff !important;
+  border-color: var(--color-danger);
+}
+
+.btn-danger:hover {
+  background: #991b1b;
+}
+
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 0.82rem;
+  border-radius: var(--radius-sm);
+}
+
+.btn-lg {
+  padding: 14px 28px;
+  font-size: 1rem;
+  border-radius: var(--radius-lg);
+}
+
+/* ===================================================================
+   Custom Checkbox & Radio Controls
+   =================================================================== */
+.ds-checkbox,
+input[type="checkbox"].ds-checkbox {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  width: 19px !important;
+  height: 19px !important;
+  min-width: 19px !important;
+  min-height: 19px !important;
+  border: 1.8px solid var(--border-strong, #64748b) !important;
+  border-radius: 5px !important;
+  background-color: var(--surface-input, #ffffff) !important;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  vertical-align: middle;
+}
+
+[data-theme="light"] .ds-checkbox,
+[data-theme="light"] input[type="checkbox"].ds-checkbox {
+  border-color: #94a3b8 !important;
+  background-color: #ffffff !important;
+}
+
+.ds-checkbox:hover {
+  border-color: var(--color-primary) !important;
+  background-color: var(--color-primary-light) !important;
+}
+
+.ds-checkbox:checked {
+  background-color: var(--color-primary) !important;
+  border-color: var(--color-primary) !important;
+}
+
+.ds-checkbox:checked::after {
+  content: '';
+  display: block;
+  width: 5px;
+  height: 10px;
+  border: solid #ffffff;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg) translate(-1px, -1px);
+}
+
+.ds-checkbox:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  background-color: var(--surface-hover) !important;
+}
+
+.ds-checkbox:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--color-primary-glow);
+}
+
+/* ===================================================================
+   Skeleton Loaders & Micro-Interactions
+   =================================================================== */
+.skeleton {
+  background: linear-gradient(90deg, var(--surface-card) 25%, var(--surface-hover) 50%, var(--surface-card) 75%);
+  background-size: 200% 100%;
+  animation: skeletonPulse 1.6s ease-in-out infinite;
+  border-radius: var(--radius-sm);
+}
+
+@keyframes skeletonPulse {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ===================================================================
+   Badges Semánticos de Estado
+   =================================================================== */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border-radius: var(--radius-full);
+  font-size: 0.76rem;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: 0.01em;
+}
+
+.badge-success {
+  background: var(--color-success-bg);
+  color: var(--color-success);
+  border: 1px solid var(--color-success-border);
+}
+
+.badge-warning {
+  background: var(--color-warning-bg);
+  color: var(--color-warning);
+  border: 1px solid var(--color-warning-border);
+}
+
+.badge-danger {
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+  border: 1px solid var(--color-danger-border);
+}
+
+.badge-info {
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+}
+
+/* ===================================================================
+   Barra de Progreso por Etapas (%) y Subsanación
+   =================================================================== */
+.progress-bar-track {
+  width: 100%;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+[data-theme="light"] .progress-bar-track {
+  background: #e2e8f0;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: var(--color-primary);
+  border-radius: var(--radius-full);
+  transition: width 0.4s ease;
+}
+
+.progress-bar-fill.fill-complete {
+  background: var(--color-success);
+}
+
+.progress-bar-fill.fill-rejected {
+  background: var(--color-danger);
+}
+
+/* ===================================================================
+   Icon Boxes & Colores
+   =================================================================== */
+.icon-box {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.icon-box-blue {
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+}
+
+.icon-box-green {
+  background: var(--color-success-bg);
+  color: var(--color-success);
+}
+
+.icon-box-yellow {
+  background: var(--color-warning-bg);
+  color: var(--color-warning);
+}
+
+.icon-box-cyan {
+  background: rgba(56, 189, 248, 0.15);
+  color: var(--color-primary);
+}
+
+/* ===================================================================
+   Mobile Bottom Navigation Bar
+   =================================================================== */
+.app-bottom-nav {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 62px;
+  background: var(--surface-raised);
+  border-top: 1px solid var(--border-subtle);
+  z-index: var(--z-sticky);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  padding: 0 8px;
+}
+
+@media (max-width: 768px) {
+  .app-bottom-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+  }
+  body {
+    padding-bottom: 68px;
+  }
+}
+
+.bottom-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  flex: 1;
+  height: 100%;
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 0.72rem;
+  font-weight: 500;
+  transition: color 0.15s ease;
+}
+
+.bottom-nav-item.active {
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
+.bottom-nav-item svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* ===================================================================
+   Toast Notifications
+   =================================================================== */
+.ds-toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: var(--z-toast);
+  pointer-events: none;
+}
+
+.ds-toast {
+  pointer-events: auto;
+  min-width: 280px;
+  max-width: 420px;
+  padding: 14px 18px;
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  font-weight: 500;
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  animation: slideUp 0.25s ease;
+}
+
+.ds-toast-success { border-left: 4px solid var(--color-success); }
+.ds-toast-error   { border-left: 4px solid var(--color-danger); }
+.ds-toast-info    { border-left: 4px solid var(--color-primary); }
+
+/* ===================================================================
+   Animaciones Sutiles
+   =================================================================== */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ===================================================================
+   Componentes de Formularios Estándar SUBI (Globales)
+   =================================================================== */
+.ds-form-group,
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.ds-form-label,
+.form-label {
+  display: block;
+  font-size: 0.83rem;
+  font-weight: 700;
+  color: var(--text-primary, #0f172a);
+  letter-spacing: 0.15px;
+}
+
+.ds-input,
+.form-input,
+.form-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 14px;
+  background: var(--surface-input, #ffffff);
+  border: 1.5px solid var(--border-default, #cbd5e1);
+  border-radius: var(--radius-md, 10px);
+  font-size: 0.89rem;
+  font-family: inherit;
+  color: var(--text-primary, #0f172a);
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.ds-input:focus,
+.form-input:focus,
+.form-textarea:focus {
+  border-color: var(--color-primary, #0284c7);
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.18);
+}
+
+select.ds-input,
+select.form-input {
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23475569' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 40px;
+}

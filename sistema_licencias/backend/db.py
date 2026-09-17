@@ -229,6 +229,30 @@ def init_db():
             except sqlite3.OperationalError:
                 pass
 
+            # Tablas del sistema de memoria (Gentle AI)
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS user_activity_log (
+                    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+                    usuario_id  INTEGER NOT NULL,
+                    action      TEXT NOT NULL,
+                    detail      TEXT DEFAULT NULL,
+                    created_at  TEXT DEFAULT (datetime('now','localtime')),
+                    FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
+                );
+            """)
+
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS user_preferences (
+                    id                INTEGER PRIMARY KEY AUTOINCREMENT,
+                    usuario_id        INTEGER NOT NULL UNIQUE,
+                    theme             TEXT DEFAULT 'light',
+                    last_page         TEXT DEFAULT 'dashboard',
+                    sidebar_collapsed INTEGER DEFAULT 0,
+                    updated_at        TEXT DEFAULT (datetime('now','localtime')),
+                    FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
+                );
+            """)
+
             conn.commit()
     except Exception as e:
         print(f"[ERROR] Falló inicialización de base de datos: {e}")

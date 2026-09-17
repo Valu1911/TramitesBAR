@@ -24,29 +24,45 @@ class RegistroPage {
         app.innerHTML = `
         <div class="login-page">
             <div class="login-logo animate-fadeIn">
-                <div class="login-logo__icon" style="display:flex;align-items:center;justify-content:center;font-size:3rem;margin-bottom:10px">${Icons.edit}</div>
-                <h1 class="login-logo__text">Registro de Usuario</h1>
-                <p class="login-logo__sub">Completá tus datos para crear tu cuenta de ciudadano</p>
+                <div class="login-logo__icon" style="display:flex;align-items:center;justify-content:center">
+                    <svg viewBox="0 0 44 44" width="52" height="52" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="22" cy="22" r="21" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+                        <path d="M12 22C12 16.477 16.477 12 22 12C25.5 12 28.5 13.8 30.2 16.5" stroke="#1976d2" stroke-width="3.5" stroke-linecap="round"/>
+                        <path d="M32 22C32 27.523 27.523 32 22 32C18.5 32 15.5 30.2 13.8 27.5" stroke="#1976d2" stroke-width="3.5" stroke-linecap="round"/>
+                        <path d="M17 22C17 19.239 19.239 17 22 17C23.8 17 25.3 18 26.2 19.5" stroke="#f59e0b" stroke-width="3" stroke-linecap="round"/>
+                        <path d="M27 22C27 24.761 24.761 27 22 27C20.2 27 18.7 26 17.8 24.5" stroke="#0284c7" stroke-width="3" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                <h1 class="login-logo__text" style="font-family:'Plus Jakarta Sans',Inter,sans-serif">CIUDADANO <span style="font-weight:400;color:#0284c7">DIGITAL</span></h1>
+                <p class="login-logo__sub" style="font-weight:700;letter-spacing:1.2px;text-transform:uppercase;font-size:0.68rem">REGISTRO DE USUARIO · MUNICIPIO DE BARADERO</p>
             </div>
 
-            <div class="login-card animate-slideUp" style="max-width:560px">
+            <div class="login-card animate-slideUp" style="max-width:580px">
                 <!-- WIDGET DE ESCÁNER DE DNI EN REGISTRO -->
                 <div id="registroDniScannerWrapper" style="margin-bottom:16px;"></div>
 
                 <div class="glass-card p-6">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+                        <div style="display:flex;align-items:center;gap:8px;color:#0284c7">
+                            <span style="display:flex;align-items:center;justify-content:center">${Icons.edit}</span>
+                            <span style="font-weight:700;font-size:0.84rem;letter-spacing:0.2px">Formulario de Alta de Ciudadano</span>
+                        </div>
+                        <span class="badge badge-info" style="font-size:0.75rem;padding:3px 8px">Paso 1 de 1</span>
+                    </div>
+
                     <!-- TARJETA DE VISTA PREVIA DE FOTO DE PERFIL / ROSTRO EXTRAÍDO -->
-                    <div id="regFotoPreviewCard" style="display:${this.fotoRostro ? 'block' : 'none'};background:rgba(37,99,235,0.08);border:1px dashed var(--primary);border-radius:var(--radius-md);padding:14px;margin-bottom:18px;" class="animate-fadeIn">
+                    <div id="regFotoPreviewCard" style="display:${this.fotoRostro ? 'block' : 'none'};background:#e0f2fe;border:1px dashed #0284c7;border-radius:12px;padding:14px;margin-bottom:18px;" class="animate-fadeIn">
                         <div style="display:flex;align-items:center;gap:14px;">
-                            <div id="regFotoAvatar" style="width:64px;height:64px;border-radius:50%;border:2px solid var(--primary);overflow:hidden;background:#e2e8f0;flex-shrink:0;box-shadow:0 4px 10px rgba(37,99,235,0.2);">
+                            <div id="regFotoAvatar" style="width:64px;height:64px;border-radius:50%;border:2px solid #0284c7;overflow:hidden;background:#f0f9ff;flex-shrink:0;box-shadow:0 4px 10px rgba(2,132,199,0.18);">
                                 ${this.fotoRostro ? `<img src="${this.fotoRostro}" alt="Foto DNI" style="width:100%;height:100%;object-fit:cover;">` : ''}
                             </div>
                             <div style="flex:1;">
-                                <div style="font-weight:700;font-size:0.9rem;color:var(--text);display:flex;align-items:center;gap:6px;">
-                                    <span style="color:var(--success);display:flex;align-items:center;">${Icons.check}</span> Foto de perfil vinculada al DNI
+                                <div style="font-weight:700;font-size:0.9rem;color:#1e293b;display:flex;align-items:center;gap:6px;">
+                                    <span style="color:#10b981;display:flex;align-items:center;">${Icons.check}</span> Foto de perfil vinculada al DNI
                                 </div>
                                 <div class="text-xs text-muted mt-1">Esta imagen será tu foto oficial en la credencial de tu Licencia Digital y panel de ciudadano.</div>
                                 <div style="margin-top:6px;display:flex;gap:8px;">
-                                    <label class="btn btn-ghost btn-sm" style="font-size:0.7rem;padding:2px 8px;cursor:pointer;border:1px solid var(--border);">
+                                    <label class="btn btn-ghost btn-sm" style="font-size:0.7rem;padding:2px 8px;cursor:pointer;border:1px solid #cbd5e1;">
                                         Cambiar foto
                                         <input type="file" accept="image/*" style="display:none;" onchange="RegistroPage.handleCustomPhoto(event)">
                                     </label>
@@ -145,19 +161,20 @@ class RegistroPage {
 
                             <div id="regError" class="form-error" style="display:none"></div>
 
-                            <button type="submit" class="btn btn-primary btn-block btn-lg" id="regBtn">
-                                Crear cuenta y guardar usuario →
+                            <button type="submit" class="btn btn-primary btn-block btn-lg" id="regBtn" style="font-weight:700">
+                                Crear cuenta y continuar
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
                             </button>
 
-                            <button type="button" class="btn btn-ghost btn-block btn-sm" style="display:flex;align-items:center;justify-content:center;gap:4px" onclick="Router.navigate('login')">
-                                ${Icons.back} Volver al login
+                            <button type="button" class="btn btn-ghost btn-block btn-lg" style="margin-top:8px;font-weight:500;display:flex;align-items:center;justify-content:center;gap:6px" onclick="Router.navigate('login')">
+                                ← Ya tengo cuenta, iniciar sesión
                             </button>
                         </div>
                     </form>
                 </div>
             </div>
 
-            <p class="login-footer">Muni Digital · Municipalidad de Baradero © 2026</p>
+            <p class="login-footer">Ciudadano Digital · Municipalidad de Baradero © 2026</p>
         </div>`;
 
         // Renderizar el escáner de DNI en Registro

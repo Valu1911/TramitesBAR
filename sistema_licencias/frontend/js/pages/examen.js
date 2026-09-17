@@ -110,15 +110,15 @@ class ExamenPage {
         const allAnswered = Object.keys(this.answers).length === this.preguntas.length;
 
         app.innerHTML = `
-        ${renderBackHeader('Examen teórico supervisado')}
-        <div class="page-content container-md animate-fadeIn" style="position:relative">
+        ${renderBackHeader('Examen Teórico Supervisado')}
+        <div class="page-content container-md animate-fadeIn" style="max-width:880px;margin:0 auto;position:relative;padding-top:10px;">
             <!-- ALERTA ANTI TRAMPA HEADER -->
-            <div style="background:rgba(239,68,68,0.1);border:1px solid #fca5a5;border-radius:var(--radius-md);padding:10px 14px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between">
-                <div style="display:flex;align-items:center;gap:8px;font-size:0.85rem;color:#b91c1c;font-weight:700">
-                    <span style="display:inline-flex;align-items:center;gap:4px">${Icons.shield} Modo Supervisado Activo</span>
-                    <span>· Pantalla Completa & Transmisión en Vivo</span>
+            <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:12px;padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+                <div style="display:flex;align-items:center;gap:8px;font-size:0.84rem;color:#b91c1c;font-weight:700">
+                    <span style="display:inline-flex;align-items:center;gap:4px;color:#dc2626">${Icons.shield} Modo Supervisado Activo</span>
+                    <span style="color:#ef4444">• Transmisión Docente en Vivo</span>
                 </div>
-                <span id="warningsBadge" class="badge" style="background:#fee2e2;color:#991b1b;border:1px solid #f87171">
+                <span id="warningsBadge" class="badge" style="background:#fee2e2;color:#991b1b;border:1px solid #f87171;font-size:0.75rem;padding:3px 8px;">
                     Advertencias Alt-Tab: ${this.warningsCount}
                 </span>
             </div>
@@ -126,52 +126,59 @@ class ExamenPage {
             <!-- Progress dots -->
             <div style="display:flex;gap:8px;justify-content:center;margin-bottom:16px">
                 ${this.preguntas.map((_, i) => `
-                <div style="width:10px;height:10px;border-radius:50%;transition:all 0.2s;
-                    background:${i === this.currentQ ? 'var(--primary)' : (this.answers[this.preguntas[i].id] ? 'var(--blue-300)' : 'var(--blue-100)')}">
+                <div style="width:12px;height:12px;border-radius:50%;transition:all 0.2s;
+                    background:${i === this.currentQ ? '#0284c7' : (this.answers[this.preguntas[i].id] ? '#10b981' : '#e2e8f0')};
+                    box-shadow:${i === this.currentQ ? '0 0 0 3px rgba(2,132,199,0.25)' : 'none'}">
                 </div>`).join('')}
             </div>
 
             <div class="flex-between mb-3">
-                <button class="btn btn-sm" style="background:var(--warning-bg);color:#b45309;border:1px dashed var(--warning);font-size:0.75rem;font-weight:700;display:inline-flex;align-items:center;gap:4px" onclick="ExamenPage.autoCompletarCorrectas()">
+                <button class="btn btn-sm" style="background:#fffbeb;color:#b45309;border:1px dashed #f59e0b;font-size:0.75rem;font-weight:700;display:inline-flex;align-items:center;gap:4px" onclick="ExamenPage.autoCompletarCorrectas()">
                     ${Icons.sparkles} Modo Demo: Responder todas bien
                 </button>
-                <span class="text-xs text-muted font-semibold">Pregunta ${this.currentQ + 1} de ${this.preguntas.length}</span>
+                <span class="text-xs text-muted font-bold">Pregunta ${this.currentQ + 1} de ${this.preguntas.length}</span>
             </div>
 
-            <div class="glass-card p-5 mb-4" unselectable="on" onselectstart="return false;" onmousedown="return false;">
-                <h2 style="font-size:1rem;font-weight:700;margin-bottom:16px;user-select:none">${q.pregunta}</h2>
-                <div class="stack">
+            <div class="dash-card mb-4" unselectable="on" onselectstart="return false;" onmousedown="return false;">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+                    <span class="badge badge-info" style="font-size:0.72rem;padding:2px 8px;">Pregunta #${this.currentQ + 1}</span>
+                </div>
+                <h2 style="font-size:1.08rem;font-weight:800;color:#1e293b;margin-bottom:20px;user-select:none;line-height:1.4">${q.pregunta}</h2>
+                <div class="stack" style="gap:10px;">
                     ${options.map(opt => `
                     <button class="exam-option ${this.answers[q.id] === opt.key ? 'exam-option--selected' : ''}"
-                            style="user-select:none"
+                            style="user-select:none;display:flex;align-items:center;gap:12px;text-align:left;padding:14px 16px;border-radius:10px;border:1.5px solid ${this.answers[q.id] === opt.key ? '#0284c7' : '#e2e8f0'};background:${this.answers[q.id] === opt.key ? '#e0f2fe' : '#ffffff'};font-weight:${this.answers[q.id] === opt.key ? '700' : '500'};color:#1e293b;transition:all 0.15s ease;"
                             onclick="ExamenPage.selectAnswer(${q.id}, '${opt.key}')">
-                        ${opt.text}
+                        <span style="width:28px;height:28px;border-radius:50%;border:2px solid ${this.answers[q.id] === opt.key ? '#0284c7' : '#cbd5e1'};display:flex;align-items:center;justify-content:center;font-weight:800;font-size:0.8rem;background:${this.answers[q.id] === opt.key ? '#0284c7' : '#f8fafc'};color:${this.answers[q.id] === opt.key ? '#ffffff' : '#64748b'};flex-shrink:0;">
+                            ${opt.key.toUpperCase()}
+                        </span>
+                        <span style="flex:1;font-size:0.92rem;">${opt.text}</span>
                     </button>`).join('')}
                 </div>
             </div>
 
             <div style="display:flex;gap:12px">
                 ${this.currentQ > 0 ? `
-                <button class="btn btn-outline" style="flex:1" onclick="ExamenPage.prevQuestion()">
+                <button class="btn btn-outline" style="flex:1;font-weight:700" onclick="ExamenPage.prevQuestion()">
                     ← Anterior
                 </button>` : ''}
 
                 ${this.currentQ < this.preguntas.length - 1 ? `
-                <button class="btn btn-primary" style="flex:1" 
+                <button class="btn btn-primary" style="flex:1;font-weight:700" 
                         ${!this.answers[q.id] ? 'disabled' : ''}
                         onclick="ExamenPage.nextQuestion()">
                     Siguiente →
                 </button>` : `
-                <button class="btn btn-primary" style="flex:1" 
+                <button class="btn btn-primary" style="flex:1;font-weight:700" 
                         ${!allAnswered ? 'disabled' : ''}
                         onclick="ExamenPage.submitExam()">
-                    Entregar examen
+                    Entregar Examen al Profesor
                 </button>`}
             </div>
 
-            <div class="info-box info-box--info mt-4">
-                <span style="display:flex;align-items:center">${Icons.info}</span>
-                <span>Proctoring activado: tu cámara y pantalla se transmiten al panel del profesor en tiempo real.</span>
+            <div style="background:#f0f9ff;border:1px solid #bae6fd;padding:12px 16px;border-radius:10px;margin-top:20px;display:flex;align-items:center;gap:10px;font-size:0.82rem;color:#0369a1;">
+                <span style="display:flex;align-items:center;">${Icons.info}</span>
+                <span>Proctoring activado: tu cámara web y eventos de navegación son supervisados para garantizar la transparencia.</span>
             </div>
         </div>
 
@@ -416,16 +423,31 @@ class ExamenPage {
     static renderResult(app, result) {
         if (result.pendiente_revision) {
             app.innerHTML = `
-            ${renderBackHeader('Examen entregado')}
-            <div class="page-content container-md text-center animate-fadeIn" style="padding-top:40px">
-                <div style="font-size:3rem;margin-bottom:12px">⏳</div>
-                <h2 class="font-bold text-xl mb-2" style="color:var(--text-main,#f8fafc)">Examen Entregado - En Revisión por el Profesor</h2>
-                <p class="text-xs text-muted mb-4">Respondiste correctamente ${result.puntaje} de ${result.total} preguntas (${result.porcentaje || 0}% de acierto).</p>
-                <div class="p-4 mb-4" style="background:rgba(37,99,235,0.15);border:1px solid #3b82f6;border-radius:12px;text-align:left">
-                    <strong style="color:#60a5fa;display:block;margin-bottom:4px">📌 Dictamen y Justificación en Proceso:</strong>
-                    <p class="text-xs text-muted mb-0">Tu evaluación e historial de supervisión están siendo validados por el Profesor. Una vez aprobado o desaprobado por el docente con su justificación oficial, avanzarás al siguiente paso.</p>
+            ${renderBackHeader('Examen Teórico')}
+            <div class="page-content container-md animate-fadeIn" style="max-width:640px;margin:0 auto;padding-top:24px;">
+                <div class="dash-card text-center" style="border:1.5px solid #bae6fd;padding:36px 24px;">
+                    <div style="width:72px;height:72px;border-radius:50%;background:#e0f2fe;color:#0284c7;display:flex;align-items:center;justify-content:center;font-size:2rem;margin:0 auto 16px auto;">
+                        ⏳
+                    </div>
+                    <span class="badge badge-info mb-3" style="font-size:0.8rem;padding:4px 12px;">En Revisión Docente</span>
+                    <h2 style="font-size:1.3rem;font-weight:800;color:#1e293b;margin-bottom:8px;">Examen Entregado Exitosamente</h2>
+                    <p style="font-size:0.88rem;color:#64748b;margin-bottom:20px;">
+                        Respondiste correctamente <strong>${result.puntaje}</strong> de <strong>${result.total}</strong> preguntas (${result.porcentaje || 0}% de acierto).
+                    </p>
+                    
+                    <div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:12px;padding:16px;text-align:left;margin-bottom:24px;">
+                        <strong style="color:#0369a1;display:flex;align-items:center;gap:6px;font-size:0.88rem;margin-bottom:6px;">
+                            ${Icons.shield} Verificación de Supervisión y Respuestas
+                        </strong>
+                        <p style="font-size:0.8rem;color:#475569;margin:0;line-height:1.4;">
+                            Tu evaluación y registro de proctoring están siendo validados por el evaluador oficial. Una vez emitida la calificación final, tu panel se actualizará automáticamente.
+                        </p>
+                    </div>
+
+                    <button class="btn btn-primary btn-block btn-lg" style="font-weight:700" onclick="Router.navigate('dashboard')">
+                        Volver al Panel Principal
+                    </button>
                 </div>
-                <button class="btn btn-primary btn-block" onclick="Router.navigate('dashboard')">Volver al Panel de Inicio</button>
             </div>`;
             return;
         }
@@ -433,31 +455,35 @@ class ExamenPage {
         const passed = result.aprobado;
 
         app.innerHTML = `
-        ${renderBackHeader('Resultado')}
-        <div class="page-content container-md text-center animate-slideUp" style="padding-top:40px">
-            <div class="result-circle ${passed ? 'result-circle--pass' : 'result-circle--fail'}">
-                ${passed ? '✅' : '❌'}
-            </div>
-            <h2 style="font-size:1.5rem;font-weight:800;margin-bottom:8px">
-                ${passed ? '¡Examen Aprobado!' : 'Examen No Aprobado'}
-            </h2>
-            <p class="text-muted">
-                Respondiste correctamente ${result.puntaje} de ${result.total} preguntas (${result.porcentaje || 0}%).
-            </p>
+        ${renderBackHeader('Resultado del Examen')}
+        <div class="page-content container-md animate-slideUp" style="max-width:640px;margin:0 auto;padding-top:24px;">
+            <div class="dash-card text-center" style="border:2px solid ${passed ? '#86efac' : '#fca5a5'};padding:36px 24px;">
+                <div style="width:76px;height:76px;border-radius:50%;background:${passed ? '#dcfce7' : '#fee2e2'};color:${passed ? '#15803d' : '#b91c1c'};display:flex;align-items:center;justify-content:center;font-size:2.2rem;margin:0 auto 16px auto;">
+                    ${passed ? '✓' : '✕'}
+                </div>
+                
+                <span class="badge ${passed ? 'badge-success' : 'badge-danger'} mb-3" style="font-size:0.8rem;padding:4px 12px;">
+                    ${passed ? 'APROBADO' : 'NO APROBADO'}
+                </span>
 
-            ${!passed ? `
-            <div class="info-box info-box--warning mt-4" style="text-align:left">
-                <span>⚠️</span>
-                <span>Deberás rendir el examen nuevamente en otro momento según la justificación del profesor.</span>
-            </div>` : `
-            <div class="info-box info-box--success mt-4" style="text-align:left">
-                <span>✅</span>
-                <span>¡Excelente! Podés continuar con el pago del arancel.</span>
-            </div>`}
+                <h2 style="font-size:1.4rem;font-weight:800;color:#1e293b;margin-bottom:8px;">
+                    ${passed ? '¡Felicitaciones, Examen Aprobado!' : 'Examen Teórico No Aprobado'}
+                </h2>
+                
+                <p style="font-size:0.9rem;color:#64748b;margin-bottom:20px;">
+                    Puntaje obtenido: <strong>${result.puntaje}</strong> de <strong>${result.total}</strong> preguntas correctas (${result.porcentaje || 0}%).
+                </p>
 
-            <div class="stack mt-4">
-                <button class="btn btn-primary btn-block btn-lg" onclick="Router.navigate('dashboard')">
-                    Volver al panel
+                ${!passed ? `
+                <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:12px;padding:14px;text-align:left;margin-bottom:20px;color:#92400e;font-size:0.84rem;">
+                    <strong>Observación del evaluador:</strong> Podrás repasar las charlas y solicitar una nueva fecha de examen teórico.
+                </div>` : `
+                <div style="background:#ecfdf5;border:1px solid #a7f3d0;border-radius:12px;padding:14px;text-align:left;margin-bottom:20px;color:#065f46;font-size:0.84rem;">
+                    <strong>Instancia completada:</strong> Cumpliste el requisito teórico. Podés continuar con el pago del arancel y turno de pista.
+                </div>`}
+
+                <button class="btn btn-primary btn-block btn-lg" style="font-weight:700" onclick="Router.navigate('dashboard')">
+                    Continuar al Panel
                 </button>
             </div>
         </div>`;

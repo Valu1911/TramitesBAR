@@ -6,9 +6,17 @@ class LoginPage {
         app.innerHTML = `
         <div class="login-page">
             <div class="login-logo animate-fadeIn">
-                <div class="login-logo__icon" style="display:flex;align-items:center;justify-content:center;font-size:3rem;margin-bottom:10px">${Icons.car}</div>
-                <h1 class="login-logo__text">Muni Digital</h1>
-                <p class="login-logo__sub">Sistema de Licencias de Conducir · Municipalidad de Baradero</p>
+                <div class="login-logo__icon" style="display:flex;align-items:center;justify-content:center">
+                    <svg viewBox="0 0 44 44" width="52" height="52" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="22" cy="22" r="21" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+                        <path d="M12 22C12 16.477 16.477 12 22 12C25.5 12 28.5 13.8 30.2 16.5" stroke="#1976d2" stroke-width="3.5" stroke-linecap="round"/>
+                        <path d="M32 22C32 27.523 27.523 32 22 32C18.5 32 15.5 30.2 13.8 27.5" stroke="#1976d2" stroke-width="3.5" stroke-linecap="round"/>
+                        <path d="M17 22C17 19.239 19.239 17 22 17C23.8 17 25.3 18 26.2 19.5" stroke="#f59e0b" stroke-width="3" stroke-linecap="round"/>
+                        <path d="M27 22C27 24.761 24.761 27 22 27C20.2 27 18.7 26 17.8 24.5" stroke="#0284c7" stroke-width="3" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                <h1 class="login-logo__text" style="font-family:'Plus Jakarta Sans',Inter,sans-serif">CIUDADANO <span style="font-weight:400;color:#0284c7">DIGITAL</span></h1>
+                <p class="login-logo__sub" style="font-weight:700;letter-spacing:1.2px;text-transform:uppercase;font-size:0.68rem">LICENCIAS · MUNICIPIO DE BARADERO</p>
             </div>
 
             <div class="login-card animate-slideUp" style="max-width:520px">
@@ -17,21 +25,21 @@ class LoginPage {
 
                 <div class="glass-card p-6">
                     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-                        <div style="display:flex;align-items:center;gap:8px;color:var(--primary)">
+                        <div style="display:flex;align-items:center;gap:8px;color:#0284c7">
                             <span style="display:flex;align-items:center;justify-content:center">${Icons.shield}</span>
-                            <span class="font-semibold text-sm">Verificación de identidad</span>
+                            <span style="font-weight:700;font-size:0.84rem;letter-spacing:0.2px">Verificación de identidad</span>
                         </div>
                     </div>
 
                     <!-- BANNER DE BIENVENIDA CON AVATAR CUANDO SE ESCANEA UN DNI EXISTENTE -->
-                    <div id="loginUserDetectedCard" style="display:none;background:rgba(37,99,235,0.08);border:1px solid var(--primary-light,#93c5fd);border-radius:var(--radius-md);padding:14px;margin-bottom:16px;" class="animate-fadeIn">
+                    <div id="loginUserDetectedCard" style="display:none;background:#e0f2fe;border:1px solid #bae6fd;border-radius:12px;padding:14px;margin-bottom:16px;" class="animate-fadeIn">
                         <div style="display:flex;align-items:center;gap:12px;">
-                            <div id="loginUserAvatar" style="width:48px;height:48px;border-radius:50%;border:2px solid var(--primary);overflow:hidden;background:#e2e8f0;flex-shrink:0;display:flex;align-items:center;justify-content:center;">
+                            <div id="loginUserAvatar" style="width:48px;height:48px;border-radius:50%;border:2px solid #0284c7;overflow:hidden;background:#f0f9ff;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#0284c7;">
                                 ${Icons.user}
                             </div>
                             <div style="flex:1;">
-                                <div style="font-weight:700;font-size:0.95rem;color:var(--text);" id="loginUserName">¡Hola!</div>
-                                <div class="text-xs text-muted" id="loginUserSubtitle">DNI verificado. Ingresá tu contraseña para entrar.</div>
+                                <div style="font-weight:800;font-size:0.95rem;color:#1e293b;" id="loginUserName">¡Hola!</div>
+                                <div style="font-size:0.78rem;color:#64748b;" id="loginUserSubtitle">DNI verificado. Ingresá tu contraseña para entrar.</div>
                             </div>
                             <button type="button" class="btn btn-ghost btn-sm" onclick="LoginPage.resetScannedUser()" title="Cambiar usuario" style="font-size:0.75rem;padding:4px 8px;">
                                 ✕
@@ -54,7 +62,8 @@ class LoginPage {
                         </div>
 
                         <button type="submit" class="btn btn-primary btn-block btn-lg" id="loginBtn">
-                            Continuar →
+                            Continuar
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
                         </button>
                         <button type="button" class="btn btn-ghost btn-block btn-lg" style="margin-top: 12px; font-weight: 500;" onclick="Router.navigate('registro')">
                             Crear nueva cuenta
@@ -63,14 +72,14 @@ class LoginPage {
 
                     <div style="margin-top:16px;text-align:center">
                         <button class="btn btn-ghost btn-sm" onclick="Router.navigate('admin-login')" 
-                                style="font-size:0.75rem;color:var(--text-muted);display:flex;align-items:center;justify-content:center;gap:4px">
+                                style="font-size:0.75rem;color:#94a3b8;display:flex;align-items:center;justify-content:center;gap:4px">
                             ${Icons.settings} Acceso administrador
                         </button>
                     </div>
                 </div>
             </div>
 
-            <p class="login-footer">Muni Digital · Municipalidad de Baradero © 2026</p>
+            <p class="login-footer">Ciudadano Digital · Municipalidad de Baradero © 2026</p>
         </div>`;
 
         // Renderizar el escáner de DNI dentro del wrapper

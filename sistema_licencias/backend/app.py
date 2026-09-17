@@ -2244,6 +2244,118 @@ def admin_stats():
         'turnos_pendientes': turnos_pendientes
     })
 
+# ============================================================
+# ENDPOINTS DE MEMORIA (GENTLE AI)
+# ============================================================
+
+@app.route('/api/user/activity', methods=['POST'])
+@token_required
+def log_user_activity():
+    """Registrar actividad del usuario (page_view, step_completed, etc.)."""
+    data = request.get_json() or {}
+    action = data.get('action', '')
+    detail = data.get('detail', '')
+
+    if not action:
+        return jsonify({'error': 'Se requiere el campo action'}), 400
+
+    detail_str = json.dumps(detail) if isinstance(detail, dict) else str(detail)
+
+    execute_query(
+        "INSERT INTO user_activity_log (usuario_id, action, detail) VALUES (?, ?, ?)",
+        (request.user_data['id'], action, detail_str)
+    )
+
+    return jsonify({'ok': True}), 201
+
+
+@app.route('/api/user/activity', methods=['GET'])
+@token_required
+def get_user_activity():
+    """Obtener historial de actividad del usuario."""
+    limit = request.args.get('limit', 50, type=int)
+    action_filter = request.args.get('action', None)
+
+    if action_filter:
+        activities = execute_query(
+            "SELECT * FROM user_activity_log WHERE usuario_id=? AND action=? ORDER BY created_at DESC LIMIT ?",
+            (request.user_data['id'], action_filter, limit),
+            fetch_all=True
+        )
+    else:
+        activities = execute_query(
+            "SELECT * FROM user_activity_log WHERE usuario_id=? ORDER BY created_at DESC LIMIT ?",
+            (request.user_data['id'], limit),
+            fetch_all=True
+        )
+
+    return jsonify({'activities': activities or []})
+
+
+@app.route('/api/user/preferences', methods=['GET'])
+@token_required
+def get_user_preferences():
+    """Obtener preferencias del usuario."""
+    prefs = execute_query(
+        "SELECT * FROM user_preferences WHERE usuario_id=?",
+        (request.user_data['id'],),
+        fetch_one=True
+    )
+
+    if not prefs:
+        execute_query(
+            "INSERT INTO user_preferences (usuario_id) VALUES (?)",
+            (request.user_data['id'],)
+        )
+        prefs = {
+            'theme': 'light',
+            'last_page': 'dashboard',
+            'sidebar_collapsed': 0
+        }
+
+    return jsonify({'preferences': prefs})
+
+
+@app.route('/api/user/preferences', methods=['PUT'])
+@token_required
+def update_user_preferences():
+    """Actualizar preferencias del usuario (tema, sidebar, última página)."""
+    data = request.get_json() or {}
+
+    existing = execute_query(
+        "SELECT id FROM user_preferences WHERE usuario_id=?",
+        (request.user_data['id'],),
+        fetch_one=True
+    )
+
+    theme = data.get('theme', 'light')
+    last_page = data.get('last_page', 'dashboard')
+    sidebar_collapsed = 1 if data.get('sidebar_collapsed', False) else 0
+
+    if existing:
+        execute_query(
+            """UPDATE user_preferences 
+               SET theme=?, last_page=?, sidebar_collapsed=?, updated_at=datetime('now','localtime') 
+               WHERE usuario_id=?""",
+            (theme, last_page, sidebar_collapsed, request.user_data['id'])
+        )
+    else:
+        execute_query(
+            "INSERT INTO user_preferences (usuario_id, theme, last_page, sidebar_collapsed) VALUES (?, ?, ?, ?)",
+            (request.user_data['id'], theme, last_page, sidebar_collapsed)
+        )
+
+    execute_query(
+        "INSERT INTO user_activity_log (usuario_id, action, detail) VALUES (?, ?, ?)",
+        (request.user_data['id'], 'preference_changed', json.dumps(data))
+    )
+
+    return jsonify({'ok': True, 'preferences': {
+        'theme': theme,
+        'last_page': last_page,
+        'sidebar_collapsed': sidebar_collapsed
+    }})
+
 
 # ============================================================
 # INIT - Crear password hashes correctos para admins
