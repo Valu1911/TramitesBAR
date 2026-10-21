@@ -5,17 +5,7 @@ class AdminLoginPage {
     static render(app) {
         app.innerHTML = `
         <div class="admin-login-page" style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#f8fafc;padding:24px;">
-            <div class="login-logo animate-fadeIn">
-                <div class="login-logo__icon" style="display:flex;align-items:center;justify-content:center">
-                    <svg viewBox="0 0 44 44" width="54" height="54" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <circle cx="22" cy="22" r="21" fill="#1e293b" stroke="#334155" stroke-width="1"/>
-                        <path d="M14 22L20 28L30 16" stroke="#38bdf8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-                        <circle cx="22" cy="22" r="14" stroke="#0284c7" stroke-width="2" stroke-dasharray="4 3"/>
-                    </svg>
-                </div>
-                <h1 class="login-logo__text" style="font-family:'Plus Jakarta Sans',Inter,sans-serif;color:#1e293b;">ADMIN <span style="font-weight:400;color:#0284c7">PANEL</span></h1>
-                <p class="login-logo__sub" style="font-weight:700;letter-spacing:1.2px;text-transform:uppercase;font-size:0.68rem;color:#64748b;">GESTIÓN DE LICENCIAS · MUNICIPIO DE BARADERO</p>
-            </div>
+            ${renderAuthBrand('PANEL', 'ADMINISTRATIVO', 'Gestión de licencias · Municipio de Baradero')}
 
             <div class="login-card animate-slideUp" style="max-width:440px;width:100%;">
                 <div class="dash-card p-6" style="border:1.5px solid #e2e8f0;box-shadow:0 12px 28px -4px rgba(0,0,0,0.08);">

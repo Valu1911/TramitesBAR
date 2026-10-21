@@ -146,6 +146,11 @@ class Router {
                         <button class="btn btn-primary mt-4" onclick="Router.navigate('login')">Volver al inicio</button>
                     </div>`;
         }
+
+        // Bari launcher visibility depends on the current page
+        if (window.Tutorial && typeof window.Tutorial.syncLauncher === 'function') {
+            window.Tutorial.syncLauncher();
+        }
     }
 }
 
@@ -169,8 +174,6 @@ function renderSidebar(user) {
         { id: 'entrega', icon: Icons.package || Icons.truck, label: 'Entrega' },
     ];
 
-    const isDark = document.body.classList.contains('dark');
-
     return `
     <div class="sidebar-overlay ${_sidebarMobileOpen ? 'active' : ''}" onclick="toggleMobileSidebar()"></div>
     <button class="sidebar__mobile-toggle" onclick="toggleMobileSidebar()" aria-label="Abrir menú">
@@ -181,7 +184,10 @@ function renderSidebar(user) {
             <div class="sidebar__logo">
                 <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/></svg>
             </div>
-            <span class="sidebar__brand-text">Ciudadano Digital</span>
+            <div class="sidebar__brand">
+                <img class="sidebar__isologo" src="img/isologo-baradero.svg" alt="Municipio de Baradero">
+                <span class="sidebar__brand-text">Ciudadano Digital</span>
+            </div>
         </div>
         <nav class="sidebar__nav">
             <div class="sidebar__nav-label">Trámite</div>
@@ -193,12 +199,6 @@ function renderSidebar(user) {
                     <span class="sidebar__item-text">${item.label}</span>
                 </button>
             `).join('')}
-            
-            <div class="sidebar__nav-label" style="margin-top:8px">Configuración</div>
-            <button class="sidebar__item" onclick="toggleDarkMode()" title="${isDark ? 'Modo claro' : 'Modo oscuro'}">
-                <span class="sidebar__item-icon">${isDark ? Icons.sun : Icons.moon}</span>
-                <span class="sidebar__item-text">${isDark ? 'Modo claro' : 'Modo oscuro'}</span>
-            </button>
         </nav>
         <div class="sidebar__footer">
             <div class="sidebar__user-info">
@@ -263,7 +263,6 @@ function renderNavbar(user) {
 function renderAdminNavbar(admin) {
     const currentPage = window.location.hash.slice(1) || 'admin-cuentas';
     const collapsed = _sidebarCollapsed ? 'collapsed' : '';
-    const isDark = document.body.classList.contains('dark');
     
     const adminItems = [
         { id: 'admin-cuentas', icon: Icons.shield, label: 'Cuentas' },
@@ -279,9 +278,12 @@ function renderAdminNavbar(admin) {
         <span style="display:flex;align-items:center">${Icons.menu || '☰'}</span>
     </button>
     <aside class="sidebar ${collapsed} ${_sidebarMobileOpen ? 'mobile-open' : ''}" id="app-sidebar">
-        <div class="sidebar__header" style="background:var(--blue-900);border-color:rgba(255,255,255,0.1)">
-            <div class="sidebar__logo" style="background:rgba(255,255,255,0.15)">${Icons.settings}</div>
-            <span class="sidebar__brand-text" style="color:white">Admin Panel</span>
+        <div class="sidebar__header">
+            <div class="sidebar__logo">${Icons.settings}</div>
+            <div class="sidebar__brand">
+                <img class="sidebar__isologo" src="img/isologo-baradero.svg" alt="Municipio de Baradero">
+                <span class="sidebar__brand-text">Panel Administrativo</span>
+            </div>
         </div>
         <nav class="sidebar__nav">
             <div class="sidebar__nav-label">Gestión</div>
@@ -293,16 +295,10 @@ function renderAdminNavbar(admin) {
                     <span class="sidebar__item-text">${item.label}</span>
                 </button>
             `).join('')}
-            
-            <div class="sidebar__nav-label" style="margin-top:8px">Sistema</div>
-            <button class="sidebar__item" onclick="toggleDarkMode()" title="${isDark ? 'Modo claro' : 'Modo oscuro'}">
-                <span class="sidebar__item-icon">${isDark ? Icons.sun : Icons.moon}</span>
-                <span class="sidebar__item-text">${isDark ? 'Modo claro' : 'Modo oscuro'}</span>
-            </button>
         </nav>
         <div class="sidebar__footer">
             <div class="sidebar__user-info">
-                <div class="sidebar__user-avatar" style="border-color:var(--accent)">${Icons.user}</div>
+                <div class="sidebar__user-avatar">${Icons.user}</div>
                 <div style="flex:1;min-width:0;">
                     <div class="sidebar__user-name">${admin?.nombre || 'Admin'}</div>
                     <div class="sidebar__user-role">${admin?.rol || 'administrador'}</div>
@@ -356,6 +352,18 @@ function renderBackHeader(title, backTo = 'dashboard') {
 }
 
 // ============================================================
+// AUTH BRAND HEADER (shared by login / registro / admin-login)
+// ============================================================
+function renderAuthBrand(title, accent, subtitle) {
+    return `
+    <div class="login-logo animate-fadeIn">
+        <img class="login-logo__isologo" src="img/isologo-baradero.svg" alt="Municipio de Baradero">
+        <h1 class="login-logo__text">${title} <span class="login-logo__accent">${accent}</span></h1>
+        <p class="login-logo__sub">${subtitle}</p>
+    </div>`;
+}
+
+// ============================================================
 // LOGOUT
 // ============================================================
 function logout() {
@@ -371,30 +379,12 @@ function adminLogout() {
 }
 
 // ============================================================
-// DARK MODE (with backend persistence)
+// THEME (single light theme — Baradero institutional)
 // ============================================================
-function toggleDarkMode() {
-    const isDark = document.body.classList.toggle('dark');
-    localStorage.setItem('theme', isDark ? 'dark' : 'light');
-    
-    // Persist to backend
-    saveUserPreference('theme', isDark ? 'dark' : 'light');
-    
-    // Re-render sidebar to update icon
-    const app = document.getElementById('app');
-    const currentPage = window.location.hash.slice(1) || 'dashboard';
-    if (app && currentPage !== 'login' && currentPage !== 'registro' && currentPage !== 'admin-login') {
-        // Refresh page to update sidebar icons
-        Router.render(currentPage);
-    }
-}
-
 function initTheme() {
-    const theme = localStorage.getItem('theme');
-    if (theme === 'dark') {
-        document.body.classList.add('dark');
-    }
-    // Default: light mode (no auto-detect dark)
+    // The dark mode was removed: clear any stale preference from older sessions.
+    document.body.classList.remove('dark');
+    localStorage.removeItem('theme');
 }
 
 // ============================================================
@@ -423,10 +413,6 @@ async function loadUserPreferences() {
         const res = await ApiService.request('/api/user/preferences');
         if (res?.preferences) {
             const prefs = res.preferences;
-            if (prefs.theme === 'dark') {
-                document.body.classList.add('dark');
-                localStorage.setItem('theme', 'dark');
-            }
             if (prefs.sidebar_collapsed) {
                 _sidebarCollapsed = true;
             }

@@ -275,7 +275,8 @@ class AdminProfesoresPage {
 
     // ============================================================
     // TAB 2: BANCO DE PREGUNTAS
-    // =========================    static async renderTabPreguntas(container) {
+    // ============================================================
+    static async renderTabPreguntas(container) {
         try {
             const data = await ApiService.adminGetPreguntas();
             this.preguntas = data.preguntas || [];

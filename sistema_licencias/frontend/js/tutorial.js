@@ -1,121 +1,391 @@
 /**
- * TramitBot Tutorial System
- * Gestiona el tutorial guiado usando la mascota en pantalla.
+ * Bari Tutorial System
+ * Guided tutorial with Bari (the Baradero capybara mascot): floating launcher,
+ * spotlight engine and a guide card whose mascot is rendered from transparent
+ * video frames (canvas chroma/flood-fill clean-up).
+ *
+ * Public API (kept stable, used by every page):
+ *   window.Tutorial.startTutorialWithContext(context, force)
+ *   window.Tutorial.showApprovalGreeting(nombre)
+ *   window.Tutorial.syncLauncher()
  */
 
+// ============================================================================
+// Canvas renderer: draws the current video frame and makes the outer
+// background (near-black or transparent) fully transparent.
+// ============================================================================
+class BariCanvasRenderer {
+    constructor(canvas, video) {
+        this.canvas = canvas;
+        this.ctx = canvas.getContext('2d', { willReadFrequently: true });
+        this.video = video;
+        this.animId = null;
+        this.isRunning = false;
+        this.w = canvas.width || 185;
+        this.h = canvas.height || 255;
+
+        // Offscreen buffer: isolates each frame so nothing accumulates
+        this.scratchCanvas = document.createElement('canvas');
+        this.scratchCanvas.width = this.w;
+        this.scratchCanvas.height = this.h;
+        this.scratchCtx = this.scratchCanvas.getContext('2d', { willReadFrequently: true });
+
+        this.crop = { sx: 0, sy: 175, sw: 720, sh: 992 };
+        this.targetSrc = null;
+        this.visited = new Uint8Array(this.w * this.h);
+        this.queue = new Int32Array(this.w * this.h);
+        this.onFallback = null;
+        this.fallbackTriggered = false;
+    }
+
+    updateElements(canvas, video) {
+        if (canvas && canvas !== this.canvas) {
+            this.canvas = canvas;
+            this.ctx = canvas.getContext('2d', { willReadFrequently: true });
+            this.w = canvas.width || 185;
+            this.h = canvas.height || 255;
+            this.scratchCanvas.width = this.w;
+            this.scratchCanvas.height = this.h;
+            this.visited = new Uint8Array(this.w * this.h);
+            this.queue = new Int32Array(this.w * this.h);
+        }
+        if (video) this.video = video;
+    }
+
+    // Crop windows that center Bari at a 185:255 ratio, per source video
+    setCropForVideo(src) {
+        if (!src) return;
+        this.targetSrc = src;
+        this.clear();
+        if (src.includes('der.webm') || src.includes('deslizar.webm')) {
+            this.crop = { sx: 361, sy: 0, sw: 522, sh: 720 };      // horizontal 1260x720
+        } else if (src.includes('salu2.webm')) {
+            this.crop = { sx: 138, sy: 59, sw: 433, sh: 597 };     // square 720x720
+        } else if (src.includes('izquierda.webm')) {
+            this.crop = { sx: 0, sy: 139, sw: 720, sh: 992 };      // vertical 720x1260
+        } else {
+            this.crop = { sx: 0, sy: 175, sw: 720, sh: 992 };      // lipsting.webm 720x1260
+        }
+    }
+
+    clear() {
+        if (this.ctx) this.ctx.clearRect(0, 0, this.w, this.h);
+        if (this.scratchCtx) this.scratchCtx.clearRect(0, 0, this.w, this.h);
+    }
+
+    start() {
+        if (this.isRunning) return;
+        this.isRunning = true;
+        const loop = () => {
+            if (!this.isRunning) return;
+            this.render();
+            this.animId = requestAnimationFrame(loop);
+        };
+        this.animId = requestAnimationFrame(loop);
+    }
+
+    stop() {
+        this.isRunning = false;
+        if (this.animId) {
+            cancelAnimationFrame(this.animId);
+            this.animId = null;
+        }
+        this.clear();
+    }
+
+    readFrameSafely(w, h) {
+        try {
+            return this.scratchCtx.getImageData(0, 0, w, h);
+        } catch (error) {
+            // Tainted canvas (e.g. opened from file://): switch to direct video mode
+            this.stop();
+            if (!this.fallbackTriggered) {
+                this.fallbackTriggered = true;
+                if (typeof this.onFallback === 'function') this.onFallback(error);
+            }
+            return null;
+        }
+    }
+
+    render() {
+        if (!this.video || this.video.readyState < 2) return;
+        if (this.targetSrc && this.video.currentSrc &&
+            !this.video.currentSrc.includes(this.targetSrc.split('/').pop())) return;
+
+        const { sx, sy, sw, sh } = this.crop;
+        const w = this.w;
+        const h = this.h;
+
+        this.scratchCtx.clearRect(0, 0, w, h);
+        this.scratchCtx.drawImage(this.video, sx, sy, sw, sh, 0, 0, w, h);
+
+        const imgData = this.readFrameSafely(w, h);
+        if (!imgData) return;
+        const data = imgData.data;
+        const visited = this.visited;
+        visited.fill(0);
+        const queue = this.queue;
+        let head = 0;
+        let tail = 0;
+
+        // Background = native alpha (<25) or near-black (<26 in every channel)
+        const isBgPixel = (p) =>
+            data[p + 3] < 25 || (data[p] < 26 && data[p + 1] < 26 && data[p + 2] < 26);
+
+        // Seed from the frame borders
+        for (let x = 0; x < w; x++) {
+            const top = x;
+            if (isBgPixel(top * 4)) { visited[top] = 1; queue[tail++] = top; }
+            const bot = (h - 1) * w + x;
+            if (isBgPixel(bot * 4)) { visited[bot] = 1; queue[tail++] = bot; }
+        }
+        for (let y = 0; y < h; y++) {
+            const l = y * w;
+            if (!visited[l] && isBgPixel(l * 4)) { visited[l] = 1; queue[tail++] = l; }
+            const r = y * w + (w - 1);
+            if (!visited[r] && isBgPixel(r * 4)) { visited[r] = 1; queue[tail++] = r; }
+        }
+
+        // BFS flood-fill: only the continuous outer background
+        while (head < tail) {
+            const curr = queue[head++];
+            const cx = curr % w;
+            const cy = (curr / w) | 0;
+            if (cx > 0) {
+                const n = curr - 1;
+                if (!visited[n] && isBgPixel(n * 4)) { visited[n] = 1; queue[tail++] = n; }
+            }
+            if (cx < w - 1) {
+                const n = curr + 1;
+                if (!visited[n] && isBgPixel(n * 4)) { visited[n] = 1; queue[tail++] = n; }
+            }
+            if (cy > 0) {
+                const n = curr - w;
+                if (!visited[n] && isBgPixel(n * 4)) { visited[n] = 1; queue[tail++] = n; }
+            }
+            if (cy < h - 1) {
+                const n = curr + w;
+                if (!visited[n] && isBgPixel(n * 4)) { visited[n] = 1; queue[tail++] = n; }
+            }
+        }
+
+        for (let i = 0; i < w * h; i++) {
+            if (visited[i]) data[i * 4 + 3] = 0;
+        }
+
+        this.ctx.clearRect(0, 0, w, h);
+        this.ctx.putImageData(imgData, 0, 0);
+    }
+}
+
+// ============================================================================
+// Tutorial system
+// ============================================================================
 class TutorialSystem {
     constructor() {
         this.currentStep = 0;
         this.steps = [];
         this.isActive = false;
-        
-        // El SVG de nuestra mascota "TramitBot" (un robot simpático)
-        this.mascotSvg = `
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" class="mascot-svg" style="filter: drop-shadow(0 10px 15px rgba(0,0,0,0.2)); width: 140px; height: 140px;">
-            <defs>
-                <linearGradient id="bodyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stop-color="#ffffff"/>
-                    <stop offset="100%" stop-color="#d1d5db"/>
-                </linearGradient>
-                <linearGradient id="visorGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stop-color="#3b82f6"/>
-                    <stop offset="100%" stop-color="#1d4ed8"/>
-                </linearGradient>
-                <linearGradient id="cyanGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                    <stop offset="0%" stop-color="#22d3ee"/>
-                    <stop offset="100%" stop-color="#0891b2"/>
-                </linearGradient>
-            </defs>
-            
-            <!-- Left Ear/Antenna -->
-            <rect x="30" y="70" width="15" height="30" rx="5" fill="url(#bodyGrad)"/>
-            <path d="M 35 75 L 35 50 L 45 50 L 45 75 Z" fill="url(#cyanGrad)"/>
-            
-            <!-- Right Ear/Antenna -->
-            <rect x="155" y="70" width="15" height="30" rx="5" fill="url(#bodyGrad)"/>
-            <path d="M 155 75 L 155 50 L 165 50 L 165 75 Z" fill="url(#cyanGrad)"/>
+        this.currentKey = null;
+        this.currentContext = null;
+        this.bariRenderer = null;
+        this.launcher = null;
+        this.overlay = null;
+        this.spotlight = null;
+        this.guideCard = null;
+        this.listenersBound = false;
 
-            <!-- Body/Torso -->
-            <path d="M 60 120 Q 100 180 140 120 Z" fill="url(#bodyGrad)"/>
-            
-            <!-- Cyan Belly Badge -->
-            <path d="M 75 130 Q 100 170 125 130 Z" fill="url(#cyanGrad)"/>
+        // Contexts that have a tutorial (the launcher is shown only on these pages)
+        this.launcherPages = [
+            'dashboard', 'charlas', 'formularios', 'examen', 'pago', 'practico', 'entrega',
+            'admin-pagos', 'admin-salud', 'admin-turnos'
+        ];
 
-            <!-- Left Arm -->
-            <path d="M 65 125 C 40 135 30 160 45 170 C 60 180 75 145 75 145" fill="url(#bodyGrad)"/>
-            
-            <!-- Right Arm (Waving) -->
-            <path d="M 135 125 C 160 110 180 90 170 70 C 160 50 145 95 145 95" fill="url(#bodyGrad)"/>
-
-            <!-- Head -->
-            <rect x="40" y="40" width="120" height="85" rx="40" fill="url(#bodyGrad)"/>
-            
-            <!-- Face / Visor -->
-            <rect x="50" y="50" width="100" height="65" rx="30" fill="url(#visorGrad)"/>
-            
-            <!-- Visor Highlight (Glass effect) -->
-            <path d="M 60 55 Q 100 45 140 55 Q 120 70 80 70 Z" fill="rgba(255,255,255,0.2)"/>
-            
-            <!-- Eyes (Glowing) -->
-            <g filter="drop-shadow(0 0 5px #67e8f9)">
-                <path d="M 70 75 Q 80 65 90 75" fill="none" stroke="#67e8f9" stroke-width="6" stroke-linecap="round"/>
-                <path d="M 110 75 Q 120 65 130 75" fill="none" stroke="#67e8f9" stroke-width="6" stroke-linecap="round"/>
-            </g>
-        </svg>
-        `;
+        this.onResize = () => { if (this.isActive) this.updateSpotlight(); };
+        this.onScroll = () => { if (this.isActive) this.updateSpotlight(); };
+        this.onKeyDown = (e) => {
+            if (this.isActive && e.key === 'Escape') this.endTutorial(true);
+        };
     }
+
+    // ---------------------------------------------------------------- DOM
 
     init() {
-        if (document.getElementById('tutorial-overlay')) return; // Ya inicializado
+        this.ensureOverlay();
+        this.ensureGuideCard();
 
-        // 1. Crear Overlay
-        this.overlay = document.createElement('div');
-        this.overlay.id = 'tutorial-overlay';
-        document.body.appendChild(this.overlay);
-
-        // 2. Crear Spotlight Cutout
-        this.spotlight = document.createElement('div');
-        this.spotlight.id = 'tutorial-spotlight';
-        document.body.appendChild(this.spotlight);
-
-        // 3. Crear Contenedor de Mascota
-        this.container = document.createElement('div');
-        this.container.id = 'tutorial-mascot-container';
-        
-        this.container.innerHTML = `
-            <div class="tutorial-dialog">
-                <div class="tutorial-dialog__title">
-                    <span style="font-size:1.2rem">🤖</span> <span id="tutorial-title">Hola!</span>
-                </div>
-                <div class="tutorial-dialog__text" id="tutorial-text">
-                    Soy TramitBot, tu asistente personal.
-                </div>
-                <div class="tutorial-dialog__actions">
-                    <button class="tutorial-btn-skip" id="tutorial-btn-skip">Saltear tutorial</button>
-                    <button class="tutorial-btn-next" id="tutorial-btn-next">Siguiente →</button>
-                </div>
-            </div>
-            ${this.mascotSvg}
-        `;
-        document.body.appendChild(this.container);
-
-        // 4. Eventos
-        document.getElementById('tutorial-btn-skip').addEventListener('click', () => this.endTutorial(true));
-        document.getElementById('tutorial-btn-next').addEventListener('click', () => this.nextStep());
-
-        window.addEventListener('resize', () => {
-            if (this.isActive) this.updateSpotlight();
-        });
-        window.addEventListener('scroll', () => {
-            if (this.isActive) this.updateSpotlight();
-        }, { passive: true });
+        if (!this.listenersBound) {
+            window.addEventListener('resize', this.onResize);
+            window.addEventListener('scroll', this.onScroll, { passive: true });
+            document.addEventListener('keydown', this.onKeyDown);
+            this.listenersBound = true;
+        }
     }
 
+    ensureOverlay() {
+        if (!this.overlay) {
+            this.overlay = document.getElementById('tutorial-overlay');
+            if (!this.overlay) {
+                this.overlay = document.createElement('div');
+                this.overlay.id = 'tutorial-overlay';
+                document.body.appendChild(this.overlay);
+            }
+        }
+        if (!this.spotlight) {
+            this.spotlight = document.getElementById('tutorial-spotlight');
+            if (!this.spotlight) {
+                this.spotlight = document.createElement('div');
+                this.spotlight.id = 'tutorial-spotlight';
+                document.body.appendChild(this.spotlight);
+            }
+        }
+    }
+
+    ensureGuideCard() {
+        let card = document.getElementById('tutorial-guide-card');
+        if (!card) {
+            card = document.createElement('div');
+            card.id = 'tutorial-guide-card';
+            card.setAttribute('role', 'dialog');
+            card.setAttribute('aria-label', 'Guía de Bari');
+            card.innerHTML = `
+                <div class="tutorial-bari-column">
+                    <div class="tutorial-bari-video-box">
+                        <canvas id="tutorial-bari-canvas" class="bari-tutorial-canvas" width="185" height="255"></canvas>
+                        <video id="tutorial-bari-talking-video" class="bari-video-lipsting"
+                               src="assets/videos/lipsting.webm" autoplay loop muted playsinline></video>
+                    </div>
+                </div>
+                <div class="tutorial-content-column">
+                    <div class="tutorial-guide-header">
+                        <span class="tutorial-step-pill" id="tutorial-step-pill">Paso 1 de 1</span>
+                        <button class="tutorial-close-btn" id="tutorial-btn-close" type="button" aria-label="Cerrar guía">&times;</button>
+                    </div>
+                    <div class="tutorial-guide-title"><span id="tutorial-title-text">Hola</span></div>
+                    <div class="tutorial-guide-text" id="tutorial-guide-text"></div>
+                    <div class="tutorial-guide-footer">
+                        <button class="tutorial-skip-btn" id="tutorial-btn-skip" type="button">Saltear tutorial</button>
+                        <div class="tutorial-dots-row" id="tutorial-dots-row"></div>
+                        <div class="tutorial-nav-btns">
+                            <button class="tutorial-nav-btn tutorial-btn-prev" id="tutorial-btn-prev" type="button">Anterior</button>
+                            <button class="tutorial-nav-btn tutorial-btn-next" id="tutorial-btn-next" type="button">Siguiente</button>
+                        </div>
+                    </div>
+                </div>`;
+            document.body.appendChild(card);
+        }
+        this.guideCard = card;
+
+        const canvas = document.getElementById('tutorial-bari-canvas');
+        const video = document.getElementById('tutorial-bari-talking-video');
+        if (canvas && video) {
+            if (!this.bariRenderer) {
+                this.bariRenderer = new BariCanvasRenderer(canvas, video);
+            } else {
+                this.bariRenderer.updateElements(canvas, video);
+            }
+            this.bariRenderer.onFallback = () => this.enableBariVideoFallback();
+        }
+    }
+
+    bindCardButtons() {
+        const btnClose = document.getElementById('tutorial-btn-close');
+        const btnSkip = document.getElementById('tutorial-btn-skip');
+        const btnPrev = document.getElementById('tutorial-btn-prev');
+        const btnNext = document.getElementById('tutorial-btn-next');
+        if (btnClose) btnClose.onclick = () => this.endTutorial(true);
+        if (btnSkip) btnSkip.onclick = () => this.endTutorial(true);
+        if (btnPrev) btnPrev.onclick = () => this.prevStep();
+        if (btnNext) btnNext.onclick = () => this.nextStep();
+    }
+
+    enableBariVideoFallback() {
+        const box = document.querySelector('.tutorial-bari-video-box');
+        if (box) box.classList.add('bari-file-fallback');
+        const vid = document.getElementById('tutorial-bari-talking-video');
+        if (vid) vid.play().catch(() => {});
+    }
+
+    // ----------------------------------------------------------- Launcher
+
     /**
-     * Inicia un tutorial para un contexto específico (dashboard, admin-pagos, etc)
+     * Shows the floating Bari launcher on pages that have a tutorial and
+     * hides it everywhere else (login, registro, pages without steps).
+     */
+    syncLauncher() {
+        const page = (window.location.hash.slice(1) || '').split('?')[0];
+        const shouldShow = this.launcherPages.includes(page);
+
+        if (!shouldShow) {
+            if (this.launcher) this.launcher.classList.add('hidden');
+            return;
+        }
+
+        if (!this.launcher) this.buildLauncher();
+        if (this.launcher && !this.isActive) this.launcher.classList.remove('hidden');
+    }
+
+    buildLauncher() {
+        const launcher = document.createElement('div');
+        launcher.id = 'bari-floating-launcher';
+        launcher.className = 'bari-launcher hidden';
+        launcher.setAttribute('role', 'button');
+        launcher.setAttribute('tabindex', '0');
+        launcher.setAttribute('aria-label', 'Iniciar recorrido guiado con Bari');
+        launcher.innerHTML = `
+            <div class="bari-bubble" id="bari-launcher-bubble">
+                <span class="bari-bubble-badge">Guía de Bari</span>
+                <p class="bari-bubble-text">¿Necesitás ayuda con este paso? Hacé clic y te guío.</p>
+                <button class="bari-bubble-close" id="bari-bubble-close" type="button" aria-label="Cerrar mensaje">&times;</button>
+            </div>
+            <div class="bari-mascot-pod">
+                <video id="bari-salu2-video" class="bari-video-salu2" src="assets/videos/salu2.webm"
+                       autoplay loop muted playsinline></video>
+                <span class="bari-status-badge">
+                    <span class="bari-status-pulse"></span>
+                    <span>Guía</span>
+                </span>
+            </div>`;
+        document.body.appendChild(launcher);
+        this.launcher = launcher;
+
+        const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const vid = launcher.querySelector('#bari-salu2-video');
+        if (reduceMotion && vid) {
+            vid.removeAttribute('autoplay');
+            vid.pause();
+        }
+
+        const close = launcher.querySelector('#bari-bubble-close');
+        close.onclick = (e) => {
+            e.stopPropagation();
+            const bubble = document.getElementById('bari-launcher-bubble');
+            if (bubble) bubble.style.display = 'none';
+        };
+
+        const start = () => {
+            const page = (window.location.hash.slice(1) || 'dashboard').split('?')[0];
+            this.startTutorialWithContext(page, true);
+        };
+        launcher.onclick = (e) => {
+            if (e.target && e.target.closest('#bari-bubble-close')) return;
+            start();
+        };
+        launcher.onkeydown = (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                start();
+            }
+        };
+    }
+
+    // ------------------------------------------------------------ Control
+
+    /**
+     * Starts a tutorial for a specific context (dashboard, admin-pagos, etc.)
      */
     startTutorial(context, force = false) {
-        // Determinar ID del usuario actual para que el tutorial sea por cuenta
+        // Per-account tutorial progress
         let userId = '';
         if (window.ApiService) {
             const user = ApiService.getUsuario();
@@ -123,25 +393,78 @@ class TutorialSystem {
             const admin = ApiService.getAdmin();
             if (admin && admin.id) userId = '_admin_' + admin.id;
         }
-        
+
         this.currentKey = `tutorial_${context}${userId}`;
 
-        // Chequear si ya lo vio
         const hasSeen = localStorage.getItem(this.currentKey);
-        if (hasSeen === 'completed' && !force) return; // Ya lo vio
+        if (hasSeen === 'completed' && !force) return;
+
+        const steps = this.getStepsForContext(context);
+        if (steps.length === 0) return;
 
         this.init();
-        this.steps = this.getStepsForContext(context);
-        
-        if (this.steps.length === 0) return; // No hay tutorial para esta vista
-
+        this.bindCardButtons();
+        this.steps = steps;
         this.currentStep = 0;
         this.isActive = true;
+
+        if (this.launcher) this.launcher.classList.add('hidden');
         this.overlay.classList.add('active');
-        this.container.classList.add('active');
-        
+        this.guideCard.classList.add('active');
+        this.setCardMode('steps');
+
         this.showCurrentStep();
     }
+
+    startTutorialWithContext(context, force = false) {
+        this.currentContext = context;
+        this.startTutorial(context, force);
+    }
+
+    nextStep() {
+        if (this.currentStep >= this.steps.length - 1) {
+            this.endTutorial();
+            return;
+        }
+        this.currentStep++;
+        this.showCurrentStep();
+    }
+
+    prevStep() {
+        if (this.currentStep > 0) {
+            this.currentStep--;
+            this.showCurrentStep();
+        }
+    }
+
+    endTutorial(skipped = false) {
+        this.isActive = false;
+        if (this.overlay) {
+            this.overlay.classList.remove('active');
+            this.overlay.classList.remove('transparent-bg');
+        }
+        if (this.spotlight) this.spotlight.classList.remove('active');
+        if (this.guideCard) this.guideCard.classList.remove('active');
+        if (this.bariRenderer) this.bariRenderer.stop();
+
+        const vid = document.getElementById('tutorial-bari-talking-video');
+        if (vid) vid.pause();
+
+        document.querySelectorAll('.tutorial-highlight').forEach(el => el.classList.remove('tutorial-highlight'));
+
+        if (this.currentKey) {
+            localStorage.setItem(this.currentKey, 'completed');
+        }
+        this.syncLauncher();
+    }
+
+    // Toggles the card between multi-step mode and single-message mode
+    setCardMode(mode) {
+        if (!this.guideCard) return;
+        this.guideCard.classList.toggle('tutorial-single', mode === 'single');
+    }
+
+    // ---------------------------------------------------------- Spotlight
 
     updateSpotlight(targetEl = null) {
         if (!targetEl && this.steps && this.steps[this.currentStep]) {
@@ -151,23 +474,116 @@ class TutorialSystem {
 
         if (targetEl && this.spotlight) {
             const rect = targetEl.getBoundingClientRect();
-            const padding = 8;
+            const padding = 10;
 
-            this.spotlight.style.top = (rect.top - padding) + 'px';
-            this.spotlight.style.left = (rect.left - padding) + 'px';
-            this.spotlight.style.width = (rect.width + padding * 2) + 'px';
-            this.spotlight.style.height = (rect.height + padding * 2) + 'px';
+            this.spotlight.style.top = `${Math.max(0, rect.top - padding)}px`;
+            this.spotlight.style.left = `${Math.max(0, rect.left - padding)}px`;
+            this.spotlight.style.width = `${rect.width + padding * 2}px`;
+            this.spotlight.style.height = `${rect.height + padding * 2}px`;
 
             const computedRadius = parseInt(window.getComputedStyle(targetEl).borderRadius) || 12;
-            this.spotlight.style.borderRadius = Math.min(computedRadius + 4, 24) + 'px';
+            this.spotlight.style.borderRadius = `${Math.min(computedRadius + 6, 24)}px`;
 
             this.spotlight.classList.add('active');
             if (this.overlay) this.overlay.classList.add('transparent-bg');
+
+            this.positionGuideCard(rect, this.steps[this.currentStep]);
         } else {
             if (this.spotlight) this.spotlight.classList.remove('active');
             if (this.overlay) this.overlay.classList.remove('transparent-bg');
+            this.centerGuideCard();
         }
     }
+
+    positionGuideCard(targetRect, step = null) {
+        if (!this.guideCard) return;
+
+        const cardWidth = Math.min(630, window.innerWidth - 32);
+        const cardHeight = 295;
+        const gap = 20;
+        let top = 0;
+        let left = 0;
+
+        const placement = step && step.preferredPlacement ? step.preferredPlacement : 'auto';
+
+        if (placement === 'right-of-target' && (targetRect.right + gap + cardWidth <= window.innerWidth - 16)) {
+            left = targetRect.right + gap;
+            top = Math.max(16, Math.min(targetRect.top, window.innerHeight - cardHeight - 16));
+        } else if (placement === 'left-of-target' && (targetRect.left - gap - cardWidth >= 16)) {
+            left = targetRect.left - gap - cardWidth;
+            top = Math.max(16, Math.min(targetRect.top, window.innerHeight - cardHeight - 16));
+        } else {
+            const spaceBelow = window.innerHeight - targetRect.bottom;
+            const spaceAbove = targetRect.top;
+
+            if (spaceBelow >= cardHeight + gap) {
+                top = targetRect.bottom + gap;
+                left = targetRect.left + (targetRect.width - cardWidth) / 2;
+            } else if (spaceAbove >= cardHeight + gap) {
+                top = targetRect.top - cardHeight - gap;
+                left = targetRect.left + (targetRect.width - cardWidth) / 2;
+            } else {
+                top = window.innerHeight - cardHeight - 24;
+                left = window.innerWidth - cardWidth - 24;
+            }
+        }
+
+        left = Math.max(16, Math.min(left, window.innerWidth - cardWidth - 16));
+        top = Math.max(16, Math.min(top, window.innerHeight - cardHeight - 16));
+
+        this.guideCard.style.top = `${top}px`;
+        this.guideCard.style.left = `${left}px`;
+        this.guideCard.style.transform = 'none';
+    }
+
+    centerGuideCard() {
+        if (!this.guideCard) return;
+        this.guideCard.style.top = '50%';
+        this.guideCard.style.left = '50%';
+        this.guideCard.style.transform = 'translate(-50%, -50%)';
+    }
+
+    // ------------------------------------------------------------ Bari video
+
+    // Picks the pointing video according to where the target sits relative to the card
+    resolveVideoForStep(step, targetEl) {
+        const fallback = (step && step.video) || 'assets/videos/lipsting.webm';
+        if (!targetEl || !step) return fallback;
+        if (step.gesture === 'talk' || step.gesture === 'slide') return fallback;
+
+        const targetRect = targetEl.getBoundingClientRect();
+        const targetCenterX = targetRect.left + targetRect.width / 2;
+
+        if (this.guideCard) {
+            const cardRect = this.guideCard.getBoundingClientRect();
+            const diffX = targetCenterX - (cardRect.left + cardRect.width / 2);
+            const diffY = (targetRect.top + targetRect.height / 2) - (cardRect.top + cardRect.height / 2);
+
+            // Target mostly above/below: never point sideways
+            if (Math.abs(diffY) > 160 && Math.abs(diffX) < 140) return 'assets/videos/lipsting.webm';
+            if (diffX > 70) return 'assets/videos/der.webm';
+            if (diffX < -70) return 'assets/videos/izquierda.webm';
+        }
+        return fallback;
+    }
+
+    applyBariVideo(src) {
+        const vid = document.getElementById('tutorial-bari-talking-video');
+        if (!vid || !src) return;
+
+        if (vid.getAttribute('src') !== src) {
+            vid.setAttribute('src', src);
+            vid.load();
+        }
+        if (this.bariRenderer) {
+            this.bariRenderer.updateElements(document.getElementById('tutorial-bari-canvas'), vid);
+            this.bariRenderer.setCropForVideo(src);
+            if (!this.bariRenderer.fallbackTriggered) this.bariRenderer.start();
+        }
+        vid.play().catch(() => {});
+    }
+
+    // ------------------------------------------------------------- Steps
 
     showCurrentStep() {
         const step = this.steps[this.currentStep];
@@ -176,119 +592,79 @@ class TutorialSystem {
             return;
         }
 
-        // Remover highlight anterior
         document.querySelectorAll('.tutorial-highlight').forEach(el => el.classList.remove('tutorial-highlight'));
 
-        // Actualizar textos
-        document.getElementById('tutorial-title').textContent = step.title;
-        document.getElementById('tutorial-text').textContent = step.text;
-        
-        // Actualizar botón next
+        const pill = document.getElementById('tutorial-step-pill');
+        const titleText = document.getElementById('tutorial-title-text');
+        const textEl = document.getElementById('tutorial-guide-text');
+        const btnPrev = document.getElementById('tutorial-btn-prev');
         const btnNext = document.getElementById('tutorial-btn-next');
-        if (this.currentStep === this.steps.length - 1) {
-            btnNext.textContent = '¡Entendido! ✓';
-        } else {
-            btnNext.textContent = 'Siguiente →';
+        const dotsRow = document.getElementById('tutorial-dots-row');
+
+        if (pill) pill.textContent = `Paso ${this.currentStep + 1} de ${this.steps.length}`;
+        if (titleText) titleText.textContent = step.title;
+        if (textEl) textEl.innerHTML = step.text;
+        if (btnPrev) btnPrev.style.display = this.currentStep > 0 ? 'inline-block' : 'none';
+        if (btnNext) btnNext.textContent = this.currentStep === this.steps.length - 1 ? 'Entendido' : 'Siguiente';
+
+        if (dotsRow) {
+            dotsRow.innerHTML = this.steps.map((_, i) => {
+                let cls = 'tutorial-dot';
+                if (i === this.currentStep) cls += ' active';
+                if (i < this.currentStep) cls += ' completed';
+                return `<div class="${cls}"></div>`;
+            }).join('');
         }
 
-        // Resaltar elemento y mover mascota
+        // Initial video (before layout is known) so Bari is never blank
+        this.applyBariVideo(this.resolveVideoForStep(step, null));
+
         if (step.targetSelector) {
             setTimeout(() => {
+                if (!this.isActive) return;
                 const targetEl = document.querySelector(step.targetSelector);
                 if (targetEl) {
                     targetEl.classList.add('tutorial-highlight');
                     targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-                    // Actualizar spotlight cutout
                     this.updateSpotlight(targetEl);
-                    
-                    // Estrategia de posicionamiento: Ubicar a TramitBot más arriba en la esquina inferior derecha
-                    // para que el diálogo completo y el botón de confirmar sean 100% visibles y fáciles de presionar.
-                    const cWidth = 460;
-                    const cHeight = 320;
-                    
-                    let top = window.innerHeight - cHeight - 40;
-                    let left = window.innerWidth - cWidth - 30;
-                    
-                    if (left < 10) left = 10;
-                    if (top < 70) top = 70;
-                    
-                    this.container.style.top = top + 'px';
-                    this.container.style.left = left + 'px';
-                    this.container.style.transform = 'none';
+                    this.applyBariVideo(this.resolveVideoForStep(step, targetEl));
                 } else {
                     this.updateSpotlight(null);
-                    this.centerMascot();
                 }
             }, 100);
         } else {
             this.updateSpotlight(null);
-            this.centerMascot();
         }
     }
 
-    centerMascot() {
-        this.container.style.top = (window.innerHeight / 2 - 125) + 'px';
-        this.container.style.left = '50%';
-        this.container.style.transform = 'translateX(-50%)';
-    }
-
-    nextStep() {
-        this.currentStep++;
-        this.showCurrentStep();
-    }
-
-    endTutorial(skipped = false) {
-        this.isActive = false;
-        this.overlay.classList.remove('active');
-        this.overlay.classList.remove('transparent-bg');
-        if (this.spotlight) this.spotlight.classList.remove('active');
-        this.container.classList.remove('active');
-        
-        // Esconder mascota enviandola fuera de pantalla
-        this.container.style.top = '-500px';
-        this.container.style.left = '50%';
-        this.container.style.transform = 'translateX(-50%)';
-        
-        document.querySelectorAll('.tutorial-highlight').forEach(el => el.classList.remove('tutorial-highlight'));
-        
-        if (this.currentKey) {
-            localStorage.setItem(this.currentKey, 'completed');
-        }
-    }
-
-    startTutorialWithContext(context, force = false) {
-        this.currentContext = context;
-        this.startTutorial(context, force);
-    }
+    // ------------------------------------------------------------- Content
 
     getStepsForContext(context) {
-        switch(context) {
+        switch (context) {
             case 'licencia-completada':
                 return [
                     {
-                        title: '🎉 ¡FELICITACIONES! Trámite al 100%',
-                        text: '¡Increíble trabajo! Has completado exitosamente el 100% de tu trámite. Tu Licencia Digital Mi Argentina ya está emitida y disponible abajo.',
+                        title: '¡Felicitaciones! Trámite al 100%',
+                        text: '¡Increíble trabajo! Completaste el 100% de tu trámite. Tu Licencia Digital Mi Argentina ya está emitida y disponible abajo.',
                         targetSelector: '#licenciaSection'
                     },
                     {
-                        title: '🪪 Mi Licencia Digital Emitida',
-                        text: 'Aquí podés ver tu credencial emitida. Hacé clic sobre ella para alternar entre la cara frontal (datos y QR) y la cara trasera (información médica).',
+                        title: 'Tu licencia digital emitida',
+                        text: 'Acá podés ver tu credencial emitida. Hacé clic sobre ella para alternar entre la cara frontal (datos y QR) y la cara trasera (información médica).',
                         targetSelector: '#licenciaImgDisplay'
                     }
                 ];
             case 'dashboard':
-                const licenciaSec = document.getElementById('licenciaSection');
-                if (licenciaSec) {
+                if (document.getElementById('licenciaSection')) {
                     return [
                         {
-                            title: '🎉 Trámite Completado al 100%',
-                            text: '¡Felicitaciones! Has completado exitosamente el 100% de tu trámite. Tu Licencia Digital ya está emitida y disponible en esta sección inferior.',
+                            title: 'Trámite completado al 100%',
+                            text: '¡Felicitaciones! Completaste el 100% de tu trámite. Tu Licencia Digital ya está emitida y disponible en esta sección inferior.',
                             targetSelector: '#licenciaSection'
                         },
                         {
-                            title: '🪪 Credencial Digital Mi Argentina',
-                            text: 'Aquí se encuentra tu credencial oficial emitida. Hacé clic sobre la tarjeta para alternar entre la cara frontal (datos y QR) y la cara trasera (información médica).',
+                            title: 'Credencial Digital Mi Argentina',
+                            text: 'Acá se encuentra tu credencial oficial emitida. Hacé clic sobre la tarjeta para alternar entre la cara frontal (datos y QR) y la cara trasera (información médica).',
                             targetSelector: '#licenciaImgDisplay'
                         }
                     ];
@@ -297,109 +673,109 @@ class TutorialSystem {
                     return [
                         {
                             title: '¡Bienvenido/a al Portal de Baradero!',
-                            text: 'Soy TramitBot y te voy a guiar. Para comenzar, primero debes seleccionar un trámite de la lista superior.',
+                            text: 'Soy Bari y te voy a guiar. Para comenzar, primero tenés que seleccionar un trámite de la lista superior.',
                             targetSelector: null
                         },
                         {
-                            title: 'Selección de Trámite',
-                            text: 'Elige entre Licencia Nueva, Renovación, Vencida, Subir de Categoría, Profesional o Extravío.',
+                            title: 'Selección de trámite',
+                            text: 'Elegí entre Licencia Nueva, Renovación, Vencida, Subir de Categoría, Profesional o Extravío.',
                             targetSelector: '.tramite-card-btn'
                         },
                         {
-                            title: 'Despliegue Específico',
-                            text: 'Al hacer clic en cualquiera de estas opciones, se desplegarán tus pasos específicos y barra de progreso.',
+                            title: 'Despliegue específico',
+                            text: 'Al hacer clic en cualquiera de estas opciones, se desplegarán tus pasos específicos y la barra de progreso.',
                             targetSelector: null
                         }
                     ];
                 }
                 return [
                     {
-                        title: '¡Trámite en Curso!',
-                        text: 'Soy TramitBot. Te muestro la barra de avance y los pasos requeridos para obtener tu licencia.',
+                        title: '¡Trámite en curso!',
+                        text: 'Soy Bari. Te muestro la barra de avance y los pasos requeridos para obtener tu licencia.',
                         targetSelector: null
                     },
                     {
-                        title: 'Tu Progreso',
-                        text: 'Aquí podrás ver cuánto te falta para terminar tu trámite (actualmente en curso).',
+                        title: 'Tu progreso',
+                        text: 'Acá podés ver cuánto te falta para terminar tu trámite (actualmente en curso).',
                         targetSelector: '.progress-bar'
                     },
                     {
-                        title: 'Pasos Obligatorios',
-                        text: 'Debes completar estos pasos en orden para alcanzar el 100%.',
+                        title: 'Pasos obligatorios',
+                        text: 'Tenés que completar estos pasos en orden para alcanzar el 100%.',
                         targetSelector: '.grid-steps'
                     }
                 ];
             case 'admin-pagos':
                 return [
                     {
-                        title: 'Panel de Pagos',
-                        text: 'Como administrador, aquí verás los pagos que la gente realiza por el sistema.',
+                        title: 'Panel de pagos',
+                        text: 'Como administrador, acá vas a ver los pagos que la gente realiza por el sistema.',
                         targetSelector: null
                     },
                     {
-                        title: 'Verificar Pagos',
-                        text: 'Usa los botones de acción en la tabla para marcar los pagos como cobrados.',
+                        title: 'Verificar pagos',
+                        text: 'Usá los botones de acción en la tabla para marcar los pagos como cobrados.',
                         targetSelector: 'table'
                     }
                 ];
             case 'admin-turnos':
                 return [
                     {
-                        title: 'Panel de Turnos',
-                        text: 'Aquí gestionarás los turnos para el examen práctico.',
+                        title: 'Panel de turnos',
+                        text: 'Acá gestionás los turnos para el examen práctico.',
                         targetSelector: null
                     }
                 ];
             case 'admin-salud':
                 return [
                     {
-                        title: 'Examen Médico',
-                        text: 'Aquí registrarás los resultados de los exámenes médicos (Apto/No Apto).',
+                        title: 'Examen médico',
+                        text: 'Acá registrás los resultados de los exámenes médicos (Apto/No Apto).',
                         targetSelector: null
                     }
                 ];
             case 'charlas':
                 return [
                     {
-                        title: 'Curso de Educación Vial',
-                        text: 'Aquí deberás ver todos los videos obligatorios. No puedes saltártelos.',
+                        title: 'Curso de educación vial',
+                        text: 'Acá tenés que ver todos los videos obligatorios. No se pueden saltear.',
                         targetSelector: null
                     },
                     {
                         title: 'Videos',
-                        text: 'Haz clic en cada video para reproducirlo y marcarlo como visto.',
+                        text: 'Hacé clic en cada video para reproducirlo y marcarlo como visto.',
                         targetSelector: '.grid-2'
                     }
                 ];
             case 'examen':
                 return [
                     {
-                        title: 'Examen Teórico',
-                        text: 'Deberás responder a estas preguntas de opción múltiple. ¡Suerte!',
+                        title: 'Examen teórico',
+                        text: 'Tenés que responder estas preguntas de opción múltiple. ¡Suerte!',
                         targetSelector: null
                     }
                 ];
             case 'formularios':
                 return [
                     {
-                        title: 'Declaración de Salud',
-                        text: 'Completa este formulario con tus datos médicos. Sé honesto.',
+                        title: 'Declaración de salud',
+                        text: 'Completá este formulario con tus datos médicos. Sé honesto/a.',
                         targetSelector: 'form'
                     }
                 ];
             case 'pago':
                 return [
                     {
-                        title: 'Pago del Arancel',
-                        text: 'Abona el trámite usando el método que prefieras.',
+                        title: 'Pago del arancel',
+                        text: 'Abonás el trámite usando el método que prefieras.',
                         targetSelector: '.grid-2'
                     }
                 ];
             case 'practico':
                 return [
                     {
-                        title: 'Examen Práctico',
-                        text: 'Elige una fecha y hora disponible para rendir tu examen práctico de manejo.',
+                        title: 'Examen práctico',
+                        text: 'Elegí una fecha y hora disponible para rendir tu examen práctico de manejo.',
                         targetSelector: null
                     }
                 ];
@@ -407,7 +783,7 @@ class TutorialSystem {
                 return [
                     {
                         title: '¡Último paso!',
-                        text: 'Selecciona cómo quieres recibir tu licencia.',
+                        text: 'Seleccioná cómo querés recibir tu licencia.',
                         targetSelector: null
                     }
                 ];
@@ -417,38 +793,43 @@ class TutorialSystem {
     }
 
     /**
-     * Muestra a Tramibot felicitando al usuario por la aprobación de su cuenta
+     * Bari congratulates the user on account approval (single-message card)
      */
     showApprovalGreeting(nombre = '') {
         this.init();
+        this.bindCardButtons();
+        this.steps = [];
+        this.currentKey = null;
         this.isActive = true;
-        if (this.overlay) this.overlay.classList.add('active');
-        if (this.container) {
-            this.container.classList.add('active');
-            this.container.style.position = 'fixed';
-            this.container.style.bottom = '40px';
-            this.container.style.right = '40px';
-            this.container.style.left = 'auto';
-            this.container.style.top = 'auto';
-            this.container.style.transform = 'none';
-        }
-        
-        const titleEl = document.getElementById('tutorial-title');
-        const textEl = document.getElementById('tutorial-text');
-        const skipBtn = document.getElementById('tutorial-btn-skip');
+
+        if (this.launcher) this.launcher.classList.add('hidden');
+        this.overlay.classList.add('active');
+        this.overlay.classList.remove('transparent-bg');
+        if (this.spotlight) this.spotlight.classList.remove('active');
+        this.guideCard.classList.add('active');
+        this.setCardMode('single');
+        this.centerGuideCard();
+
+        const pill = document.getElementById('tutorial-step-pill');
+        const titleEl = document.getElementById('tutorial-title-text');
+        const textEl = document.getElementById('tutorial-guide-text');
         const nextBtn = document.getElementById('tutorial-btn-next');
-        
-        if (titleEl) titleEl.innerText = `¡Cuenta Aprobada con Éxito, ${nombre || 'Ciudadano'}! 🎉`;
-        if (textEl) textEl.innerHTML = `¡Excelentes noticias! El área de Tránsito ha verificado tus antecedentes e infracciones y <strong>tu cuenta ha sido aprobada con éxito</strong>.<br><br>Ya tenés acceso libre y completo para comenzar a gestionar tu licencia de conducir digital.`;
-        if (skipBtn) skipBtn.style.display = 'none';
+        const prevBtn = document.getElementById('tutorial-btn-prev');
+        const dots = document.getElementById('tutorial-dots-row');
+
+        if (pill) pill.textContent = 'Cuenta aprobada';
+        if (titleEl) titleEl.textContent = `¡Cuenta aprobada con éxito, ${nombre || 'Ciudadano'}!`;
+        if (textEl) textEl.innerHTML = '¡Excelentes noticias! El área de Tránsito verificó tus antecedentes e infracciones y <strong>tu cuenta fue aprobada con éxito</strong>.<br><br>Ya tenés acceso libre y completo para comenzar a gestionar tu licencia de conducir digital.';
+        if (prevBtn) prevBtn.style.display = 'none';
+        if (dots) dots.innerHTML = '';
         if (nextBtn) {
-            nextBtn.innerText = '¡Entendido, Comenzar Trámite! 🚀';
-            nextBtn.onclick = () => {
-                this.endTutorial(true);
-            };
+            nextBtn.textContent = 'Entendido, comenzar trámite';
+            nextBtn.onclick = () => this.endTutorial(true);
         }
+
+        this.applyBariVideo('assets/videos/lipsting.webm');
     }
 }
 
-// Instancia global
+// Global instance
 window.Tutorial = new TutorialSystem();

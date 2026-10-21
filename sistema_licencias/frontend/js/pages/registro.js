@@ -23,19 +23,7 @@ class RegistroPage {
 
         app.innerHTML = `
         <div class="login-page">
-            <div class="login-logo animate-fadeIn">
-                <div class="login-logo__icon" style="display:flex;align-items:center;justify-content:center">
-                    <svg viewBox="0 0 44 44" width="52" height="52" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <circle cx="22" cy="22" r="21" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
-                        <path d="M12 22C12 16.477 16.477 12 22 12C25.5 12 28.5 13.8 30.2 16.5" stroke="#1976d2" stroke-width="3.5" stroke-linecap="round"/>
-                        <path d="M32 22C32 27.523 27.523 32 22 32C18.5 32 15.5 30.2 13.8 27.5" stroke="#1976d2" stroke-width="3.5" stroke-linecap="round"/>
-                        <path d="M17 22C17 19.239 19.239 17 22 17C23.8 17 25.3 18 26.2 19.5" stroke="#f59e0b" stroke-width="3" stroke-linecap="round"/>
-                        <path d="M27 22C27 24.761 24.761 27 22 27C20.2 27 18.7 26 17.8 24.5" stroke="#0284c7" stroke-width="3" stroke-linecap="round"/>
-                    </svg>
-                </div>
-                <h1 class="login-logo__text" style="font-family:'Plus Jakarta Sans',Inter,sans-serif">CIUDADANO <span style="font-weight:400;color:#0284c7">DIGITAL</span></h1>
-                <p class="login-logo__sub" style="font-weight:700;letter-spacing:1.2px;text-transform:uppercase;font-size:0.68rem">REGISTRO DE USUARIO · MUNICIPIO DE BARADERO</p>
-            </div>
+            ${renderAuthBrand('CIUDADANO', 'DIGITAL', 'Registro de usuario · Municipio de Baradero')}
 
             <div class="login-card animate-slideUp" style="max-width:580px">
                 <!-- WIDGET DE ESCÁNER DE DNI EN REGISTRO -->

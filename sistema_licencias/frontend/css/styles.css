@@ -12,56 +12,72 @@
    CSS VARIABLES / DESIGN TOKENS (SUBI Palette)
    ============================================================ */
 :root {
-    /* Paleta principal — Azul Cívico Institucional */
-    --cidi-blue-primary: #1565c0;
-    --cidi-blue-dark: #0d47a1;
-    --cidi-blue-navy: #1e293b;
-    --cidi-blue-btn: #0284c7;
-    --cidi-blue-btn-hover: #0369a1;
-    --cidi-blue-light: #2196f3;
-    --cidi-blue-sky: #03a9f4;
-    --cidi-cyan: #00bcd4;
-    --cidi-orange: #f59e0b;
-    --cidi-green: #10b981;
-    --cidi-red: #ef4444;
+    /* ── Manual de Marca Oficial Municipio de Baradero ── */
+    --brand-baradero-blue:         #007cba; /* Pantone 7461 C */
+    --brand-baradero-green:        #3aae1f; /* Pantone 361 C */
+    --brand-baradero-dark:         #333333;
+    --brand-baradero-light:        #ffffff;
+
+    /* Acentos Baradero (Light Mode) */
+    --color-primary:               #0284c7; /* Azul Cívico Institucional */
+    --color-primary-hover:         #0369a1;
+    --color-primary-glow:          rgba(2, 132, 199, 0.18);
+    --color-primary-light:         #e0f2fe;
+
+    /* Aliases legacy para compatibilidad total con código existente */
+    --cidi-blue-primary:           #007cba;
+    --cidi-blue-dark:              #005a96;
+    --cidi-blue-navy:              #1e293b;
+    --cidi-blue-btn:               #0284c7;
+    --cidi-blue-btn-hover:         #0369a1;
+    --cidi-blue-light:             #38bdf8;
+    --cidi-blue-sky:               #0ea5e9;
+    --cidi-cyan:                   #0284c7;
+    --cidi-orange:                 #f59e0b;
+    --cidi-green:                  #3aae1f;
+    --cidi-red:                    #ef4444;
+    --blue-900:                    #0f172a;
 
     /* Superficies */
-    --bg:               #f8fafc;
-    --bg-card:          #ffffff;
-    --bg-elevated:      #f8fafc;
-    --border:           #e2e8f0;
-    --border-hover:     #cbd5e1;
+    --bg:                          #f8fafc;
+    --bg-card:                     #ffffff;
+    --bg-elevated:                 #ffffff;
+    --border:                      #e2e8f0;
+    --border-hover:                #cbd5e1;
+    --surface-base:                #f8fafc;
+    --surface-raised:              #ffffff;
+    --surface-card:                #ffffff;
 
     /* Texto */
-    --text-primary:     #1e293b;
-    --text-secondary:   #475569;
-    --text-muted:       #64748b;
-    --text-inverse:     #ffffff;
+    --text-primary:                #0f172a;
+    --text-secondary:              #475569;
+    --text-muted:                  #64748b;
+    --text-inverse:                #ffffff;
 
     /* Semánticos */
-    --primary:          #0284c7;
-    --primary-hover:    #0369a1;
-    --primary-light:    #e0f2fe;
-    --primary-soft:     #f0f7ff;
-    --primary-gradient: linear-gradient(135deg, #1565c0 0%, #0284c7 50%, #0ea5e9 100%);
-    --primary-glow:     rgba(2, 132, 199, 0.18);
+    --primary:                     #0284c7;
+    --primary-hover:               #0369a1;
+    --primary-light:               #e0f2fe;
+    --primary-soft:                #f0f7ff;
+    --primary-gradient:            linear-gradient(135deg, #007cba 0%, #0284c7 50%, #38bdf8 100%);
+    --primary-glow:                rgba(2, 132, 199, 0.18);
 
-    --accent:           #0ea5e9;
-    --accent-hover:     #0284c7;
-    --accent-light:     #e0f2fe;
-    --accent-soft:      #f0f9ff;
+    --accent:                      #0ea5e9;
+    --accent-hover:                #0284c7;
+    --accent-light:                #e0f2fe;
+    --accent-soft:                 #f0f9ff;
 
     /* Estados */
-    --success:          #10b981;
-    --success-bg:       #ecfdf5;
-    --warning:          #f59e0b;
-    --warning-bg:       #fffbeb;
-    --danger:           #ef4444;
-    --danger-bg:        #fef2f2;
-    --info:             #0284c7;
-    --info-bg:          #e0f2fe;
+    --success:                     #15803d;
+    --success-bg:                  #dcfce7;
+    --warning:                     #b45309;
+    --warning-bg:                  #fef3c7;
+    --danger:                      #b91c1c;
+    --danger-bg:                   #fee2e2;
+    --info:                        #0284c7;
+    --info-bg:                     #e0f2fe;
 
-    /* Sombras — Suaves estilo SUBI */
+    /* Sombras — Suaves estilo SUBI / Baradero */
     --shadow-sm:    0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
     --shadow-md:    0 4px 14px -2px rgba(0, 0, 0, 0.07), 0 2px 6px -1px rgba(0, 0, 0, 0.03);
     --shadow-lg:    0 12px 28px -4px rgba(0, 0, 0, 0.10), 0 4px 12px -2px rgba(0, 0, 0, 0.04);
@@ -69,11 +85,11 @@
     --shadow-modal: 0 24px 48px -12px rgba(15, 23, 42, 0.25);
 
     /* Radios */
-    --radius-xs:  4px;
-    --radius-sm:  8px;
-    --radius-md:  12px;
-    --radius-lg:  16px;
-    --radius-xl:  24px;
+    --radius-xs:   4px;
+    --radius-sm:   8px;
+    --radius-md:   12px;
+    --radius-lg:   16px;
+    --radius-xl:   24px;
     --radius-full: 9999px;
 
     /* Transitions */
@@ -85,7 +101,7 @@
     --font-title:  'Plus Jakarta Sans', var(--font-family);
 
     /* Sidebar */
-    --sidebar-width: 256px;
+    --sidebar-width: 260px;
     --sidebar-collapsed: 68px;
 }
 
@@ -574,15 +590,16 @@ select.form-input {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 16px 18px;
+    padding: 14px 16px;
     border-bottom: 1px solid #e2e8f0;
-    min-height: 56px;
+    min-height: 64px;
+    background: #ffffff;
 }
 
 .sidebar__logo {
     width: 36px;
     height: 36px;
-    background: linear-gradient(135deg, #0284c7 0%, #1976d2 100%);
+    background: linear-gradient(135deg, #007cba 0%, #0284c7 100%);
     border-radius: var(--radius-md);
     display: flex;
     align-items: center;
@@ -590,24 +607,40 @@ select.form-input {
     color: white;
     font-size: 0.95rem;
     flex-shrink: 0;
-    box-shadow: 0 2px 6px rgba(2, 132, 199, 0.3);
+    box-shadow: 0 2px 6px rgba(0, 124, 186, 0.25);
+}
+
+.sidebar__brand {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+    transition: opacity 0.2s ease;
+}
+
+.sidebar__isologo {
+    width: 145px;
+    height: auto;
+    display: block;
 }
 
 .sidebar__brand-text {
     font-family: var(--font-title);
-    font-weight: 800;
-    font-size: 1.05rem;
-    color: #1976d2;
+    font-weight: 700;
+    font-size: 0.72rem;
+    color: #64748b;
     white-space: nowrap;
     opacity: 1;
     transition: opacity 0.2s ease;
-    letter-spacing: 0.3px;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
 }
 
-.sidebar.collapsed .sidebar__brand-text {
+.sidebar.collapsed .sidebar__brand {
     opacity: 0;
     width: 0;
     overflow: hidden;
+    display: none;
 }
 
 .sidebar__nav {
@@ -1928,33 +1961,49 @@ select.form-input {
     align-items: center;
     gap: 8px;
     margin-bottom: 24px;
+    text-align: center;
+}
+
+.login-logo__isologo {
+    width: 210px;
+    max-width: 80vw;
+    height: auto;
+    margin-bottom: 6px;
+    filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.05));
 }
 
 .login-logo__icon {
     width: 72px;
     height: 72px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #0284c7 0%, #1976d2 100%);
+    background: linear-gradient(135deg, #007cba 0%, #0284c7 100%);
     display: flex;
     align-items: center;
     justify-content: center;
     color: white;
     font-size: 2rem;
-    box-shadow: 0 8px 20px rgba(2, 132, 199, 0.3);
+    box-shadow: 0 8px 20px rgba(0, 124, 186, 0.25);
 }
 
 .login-logo__text {
     font-family: var(--font-title);
-    font-size: 1.5rem;
+    font-size: 1.55rem;
     font-weight: 800;
-    color: #1976d2;
-    letter-spacing: 0.3px;
+    color: #0f172a;
+    letter-spacing: -0.02em;
+}
+
+.login-logo__accent {
+    font-weight: 500;
+    color: var(--color-primary);
 }
 
 .login-logo__sub {
     font-size: 0.82rem;
+    font-weight: 600;
     color: #64748b;
     text-align: center;
+    letter-spacing: 0.2px;
 }
 
 .login-card {
@@ -2373,19 +2422,175 @@ select.form-input {
 }
 
 /* ============================================================
-   TUTORIAL MASCOT (TRAMITBOT)
+   BARI MASCOT & TUTORIAL SPOTLIGHT SYSTEM
    ============================================================ */
+
+/* ── 1. Floating Launcher (salu2.webm) ── */
+.bari-launcher {
+    position: fixed !important;
+    bottom: 24px !important;
+    right: 24px !important;
+    z-index: 9995 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-end !important;
+    cursor: pointer !important;
+    user-select: none !important;
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease, visibility 0.25s ease !important;
+    outline: none;
+}
+
+.bari-launcher.hidden {
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+    transform: translateY(16px) scale(0.9) !important;
+}
+
+.bari-launcher:hover {
+    transform: translateY(-3px) scale(1.02) !important;
+}
+
+.bari-bubble {
+    position: relative;
+    margin-bottom: 8px;
+    background: rgba(255, 255, 255, 0.96);
+    color: #0f172a;
+    border: 1px solid rgba(226, 232, 240, 0.95);
+    border-radius: 14px;
+    padding: 10px 14px;
+    box-shadow: 0 10px 25px -4px rgba(15, 23, 42, 0.12), 0 2px 6px -1px rgba(15, 23, 42, 0.04);
+    font-size: 12px;
+    line-height: 1.45;
+    max-width: 220px;
+    pointer-events: auto;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    animation: bariBubbleFloat 3.5s ease-in-out infinite;
+}
+
+.bari-bubble-badge {
+    display: inline-block;
+    font-size: 9.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: #0284c7;
+    margin-bottom: 3px;
+}
+
+.bari-bubble-text {
+    margin: 0;
+    font-size: 12px;
+    font-weight: 500;
+    color: #334155;
+}
+
+.bari-bubble-close {
+    position: absolute;
+    top: 4px;
+    right: 6px;
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+    font-size: 14px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 4px;
+    transition: color 0.15s ease;
+}
+
+.bari-bubble-close:hover {
+    color: #0f172a;
+}
+
+.bari-bubble::after {
+    content: "";
+    position: absolute;
+    bottom: -6px;
+    right: 36px;
+    width: 11px;
+    height: 11px;
+    background: inherit;
+    border-right: 1px solid rgba(226, 232, 240, 0.95);
+    border-bottom: 1px solid rgba(226, 232, 240, 0.95);
+    transform: rotate(45deg);
+}
+
+@keyframes bariBubbleFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-3px); }
+}
+
+.bari-mascot-pod {
+    position: relative;
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    background: #090d16;
+    border: 2px solid rgba(2, 132, 199, 0.4);
+    box-shadow: 0 10px 28px rgba(15, 23, 42, 0.22);
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.25s ease;
+}
+
+.bari-mascot-pod:hover {
+    border-color: #0284c7;
+    box-shadow: 0 14px 34px rgba(2, 132, 199, 0.3);
+}
+
+.bari-video-salu2 {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    mix-blend-mode: screen;
+    pointer-events: none;
+    transform: scale(1.05);
+}
+
+.bari-status-badge {
+    position: absolute;
+    bottom: 4px;
+    background: rgba(15, 23, 42, 0.88);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    color: #e2e8f0;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    padding: 2px 7px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    backdrop-filter: blur(4px);
+}
+
+.bari-status-pulse {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: #10b981;
+}
+
+/* ── 2. Fullscreen Overlay & Spotlight Cutout ── */
 #tutorial-overlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100vw;
     height: 100vh;
-    background: rgba(15, 23, 42, 0.75);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    background: rgba(15, 23, 42, 0.62);
     z-index: 9998;
     display: none;
     opacity: 0;
-    transition: opacity 0.3s ease, background 0.3s ease;
+    transition: opacity 0.25s ease;
+    pointer-events: auto;
 }
 
 #tutorial-overlay.active {
@@ -2395,19 +2600,23 @@ select.form-input {
 
 #tutorial-overlay.transparent-bg {
     background: transparent !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
 }
 
 #tutorial-spotlight {
     position: fixed;
     z-index: 9999;
     pointer-events: none;
-    border-radius: 12px;
-    box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.75), 0 0 0 3px #38bdf8, 0 0 25px rgba(56, 189, 248, 0.6);
-    transition: top 0.25s cubic-bezier(0.4, 0, 0.2, 1), 
-                left 0.25s cubic-bezier(0.4, 0, 0.2, 1), 
-                width 0.25s cubic-bezier(0.4, 0, 0.2, 1), 
-                height 0.25s cubic-bezier(0.4, 0, 0.2, 1), 
-                opacity 0.25s ease;
+    border-radius: 10px;
+    box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.62),
+                0 0 0 2px #0284c7;
+    transition: top 0.25s cubic-bezier(0.16, 1, 0.3, 1), 
+                left 0.25s cubic-bezier(0.16, 1, 0.3, 1), 
+                width 0.25s cubic-bezier(0.16, 1, 0.3, 1), 
+                height 0.25s cubic-bezier(0.16, 1, 0.3, 1), 
+                border-radius 0.25s ease,
+                opacity 0.2s ease;
     display: none;
     opacity: 0;
 }
@@ -2418,137 +2627,280 @@ select.form-input {
 }
 
 .tutorial-highlight {
-    position: relative;
+    position: relative !important;
     z-index: 10000 !important;
 }
 
-#tutorial-mascot-container {
+/* ── 3. Floating Interactive Guide Card with Bari ── */
+#tutorial-guide-card {
     position: fixed;
-    top: -500px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 10000;
-    display: flex;
-    align-items: flex-end;
-    gap: 15px;
-    transition: top 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), left 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    pointer-events: none;
-}
-
-#tutorial-mascot-container.active {
+    z-index: 10001;
+    width: 630px;
+    max-width: calc(100vw - 32px);
+    background: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    color: #0f172a;
+    border: 1px solid rgba(226, 232, 240, 0.95);
+    border-radius: 18px;
+    padding: 24px 26px;
+    box-shadow: 0 24px 54px -10px rgba(15, 23, 42, 0.18), 0 0 0 1px rgba(0, 0, 0, 0.04);
+    display: none;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: top 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+                left 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+                opacity 0.2s ease,
+                transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     pointer-events: auto;
+    font-family: var(--font-family);
 }
 
-.tutorial-dialog {
-    background: #ffffff;
-    padding: 20px;
-    border-radius: 20px 20px 0 20px;
-    box-shadow: var(--shadow-modal);
-    width: 300px;
-    transform: scale(0);
-    transform-origin: bottom right;
-    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    border: 2px solid #0284c7;
+#tutorial-guide-card.active {
+    display: flex !important;
+    gap: 22px;
+    align-items: stretch;
+    opacity: 1;
+    transform: translateY(0);
 }
 
-#tutorial-mascot-container.active .tutorial-dialog {
-    transform: scale(1);
-    transition-delay: 0.3s;
+.tutorial-bari-column {
+    flex-shrink: 0;
+    width: 185px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }
 
-.tutorial-dialog__title {
-    font-family: var(--font-title);
-    font-weight: 800;
-    color: #0284c7;
-    margin-bottom: 8px;
+.tutorial-bari-video-box {
+    position: relative;
+    width: 185px;
+    height: 255px;
+    background: transparent !important;
+    border: none !important;
+    overflow: visible;
     display: flex;
     align-items: center;
-    gap: 6px;
+    justify-content: center;
 }
 
-.tutorial-dialog__text {
-    font-size: 0.95rem;
-    color: #475569;
-    line-height: 1.5;
-    margin-bottom: 15px;
+.bari-tutorial-canvas {
+    width: 185px;
+    height: 255px;
+    object-fit: contain;
+    display: block;
+    filter: drop-shadow(0 6px 14px rgba(15, 23, 42, 0.12));
 }
 
-.tutorial-dialog__actions {
+.bari-video-lipsting {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    clip: rect(0, 0, 0, 0) !important;
+}
+
+.tutorial-bari-video-box.bari-file-fallback {
+    border-radius: 16px !important;
+    overflow: hidden !important;
+    background: radial-gradient(circle at 50% 32%, #0b2a44 0%, #071a2b 72%) !important;
+}
+
+.tutorial-bari-video-box.bari-file-fallback .bari-tutorial-canvas {
+    display: none !important;
+}
+
+.tutorial-bari-video-box.bari-file-fallback .bari-video-lipsting {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    opacity: 1 !important;
+    clip: auto !important;
+    object-fit: cover !important;
+    mix-blend-mode: screen !important;
+}
+
+.tutorial-content-column {
+    flex: 1;
+    min-width: 0;
     display: flex;
+    flex-direction: column;
     justify-content: space-between;
-    align-items: center;
 }
 
-.tutorial-btn-skip {
-    background: transparent;
+.tutorial-guide-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.tutorial-step-pill {
+    font-size: 11.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    padding: 3px 10px;
+    border-radius: 6px;
+    background: #f1f5f9;
+    color: #0284c7;
+    border: 1px solid #e2e8f0;
+}
+
+.tutorial-close-btn {
+    background: none;
     border: none;
     color: #94a3b8;
-    font-size: 0.8rem;
+    font-size: 20px;
+    line-height: 1;
     cursor: pointer;
+    padding: 4px 6px;
+    border-radius: 6px;
+    transition: all 0.15s ease;
+}
+
+.tutorial-close-btn:hover {
+    color: #0f172a;
+    background: rgba(0, 0, 0, 0.04);
+}
+
+.tutorial-guide-title {
+    font-size: 19px;
+    font-weight: 800;
+    letter-spacing: -0.3px;
+    color: #0f172a;
+    margin-bottom: 8px;
+    line-height: 1.35;
+    font-family: var(--font-title);
+}
+
+.tutorial-guide-text {
+    font-size: 14.5px;
+    line-height: 1.6;
+    color: #334155;
+    margin-bottom: 18px;
+}
+
+.tutorial-guide-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 14px;
+    border-top: 1px solid rgba(226, 232, 240, 0.85);
+}
+
+.tutorial-skip-btn {
+    background: transparent;
+    border: none;
+    color: #64748b;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    padding: 6px 0;
+    transition: color 0.15s ease;
+}
+
+.tutorial-skip-btn:hover {
+    color: #0f172a;
     text-decoration: underline;
 }
 
-.tutorial-btn-skip:hover {
-    color: var(--text-primary);
+.tutorial-dots-row {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.tutorial-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #cbd5e1;
+    transition: all 0.2s ease;
+}
+
+.tutorial-dot.active {
+    width: 16px;
+    border-radius: 4px;
+    background: #0284c7;
+}
+
+.tutorial-dot.completed {
+    background: #10b981;
+}
+
+.tutorial-nav-btns {
+    display: flex;
+    gap: 8px;
+}
+
+.tutorial-nav-btn {
+    padding: 8px 18px;
+    border-radius: 8px;
+    font-size: 13.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    font-family: inherit;
+}
+
+.tutorial-btn-prev {
+    background: #ffffff;
+    color: #334155;
+    border: 1px solid #cbd5e1;
+}
+
+.tutorial-btn-prev:hover {
+    background: #f8fafc;
+    color: #0f172a;
 }
 
 .tutorial-btn-next {
     background: #0284c7;
-    color: white;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 20px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-    box-shadow: 0 4px 10px rgba(2, 132, 199, 0.3);
+    color: #ffffff;
+    border: 1px solid #0284c7;
+    box-shadow: 0 1px 3px rgba(2, 132, 199, 0.2);
 }
 
 .tutorial-btn-next:hover {
     background: #0369a1;
-    transform: translateY(-2px);
+    border-color: #0369a1;
 }
 
-.mascot-svg {
-    width: 100px;
-    height: 100px;
-    filter: drop-shadow(0 10px 15px rgba(0,0,0,0.2));
-    animation: float 3s ease-in-out infinite;
+/* Single-card mode */
+#tutorial-guide-card.tutorial-single .tutorial-dots-row,
+#tutorial-guide-card.tutorial-single .tutorial-btn-prev,
+#tutorial-guide-card.tutorial-single .tutorial-skip-btn {
+    display: none !important;
 }
 
-.mascot-eye {
-    transform-origin: center;
-    animation: blink 4s infinite;
-}
-
-.mascot-arm-right {
-    transform-origin: 20% 80%;
-    animation: wave 2s infinite;
-}
-
-@keyframes float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
-}
-
-@keyframes blink {
-    0%, 96%, 98%, 100% { transform: scaleY(1); }
-    97%, 99% { transform: scaleY(0.1); }
-}
-
-@keyframes wave {
-    0%, 100% { transform: rotate(0deg); }
-    50% { transform: rotate(15deg); }
-}
-
-@keyframes softPulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.08); }
-    100% { transform: scale(1); }
-}
-
-.tutorial-pulse-btn {
-    animation: softPulse 2s infinite ease-in-out;
+@media (max-width: 640px) {
+    #tutorial-guide-card.active {
+        flex-direction: column !important;
+        align-items: center !important;
+        padding: 16px !important;
+        width: calc(100vw - 24px) !important;
+    }
+    .tutorial-bari-column {
+        width: 100px !important;
+    }
+    .tutorial-bari-video-box,
+    .bari-tutorial-canvas {
+        width: 100px !important;
+        height: 138px !important;
+    }
+    .bari-launcher {
+        bottom: 14px !important;
+        right: 14px !important;
+    }
+    .bari-mascot-pod {
+        width: 80px !important;
+        height: 80px !important;
+    }
 }
 
 /* ============================================================
@@ -3328,47 +3680,6 @@ select.form-input {
     border-bottom: none;
 }
 
-/* Dark mode support */
-body.dark .admin-kpi-card,
-body.dark .admin-filter-bar,
-body.dark .admin-item,
-body.dark .admin-table-wrapper {
-    background: #1e293b;
-    border-color: #334155;
-}
 
-body.dark .admin-kpi-val,
-body.dark .admin-item__user,
-body.dark .admin-table td {
-    color: #f8fafc;
-}
-
-body.dark .admin-item__detail {
-    background: #0f172a;
-    border-color: #334155;
-    color: #cbd5e1;
-}
-
-body.dark .admin-table th {
-    background: #0f172a;
-    color: #94a3b8;
-    border-color: #334155;
-}
-
-body.dark .admin-tab-btn {
-    background: #0f172a;
-    color: #94a3b8;
-}
-
-body.dark .admin-tab-btn.active {
-    background: #0284c7;
-    color: #ffffff;
-}
-
-body.dark .admin-search-input {
-    background: #0f172a;
-    border-color: #334155;
-    color: #f8fafc;
-}
 
 

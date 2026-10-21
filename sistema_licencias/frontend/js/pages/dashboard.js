@@ -170,7 +170,7 @@ class DashboardPage {
         const isCompletado = data.progreso_porcentaje === 100 || data.estado === 'completado' || data.paso_actual === 'finalizado';
         const licencia = data.licencia;
 
-        // Saludo de bienvenida con Tramibot si es la primera vez que ingresa aprobada
+        // Saludo de bienvenida con Bari si es la primera vez que ingresa aprobada
         if (citizen.bienvenida_mostrada === 0 || data.bienvenida_mostrada === 0) {
             setTimeout(() => {
                 if (window.Tutorial && window.Tutorial.showApprovalGreeting) {
@@ -494,12 +494,12 @@ class DashboardPage {
                         </div>
 
                         <p style="font-size:0.8rem;color:#64748b;line-height:1.4;margin-bottom:12px;">
-                            ¿Tenés dudas sobre las etapas del examen teórico o práctico en Baradero? Consultá a nuestro asistente oficial Tramibot.
+                            ¿Tenés dudas sobre las etapas del examen teórico o práctico en Baradero? Consultá a nuestro guía oficial Bari.
                         </p>
 
                         <div style="display:flex;flex-direction:column;gap:8px;">
                             <button type="button" class="btn btn-ghost btn-sm btn-block" style="justify-content:flex-start;text-align:left;gap:8px;border:1px solid #e2e8f0;padding:8px 12px;" onclick="if(window.Tutorial) window.Tutorial.startTutorialWithContext('dashboard', true)">
-                                <span>🤖</span> <strong>Guía guiada por el sistema</strong>
+                                <span>🐾</span> <strong>Recorrido guiado con Bari</strong>
                             </button>
                             <a href="tel:147" class="btn btn-ghost btn-sm btn-block" style="justify-content:flex-start;text-align:left;gap:8px;border:1px solid #e2e8f0;padding:8px 12px;text-decoration:none;color:inherit;">
                                 <span>📞</span> <strong>Línea Municipal 147</strong>
