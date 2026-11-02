@@ -240,6 +240,9 @@ def init_db():
                 ('multas_fecha_revision', 'TEXT', "NULL"),
                 ('bienvenida_mostrada', 'INTEGER', "0"),
                 ('infracciones_pagadas_solicitadas', 'INTEGER', "0"),
+                ('foto_rostro', 'TEXT', "NULL"),
+                ('dni_frente', 'TEXT', "NULL"),
+                ('dni_dorso', 'TEXT', "NULL"),
             ]:
                 try:
                     conn.execute(f"ALTER TABLE usuarios ADD COLUMN {col} {col_type} DEFAULT {default_val}")
@@ -284,7 +287,34 @@ def init_db():
             except sqlite3.OperationalError:
                 pass
 
+<<<<<<< HEAD
 >>>>>>> 6f76f9f210706d776aadebe1ca9ea1a0132ab0c2
+=======
+            # Tablas del sistema de memoria (Gentle AI)
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS user_activity_log (
+                    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+                    usuario_id  INTEGER NOT NULL,
+                    action      TEXT NOT NULL,
+                    detail      TEXT DEFAULT NULL,
+                    created_at  TEXT DEFAULT (datetime('now','localtime')),
+                    FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
+                );
+            """)
+
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS user_preferences (
+                    id                INTEGER PRIMARY KEY AUTOINCREMENT,
+                    usuario_id        INTEGER NOT NULL UNIQUE,
+                    theme             TEXT DEFAULT 'light',
+                    last_page         TEXT DEFAULT 'dashboard',
+                    sidebar_collapsed INTEGER DEFAULT 0,
+                    updated_at        TEXT DEFAULT (datetime('now','localtime')),
+                    FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
+                );
+            """)
+
+>>>>>>> 77df27a69d2213054565b4a2b6cb460e7bb8308e
             conn.commit()
             print(f"[OK] Base de datos {MYSQL_DB} inicializada/verificada con schema.sql")
     except Exception as e:

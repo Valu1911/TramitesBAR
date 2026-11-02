@@ -40,53 +40,91 @@ class CharlasPage {
     static renderContent(app, data) {
         const videos = data.videos;
         const todosVistos = data.todos_vistos;
+        const vistosCount = videos.filter(v => v.visto).length;
+        const porcentaje = Math.round((vistosCount / videos.length) * 100);
 
         app.innerHTML = `
-        ${renderBackHeader('Charlas en video')}
-        <div class="page-content container-md animate-slideUp">
-            <p class="text-sm text-muted mb-4">
-                Mirá todas las charlas obligatorias sobre seguridad vial para avanzar al siguiente paso.
-                Los videos deben verse en orden.
-            </p>
+        ${renderBackHeader('Charlas de Seguridad Vial')}
+        <div class="page-content container-md animate-slideUp" style="max-width:880px;margin:0 auto;padding-top:10px;">
+            
+            <div class="dash-card mb-4">
+                <div class="card-header-row">
+                    <div style="display:flex;align-items:center;gap:12px;">
+                        <div style="width:40px;height:40px;border-radius:50%;background:#e0f2fe;color:#0284c7;display:flex;align-items:center;justify-content:center;font-size:1.2rem;">
+                            ${Icons.video}
+                        </div>
+                        <div>
+                            <h2 style="font-size:1.1rem;font-weight:800;margin:0;color:#1e293b;">Capacitación Vial Obligatoria</h2>
+                            <p style="font-size:0.8rem;color:#64748b;margin:0;">Mirá las charlas teóricas para habilitar la instancia de formularios y examen.</p>
+                        </div>
+                    </div>
+                    <span class="badge ${todosVistos ? 'badge-success' : 'badge-info'}" style="font-size:0.75rem;padding:4px 10px;font-weight:700;">
+                        ${todosVistos ? '✓ Módulos Completados' : `${vistosCount} de ${videos.length} Vistos`}
+                    </span>
+                </div>
 
-            <div class="stack">
-                ${videos.map((video, i) => {
-                    const canWatch = video.visto || videos.slice(0, i).every(v => v.visto);
-                    return `
-                    <div class="video-card ${video.visto ? 'video-card--watched' : ''}" 
-                         id="video-${video.id}"
-                         style="${!canWatch && !video.visto ? 'opacity:0.5' : ''}">
-                        <div class="video-card__icon" style="display:flex;align-items:center;justify-content:center">
-                            ${video.visto ? '<span style="color:var(--success);display:flex;align-items:center">' + Icons.check + '</span>' : (canWatch ? '<span style="color:var(--primary);display:flex;align-items:center">' + Icons.play + '</span>' : '<span style="color:var(--text-muted);display:flex;align-items:center">' + Icons.lock + '</span>')}
-                        </div>
-                        <div class="video-card__info">
-                            <div class="video-card__title">${video.titulo}</div>
-                            <div class="video-card__duration" style="display:flex;align-items:center;gap:4px">
-                                <span style="display:flex;align-items:center">${Icons.clock}</span> ${video.duracion}
+                <div class="mb-4">
+                    <div style="display:flex;justify-content:space-between;font-size:0.8rem;margin-bottom:6px;">
+                        <span class="text-muted">Progreso de capacitación:</span>
+                        <strong style="color:#0284c7">${porcentaje}%</strong>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-bar__fill" style="width:${porcentaje}%"></div>
+                    </div>
+                </div>
+
+                <div class="stack" style="gap:12px;">
+                    ${videos.map((video, i) => {
+                        const canWatch = video.visto || videos.slice(0, i).every(v => v.visto);
+                        return `
+                        <div class="video-card ${video.visto ? 'video-card--watched' : ''}" 
+                             id="video-${video.id}"
+                             style="border:1.5px solid ${video.visto ? '#86efac' : (canWatch ? '#bae6fd' : '#e2e8f0')};border-radius:12px;padding:16px;background:${video.visto ? '#f0fdf4' : (canWatch ? '#ffffff' : '#f8fafc')};${!canWatch && !video.visto ? 'opacity:0.6' : ''}">
+                            <div class="video-card__icon" style="width:42px;height:42px;border-radius:50%;background:${video.visto ? '#dcfce7' : (canWatch ? '#e0f2fe' : '#f1f5f9')};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                ${video.visto ? '<span style="color:#15803d;display:flex;align-items:center">' + Icons.check + '</span>' : (canWatch ? '<span style="color:#0284c7;display:flex;align-items:center">' + Icons.play + '</span>' : '<span style="color:#94a3b8;display:flex;align-items:center">' + Icons.lock + '</span>')}
                             </div>
+                            <div class="video-card__info" style="flex:1;">
+                                <div class="video-card__title" style="font-weight:700;font-size:0.95rem;color:#1e293b;margin-bottom:4px;">${video.titulo}</div>
+                                <div style="display:flex;align-items:center;gap:12px;font-size:0.78rem;color:#64748b;">
+                                    <span style="display:flex;align-items:center;gap:4px;">${Icons.clock} ${video.duracion}</span>
+                                    <span>•</span>
+                                    <span>${video.visto ? '<strong style="color:#15803d">Completado</strong>' : (canWatch ? '<strong style="color:#0284c7">Disponible para ver</strong>' : 'Bloqueado (ver anterior)')}</span>
+                                </div>
+                            </div>
+                            <div>
+                                ${video.visto ? `
+                                <span class="badge badge-success" style="font-size:0.75rem;padding:4px 10px;">✓ Visto</span>
+                                ` : (canWatch ? `
+                                <button class="btn btn-primary btn-sm" style="font-weight:700;display:inline-flex;align-items:center;gap:6px;" onclick="CharlasPage.watchVideo(${video.id}, '${video.titulo.replace(/'/g, "\\'")}')">
+                                    ${Icons.play} Reproducir
+                                </button>
+                                ` : `
+                                <span class="badge badge-muted" style="font-size:0.75rem;padding:4px 10px;">Bloqueado</span>
+                                `)}
+                            </div>
+                        </div>`;
+                    }).join('')}
+                </div>
+
+                ${todosVistos ? `
+                <div class="mt-4 pt-4" style="border-top:1px solid #f1f5f9;">
+                    <div style="background:#ecfdf5;border:1px solid #a7f3d0;padding:14px;border-radius:12px;margin-bottom:14px;display:flex;align-items:center;gap:12px;color:#065f46;">
+                        <span style="font-size:1.3rem;">🎉</span>
+                        <div style="font-size:0.88rem;font-weight:600;">
+                            ¡Felicitaciones! Has completado todos los módulos obligatorios de seguridad vial.
                         </div>
-                        ${!video.visto && canWatch ? `
-                        <button class="btn btn-outline btn-sm" onclick="CharlasPage.watchVideo(${video.id}, '${video.titulo.replace(/'/g, "\\'")}')">
-                            Ver video
-                        </button>` : ''}
-                    </div>`;
-                }).join('')}
+                    </div>
+                    <button class="btn btn-primary btn-block btn-lg" style="font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px;" onclick="Router.navigate('formularios')">
+                        Continuar a Formularios de Salud
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                    </button>
+                </div>` : `
+                <div style="background:#f0f9ff;border:1px solid #bae6fd;padding:12px 16px;border-radius:10px;margin-top:16px;display:flex;align-items:center;gap:10px;font-size:0.82rem;color:#0369a1;">
+                    <span style="display:flex;align-items:center;">${Icons.info}</span>
+                    <span>Los videos deben ser visualizados en orden correlativo para desbloquear la siguiente instancia.</span>
+                </div>`}
             </div>
 
-            ${todosVistos ? `
-            <div class="mt-4">
-                <div class="info-box info-box--success mb-3">
-                    <span style="display:flex;align-items:center">${Icons.check}</span>
-                    <span>¡Completaste todas las charlas! Podés continuar con los formularios de salud.</span>
-                </div>
-                <button class="btn btn-primary btn-block btn-lg" onclick="Router.navigate('formularios')">
-                    Continuar a formularios de salud →
-                </button>
-            </div>` : `
-            <div class="info-box info-box--info mt-4">
-                <span style="display:flex;align-items:center">${Icons.info}</span>
-                <span>Debés ver todos los videos para continuar a los formularios de salud.</span>
-            </div>`}
         </div>`;
         
         if (window.Tutorial) {

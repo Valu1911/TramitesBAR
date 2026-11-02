@@ -150,43 +150,170 @@ class Router {
 }
 
 // ============================================================
-// NAVBAR COMPONENT
+// SIDEBAR COMPONENT (Replaces Navbar)
 // ============================================================
-function renderNavbar(user) {
+let _sidebarCollapsed = false;
+let _sidebarMobileOpen = false;
+
+function renderSidebar(user) {
+    const currentPage = window.location.hash.slice(1) || 'dashboard';
+    const collapsed = _sidebarCollapsed ? 'collapsed' : '';
+    
+    const menuItems = [
+        { id: 'dashboard', icon: Icons.home || Icons.car, label: 'Inicio' },
+        { id: 'charlas', icon: Icons.video || Icons.play, label: 'Charlas' },
+        { id: 'formularios', icon: Icons.clipboard || Icons.file, label: 'Formularios' },
+        { id: 'examen', icon: Icons.edit || Icons.check, label: 'Examen' },
+        { id: 'pago', icon: Icons.money || Icons.credit, label: 'Pago' },
+        { id: 'practico', icon: Icons.car, label: 'Práctico' },
+        { id: 'entrega', icon: Icons.package || Icons.truck, label: 'Entrega' },
+    ];
+
+    const isDark = document.body.classList.contains('dark');
+
     return `
-    <nav class="navbar">
-        <div class="navbar__inner">
-            <a class="navbar__brand" href="#dashboard" onclick="Router.navigate('dashboard')">
-                <div class="navbar__brand-icon" style="display:flex;align-items:center;justify-content:center">${Icons.car}</div>
-                <span>Muni Digital</span>
-            </a>
-            <div class="navbar__actions">
-                <select class="form-input" style="height:32px;padding:0 8px;font-size:0.75rem;background:var(--warning-bg);color:#b45309;border:1px dashed var(--warning);font-weight:700;cursor:pointer" onchange="saltarDemoPaso(this.value); this.value='';" title="Navegar a cualquier sección (Modo Demo)">
-                    <option value="" disabled selected>Saltear a...</option>
-                    <option value="charlas">1. Charlas en video</option>
-                    <option value="formularios">2. Formularios de Salud</option>
-                    <option value="examen">3. Examen Teórico</option>
-                    <option value="pago">4. Pago del Arancel</option>
-                    <option value="practico">5. Examen Práctico</option>
-                    <option value="entrega">6. Entrega de Licencia</option>
-                    <option value="completar">7. Completar Trámite (100%)</option>
-                </select>
-                <button class="btn btn-ghost btn-sm" onclick="toggleDarkMode()" title="Cambiar tema" id="darkModeBtn">
-                    <span style="display:flex;align-items:center">${document.body.classList.contains('dark') ? Icons.sun : Icons.moon}</span>
-                </button>
-                <button class="btn btn-primary btn-sm tutorial-pulse-btn" onclick="if(window.Tutorial) window.Tutorial.startTutorialWithContext(window.location.hash.replace('#', '') || 'dashboard', true)" title="Ver tutorial">
-                    <span style="display:flex;align-items:center;gap:4px">Ayuda</span>
-                </button>
-                <div class="navbar__user">
-                    <span style="display:flex;align-items:center">${Icons.user}</span>
-                    <span>${user?.nombre || 'Usuario'} ${user?.apellido || ''}</span>
-                </div>
-                <button class="btn btn-ghost btn-sm" onclick="logout()" title="Cerrar sesión">
-                    <span style="display:flex;align-items:center;gap:4px">${Icons.logout} Salir</span>
-                </button>
+    <div class="sidebar-overlay ${_sidebarMobileOpen ? 'active' : ''}" onclick="toggleMobileSidebar()"></div>
+    <button class="sidebar__mobile-toggle" onclick="toggleMobileSidebar()" aria-label="Abrir menú">
+        <span style="display:flex;align-items:center">${Icons.menu || '☰'}</span>
+    </button>
+    <aside class="sidebar ${collapsed} ${_sidebarMobileOpen ? 'mobile-open' : ''}" id="app-sidebar">
+        <div class="sidebar__header">
+            <div class="sidebar__logo">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/></svg>
             </div>
+            <span class="sidebar__brand-text">Ciudadano Digital</span>
         </div>
-    </nav>`;
+        <nav class="sidebar__nav">
+            <div class="sidebar__nav-label">Trámite</div>
+            ${menuItems.map(item => `
+                <button class="sidebar__item ${currentPage === item.id ? 'active' : ''}" 
+                        onclick="Router.navigate('${item.id}'); closeMobileSidebar();" 
+                        title="${item.label}">
+                    <span class="sidebar__item-icon">${item.icon}</span>
+                    <span class="sidebar__item-text">${item.label}</span>
+                </button>
+            `).join('')}
+            
+            <div class="sidebar__nav-label" style="margin-top:8px">Configuración</div>
+            <button class="sidebar__item" onclick="toggleDarkMode()" title="${isDark ? 'Modo claro' : 'Modo oscuro'}">
+                <span class="sidebar__item-icon">${isDark ? Icons.sun : Icons.moon}</span>
+                <span class="sidebar__item-text">${isDark ? 'Modo claro' : 'Modo oscuro'}</span>
+            </button>
+        </nav>
+        <div class="sidebar__footer">
+            <div class="sidebar__user-info">
+                <div class="sidebar__user-avatar">
+                    ${user?.foto_rostro ? `<img src="${user.foto_rostro}" alt="Avatar">` : Icons.user}
+                </div>
+                <div style="flex:1;min-width:0;">
+                    <div class="sidebar__user-name">${user?.nombre || 'Usuario'} ${user?.apellido || ''}</div>
+                    <div class="sidebar__user-role">DNI ${user?.dni || ''}</div>
+                </div>
+            </div>
+            <button class="sidebar__item" onclick="logout()" title="Cerrar sesión">
+                <span class="sidebar__item-icon">${Icons.logout}</span>
+                <span class="sidebar__item-text">Cerrar sesión</span>
+            </button>
+        </div>
+    </aside>`;
+}
+
+function renderAppLayout(user, content) {
+    const collapsed = _sidebarCollapsed ? 'sidebar-collapsed' : '';
+    return `
+    ${renderSidebar(user)}
+    <main class="app-main ${collapsed}">
+        ${content}
+    </main>`;
+}
+
+function toggleSidebar() {
+    _sidebarCollapsed = !_sidebarCollapsed;
+    const sidebar = document.getElementById('app-sidebar');
+    const main = document.querySelector('.app-main');
+    if (sidebar) sidebar.classList.toggle('collapsed', _sidebarCollapsed);
+    if (main) main.classList.toggle('sidebar-collapsed', _sidebarCollapsed);
+    
+    // Persist preference
+    saveUserPreference('sidebar_collapsed', _sidebarCollapsed);
+}
+
+function toggleMobileSidebar() {
+    _sidebarMobileOpen = !_sidebarMobileOpen;
+    const sidebar = document.getElementById('app-sidebar');
+    const overlay = document.querySelector('.sidebar-overlay');
+    if (sidebar) sidebar.classList.toggle('mobile-open', _sidebarMobileOpen);
+    if (overlay) overlay.classList.toggle('active', _sidebarMobileOpen);
+}
+
+function closeMobileSidebar() {
+    _sidebarMobileOpen = false;
+    const sidebar = document.getElementById('app-sidebar');
+    const overlay = document.querySelector('.sidebar-overlay');
+    if (sidebar) sidebar.classList.remove('mobile-open');
+    if (overlay) overlay.classList.remove('active');
+}
+
+// Keep renderNavbar for backward compatibility (pages that use it)
+// Returns sidebar HTML only - #app gets margin from CSS automatically
+function renderNavbar(user) {
+    return renderSidebar(user);
+}
+
+function renderAdminNavbar(admin) {
+    const currentPage = window.location.hash.slice(1) || 'admin-cuentas';
+    const collapsed = _sidebarCollapsed ? 'collapsed' : '';
+    const isDark = document.body.classList.contains('dark');
+    
+    const adminItems = [
+        { id: 'admin-cuentas', icon: Icons.shield, label: 'Cuentas' },
+        { id: 'admin-profesores', icon: Icons.teacher || Icons.user, label: 'Profesores' },
+        { id: 'admin-pagos', icon: Icons.money || Icons.credit, label: 'Pagos' },
+        { id: 'admin-salud', icon: Icons.heart || Icons.check, label: 'Salud' },
+        { id: 'admin-turnos', icon: Icons.calendar || Icons.clock, label: 'Turnos' },
+    ];
+
+    return `
+    <div class="sidebar-overlay ${_sidebarMobileOpen ? 'active' : ''}" onclick="toggleMobileSidebar()"></div>
+    <button class="sidebar__mobile-toggle" onclick="toggleMobileSidebar()" aria-label="Abrir menú">
+        <span style="display:flex;align-items:center">${Icons.menu || '☰'}</span>
+    </button>
+    <aside class="sidebar ${collapsed} ${_sidebarMobileOpen ? 'mobile-open' : ''}" id="app-sidebar">
+        <div class="sidebar__header" style="background:var(--blue-900);border-color:rgba(255,255,255,0.1)">
+            <div class="sidebar__logo" style="background:rgba(255,255,255,0.15)">${Icons.settings}</div>
+            <span class="sidebar__brand-text" style="color:white">Admin Panel</span>
+        </div>
+        <nav class="sidebar__nav">
+            <div class="sidebar__nav-label">Gestión</div>
+            ${adminItems.map(item => `
+                <button class="sidebar__item ${currentPage === item.id ? 'active' : ''}" 
+                        onclick="Router.navigate('${item.id}'); closeMobileSidebar();" 
+                        title="${item.label}">
+                    <span class="sidebar__item-icon">${item.icon}</span>
+                    <span class="sidebar__item-text">${item.label}</span>
+                </button>
+            `).join('')}
+            
+            <div class="sidebar__nav-label" style="margin-top:8px">Sistema</div>
+            <button class="sidebar__item" onclick="toggleDarkMode()" title="${isDark ? 'Modo claro' : 'Modo oscuro'}">
+                <span class="sidebar__item-icon">${isDark ? Icons.sun : Icons.moon}</span>
+                <span class="sidebar__item-text">${isDark ? 'Modo claro' : 'Modo oscuro'}</span>
+            </button>
+        </nav>
+        <div class="sidebar__footer">
+            <div class="sidebar__user-info">
+                <div class="sidebar__user-avatar" style="border-color:var(--accent)">${Icons.user}</div>
+                <div style="flex:1;min-width:0;">
+                    <div class="sidebar__user-name">${admin?.nombre || 'Admin'}</div>
+                    <div class="sidebar__user-role">${admin?.rol || 'administrador'}</div>
+                </div>
+            </div>
+            <button class="sidebar__item" onclick="adminLogout()" title="Cerrar sesión">
+                <span class="sidebar__item-icon">${Icons.logout}</span>
+                <span class="sidebar__item-text">Cerrar sesión</span>
+            </button>
+        </div>
+    </aside>`;
 }
 
 async function saltarDemoPaso(paso) {
@@ -218,39 +345,9 @@ async function saltarDemoPaso(paso) {
     }
 }
 
-function renderAdminNavbar(admin) {
-    return `
-    <nav class="navbar" style="background:rgba(23,37,84,0.95);border-bottom-color:rgba(255,255,255,0.1)">
-        <div class="navbar__inner">
-            <a class="navbar__brand" style="color:white" href="#admin-profesores">
-                <div class="navbar__brand-icon" style="background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center">${Icons.settings}</div>
-                <span>Admin Panel</span>
-            </a>
-            <div class="navbar__actions">
-                <button class="btn btn-ghost btn-sm" onclick="toggleDarkMode()" title="Cambiar tema" style="color:rgba(255,255,255,0.6)" id="darkModeAdminBtn">
-                    <span style="display:flex;align-items:center">${document.body.classList.contains('dark') ? Icons.sun : Icons.moon}</span>
-                </button>
-                <button class="btn btn-ghost btn-sm" style="color:${admin?.rol==='cuentas'?'#38bdf8':'rgba(255,255,255,0.6)'}; display:flex;align-items:center;gap:4px" onclick="Router.navigate('admin-cuentas')">${Icons.shield} Cuentas</button>
-                <button class="btn btn-ghost btn-sm" style="color:${admin?.rol==='profesores'?'#38bdf8':'rgba(255,255,255,0.6)'}; display:flex;align-items:center;gap:4px" onclick="Router.navigate('admin-profesores')">${Icons.teacher} Profesores</button>
-                <button class="btn btn-ghost btn-sm" style="color:${admin?.rol==='pagos'?'#38bdf8':'rgba(255,255,255,0.6)'}; display:flex;align-items:center;gap:4px" onclick="Router.navigate('admin-pagos')">${Icons.money} Pagos</button>
-                <button class="btn btn-ghost btn-sm" style="color:${admin?.rol==='salud'?'#38bdf8':'rgba(255,255,255,0.6)'}; display:flex;align-items:center;gap:4px" onclick="Router.navigate('admin-salud')">${Icons.heart} Salud</button>
-                <button class="btn btn-ghost btn-sm" style="color:${admin?.rol==='turnos'?'#38bdf8':'rgba(255,255,255,0.6)'}; display:flex;align-items:center;gap:4px" onclick="Router.navigate('admin-turnos')">${Icons.calendar} Turnos</button>
-                <div class="navbar__user" style="background:rgba(255,255,255,0.1);color:white">
-                    ${admin?.nombre || 'Admin'}
-                </div>
-                <button class="btn btn-ghost btn-sm" style="color:rgba(255,255,255,0.6)" onclick="adminLogout()">
-                    <span style="display:flex;align-items:center">${Icons.logout}</span>
-                </button>
-            </div>
-        </div>
-    </nav>`;
-}
-
 function renderBackHeader(title, backTo = 'dashboard') {
-    const user = ApiService.getUsuario();
     return `
-    ${renderNavbar(user)}
-    <div style="background:var(--bg-card);border-bottom:1px solid var(--border);padding:12px 20px">
+    <div style="background:var(--bg-card);border-bottom:1px solid var(--border);padding:12px 24px">
         <div style="max-width:1200px;margin:0 auto;display:flex;align-items:center;gap:12px">
             <button class="btn btn-ghost btn-sm" style="display:flex;align-items:center;gap:4px" onclick="Router.navigate('${backTo}')">${Icons.back} Volver</button>
             <h1 style="font-size:1rem;font-weight:700">${title}</h1>
@@ -274,22 +371,82 @@ function adminLogout() {
 }
 
 // ============================================================
-// DARK MODE
+// DARK MODE (with backend persistence)
 // ============================================================
 function toggleDarkMode() {
     const isDark = document.body.classList.toggle('dark');
     localStorage.setItem('theme', isDark ? 'dark' : 'light');
-    const icon = isDark ? Icons.sun : Icons.moon;
-    const btn = document.getElementById('darkModeBtn');
-    const adminBtn = document.getElementById('darkModeAdminBtn');
-    if (btn) btn.innerHTML = `<span style="display:flex;align-items:center">${icon}</span>`;
-    if (adminBtn) adminBtn.innerHTML = `<span style="display:flex;align-items:center">${icon}</span>`;
+    
+    // Persist to backend
+    saveUserPreference('theme', isDark ? 'dark' : 'light');
+    
+    // Re-render sidebar to update icon
+    const app = document.getElementById('app');
+    const currentPage = window.location.hash.slice(1) || 'dashboard';
+    if (app && currentPage !== 'login' && currentPage !== 'registro' && currentPage !== 'admin-login') {
+        // Refresh page to update sidebar icons
+        Router.render(currentPage);
+    }
 }
 
 function initTheme() {
     const theme = localStorage.getItem('theme');
-    if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+    if (theme === 'dark') {
         document.body.classList.add('dark');
+    }
+    // Default: light mode (no auto-detect dark)
+}
+
+// ============================================================
+// PREFERENCES PERSISTENCE
+// ============================================================
+async function saveUserPreference(key, value) {
+    try {
+        const token = ApiService.getToken();
+        if (!token) return;
+        
+        const currentPrefs = JSON.parse(localStorage.getItem('userPreferences') || '{}');
+        currentPrefs[key] = value;
+        localStorage.setItem('userPreferences', JSON.stringify(currentPrefs));
+        
+        await ApiService.request('/api/user/preferences', 'PUT', currentPrefs);
+    } catch (e) {
+        // Silently fail — preferences are not critical
+    }
+}
+
+async function loadUserPreferences() {
+    try {
+        const token = ApiService.getToken();
+        if (!token) return;
+        
+        const res = await ApiService.request('/api/user/preferences');
+        if (res?.preferences) {
+            const prefs = res.preferences;
+            if (prefs.theme === 'dark') {
+                document.body.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+            }
+            if (prefs.sidebar_collapsed) {
+                _sidebarCollapsed = true;
+            }
+            localStorage.setItem('userPreferences', JSON.stringify(prefs));
+        }
+    } catch (e) {
+        // Use local defaults
+    }
+}
+
+// ============================================================
+// ACTIVITY TRACKING
+// ============================================================
+function trackActivity(action, detail = '') {
+    try {
+        const token = ApiService.getToken();
+        if (!token) return;
+        ApiService.request('/api/user/activity', 'POST', { action, detail });
+    } catch (e) {
+        // Silently fail
     }
 }
 
@@ -300,3 +457,4 @@ document.addEventListener('DOMContentLoaded', () => {
     initTheme();
     Router.init();
 });
+

@@ -16,30 +16,36 @@ class AdminProfesoresPage {
         app.innerHTML = `
         ${renderAdminNavbar(admin)}
         <div class="page-content stack-lg animate-fadeIn">
-            <!-- HERO ADMIN -->
-            <div class="glass-card p-6" style="border-left: 4px solid var(--primary)">
-                <div class="flex-between">
+            <!-- HERO ADMIN CIVIC BANNER -->
+            <div class="admin-hero">
+                <div class="flex-between" style="flex-wrap:wrap;gap:16px;position:relative;z-index:1">
                     <div>
-                        <span style="font-size:0.75rem;padding:4px 10px;border-radius:12px;background:rgba(37,99,235,0.2);color:#60a5fa;border:1px solid #3b82f6;font-weight:700;display:inline-flex;align-items:center;gap:6px;margin-bottom:8px">
-                            ${Icons.teacher} Panel de Profesores & Evaluaciones
-                        </span>
-                        <h1 class="font-bold text-xl mb-1" style="color:var(--text-main,#f8fafc)">Gestión del Examen Teórico de Conducir</h1>
-                        <p class="text-xs text-muted">Configurá preguntas, dictaminá evaluaciones de alumnos, supervisá en tiempo real y gestioná expulsiones/justificaciones.</p>
+                        <div class="admin-badge-pill">
+                            ${Icons.teacher} Dirección de Educación Vial · Claustro Docente
+                        </div>
+                        <h1 style="font-size:1.6rem;font-weight:800;color:#ffffff;margin-bottom:6px;font-family:var(--font-title);letter-spacing:-0.02em">
+                            Gestión de Exámenes Teóricos de Conducir
+                        </h1>
+                        <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;max-width:680px;margin:0">
+                            Configuración del banco de reactivos, supervisión biométrica en tiempo real por streaming y dictamen oficial con justificación pedagógica.
+                        </p>
                     </div>
                 </div>
+            </div>
 
-                <!-- TABS DE NAVEGACIÓN -->
-                <div style="display:flex;gap:10px;margin-top:20px;border-bottom:1px solid var(--border);padding-bottom:10px;flex-wrap:wrap">
-                    <button class="btn ${this.activeTab === 'config' ? 'btn-primary' : 'btn-ghost'} btn-sm" style="display:inline-flex;align-items:center;gap:6px" onclick="AdminProfesoresPage.switchTab('config')">
+            <!-- TABS DE NAVEGACIÓN SUBI -->
+            <div class="admin-filter-bar" style="margin-bottom:20px">
+                <div class="admin-tabs-list">
+                    <button class="admin-tab-btn ${this.activeTab === 'config' ? 'active' : ''}" onclick="AdminProfesoresPage.switchTab('config')">
                         ${Icons.settings} Configuración & Vista Previa
                     </button>
-                    <button class="btn ${this.activeTab === 'preguntas' ? 'btn-primary' : 'btn-ghost'} btn-sm" style="display:inline-flex;align-items:center;gap:6px" onclick="AdminProfesoresPage.switchTab('preguntas')">
+                    <button class="admin-tab-btn ${this.activeTab === 'preguntas' ? 'active' : ''}" onclick="AdminProfesoresPage.switchTab('preguntas')">
                         ${Icons.doc} Banco de Preguntas
                     </button>
-                    <button class="btn ${this.activeTab === 'monitoreo' ? 'btn-primary' : 'btn-ghost'} btn-sm" style="display:inline-flex;align-items:center;gap:6px" onclick="AdminProfesoresPage.switchTab('monitoreo')">
+                    <button class="admin-tab-btn ${this.activeTab === 'monitoreo' ? 'active' : ''}" onclick="AdminProfesoresPage.switchTab('monitoreo')">
                         ${Icons.camera} Monitoreo en Tiempo Real
                     </button>
-                    <button class="btn ${this.activeTab === 'revision' ? 'btn-primary' : 'btn-ghost'} btn-sm" style="display:inline-flex;align-items:center;gap:6px" onclick="AdminProfesoresPage.switchTab('revision')">
+                    <button class="admin-tab-btn ${this.activeTab === 'revision' ? 'active' : ''}" onclick="AdminProfesoresPage.switchTab('revision')">
                         ${Icons.check} Exámenes a Revisar & Dictamen
                     </button>
                 </div>
@@ -47,9 +53,9 @@ class AdminProfesoresPage {
 
             <!-- CONTENIDO DE CADA TAB -->
             <div id="profesoresTabContent">
-                <div class="text-center p-6">
+                <div class="dash-card text-center" style="padding:48px 20px">
                     <div class="spinner" style="margin:0 auto"></div>
-                    <p class="text-muted mt-2 text-xs">Cargando módulo...</p>
+                    <p class="text-muted mt-3" style="font-size:0.85rem">Cargando módulo docente...</p>
                 </div>
             </div>
         </div>`;
@@ -106,52 +112,53 @@ class AdminProfesoresPage {
         }
 
         container.innerHTML = `
-        <div class="grid-2" style="gap:20px">
+        <div class="grid-2" style="gap:20px;align-items:start">
             <!-- COLUMNA 1: SELECCIÓN DE MODO DE EXAMEN -->
-            <div class="glass-card p-6">
-                <h2 class="font-bold text-base mb-2" style="display:flex;align-items:center;gap:6px;color:var(--text-main,#f8fafc)">
-                    <span style="color:var(--primary);display:flex;align-items:center">${Icons.settings}</span> Configuración del Examen Teórico
-                </h2>
-                <p class="text-xs text-muted mb-4">Elegí la modalidad con la que el sistema generará las preguntas para los alumnos:</p>
+            <div class="dash-card">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+                    <span style="color:#0284c7;display:flex;align-items:center">${Icons.settings}</span>
+                    <h2 style="font-size:1.15rem;font-weight:800;color:var(--text-primary);margin:0">Modalidad de Evaluación</h2>
+                </div>
+                <p style="font-size:0.84rem;color:var(--text-secondary);margin-bottom:18px">Elegí la modalidad con la que el sistema compilará las preguntas para los aspirantes:</p>
 
                 <form onsubmit="AdminProfesoresPage.guardarConfig(event)">
-                    <div class="stack mb-4">
+                    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:18px">
                         <!-- OPCIÓN 1: PLANTILLA -->
-                        <label class="p-3" style="border:1px solid ${this.config.modo === 'plantilla' ? 'var(--primary)' : 'var(--border)'};border-radius:var(--radius-md);display:block;cursor:pointer;background:${this.config.modo === 'plantilla' ? 'rgba(37,99,235,0.12)' : 'rgba(255,255,255,0.02)'}">
-                            <div style="display:flex;align-items:center;gap:8px">
-                                <input type="radio" name="modoExamen" value="plantilla" ${this.config.modo === 'plantilla' ? 'checked' : ''} onchange="AdminProfesoresPage.onModoChange(this.value)">
+                        <label style="border:1.5px solid ${this.config.modo === 'plantilla' ? '#0284c7' : '#e2e8f0'};border-radius:12px;padding:14px;display:block;cursor:pointer;background:${this.config.modo === 'plantilla' ? '#eff6ff' : '#ffffff'};transition:all 0.15s ease">
+                            <div style="display:flex;align-items:center;gap:12px">
+                                <input type="radio" name="modoExamen" value="plantilla" ${this.config.modo === 'plantilla' ? 'checked' : ''} onchange="AdminProfesoresPage.onModoChange(this.value)" style="width:18px;height:18px">
                                 <div>
-                                    <strong style="font-size:0.9rem;color:var(--text-main,#f8fafc)">1. Modo Plantilla Estándar</strong>
-                                    <p class="text-xs text-muted mb-0">Utiliza las preguntas base preexistentes del sistema.</p>
+                                    <strong style="font-size:0.92rem;color:#0f172a;display:block">1. Modo Plantilla Estándar</strong>
+                                    <span style="font-size:0.8rem;color:#64748b">Preguntas oficiales base estandarizadas por la Agencia Provincial de Seguridad Vial.</span>
                                 </div>
                             </div>
                         </label>
 
                         <!-- OPCIÓN 2: PERSONALIZADO -->
-                        <label class="p-3" style="border:1px solid ${this.config.modo === 'personalizado' ? 'var(--primary)' : 'var(--border)'};border-radius:var(--radius-md);display:block;cursor:pointer;background:${this.config.modo === 'personalizado' ? 'rgba(37,99,235,0.12)' : 'rgba(255,255,255,0.02)'}">
-                            <div style="display:flex;align-items:center;gap:8px">
-                                <input type="radio" name="modoExamen" value="personalizado" ${this.config.modo === 'personalizado' ? 'checked' : ''} onchange="AdminProfesoresPage.onModoChange(this.value)">
+                        <label style="border:1.5px solid ${this.config.modo === 'personalizado' ? '#0284c7' : '#e2e8f0'};border-radius:12px;padding:14px;display:block;cursor:pointer;background:${this.config.modo === 'personalizado' ? '#eff6ff' : '#ffffff'};transition:all 0.15s ease">
+                            <div style="display:flex;align-items:center;gap:12px">
+                                <input type="radio" name="modoExamen" value="personalizado" ${this.config.modo === 'personalizado' ? 'checked' : ''} onchange="AdminProfesoresPage.onModoChange(this.value)" style="width:18px;height:18px">
                                 <div>
-                                    <strong style="font-size:0.9rem;color:var(--text-main,#f8fafc)">2. Modo Personalizado (Profesor)</strong>
-                                    <p class="text-xs text-muted mb-0">Utiliza exclusivamente las preguntas creadas por el profesor.</p>
+                                    <strong style="font-size:0.92rem;color:#0f172a;display:block">2. Modo Personalizado (Profesor)</strong>
+                                    <span style="font-size:0.8rem;color:#64748b">Utiliza exclusivamente preguntas elaboradas y cargadas por el equipo docente local.</span>
                                 </div>
                             </div>
                         </label>
 
                         <!-- OPCIÓN 3: HÍBRIDO -->
-                        <label class="p-3" style="border:1px solid ${this.config.modo === 'hibrido' ? 'var(--primary)' : 'var(--border)'};border-radius:var(--radius-md);display:block;cursor:pointer;background:${this.config.modo === 'hibrido' ? 'rgba(37,99,235,0.12)' : 'rgba(255,255,255,0.02)'}">
-                            <div style="display:flex;align-items:center;gap:8px">
-                                <input type="radio" name="modoExamen" value="hibrido" ${this.config.modo === 'hibrido' ? 'checked' : ''} onchange="AdminProfesoresPage.onModoChange(this.value)">
+                        <label style="border:1.5px solid ${this.config.modo === 'hibrido' ? '#0284c7' : '#e2e8f0'};border-radius:12px;padding:14px;display:block;cursor:pointer;background:${this.config.modo === 'hibrido' ? '#eff6ff' : '#ffffff'};transition:all 0.15s ease">
+                            <div style="display:flex;align-items:center;gap:12px">
+                                <input type="radio" name="modoExamen" value="hibrido" ${this.config.modo === 'hibrido' ? 'checked' : ''} onchange="AdminProfesoresPage.onModoChange(this.value)" style="width:18px;height:18px">
                                 <div>
-                                    <strong style="font-size:0.9rem;color:var(--text-main,#f8fafc)">3. Modo Híbrido (Combinado sin repetir)</strong>
-                                    <p class="text-xs text-muted mb-0">Combina preguntas de plantilla con preguntas de profesor sin duplicados.</p>
+                                    <strong style="font-size:0.92rem;color:#0f172a;display:block">3. Modo Híbrido (Combinado sin duplicados)</strong>
+                                    <span style="font-size:0.8rem;color:#64748b">Combina reactivos de plantilla estándar con preguntas locales del profesor.</span>
                                 </div>
                             </div>
                         </label>
                     </div>
 
-                    <div id="hibridoConfigInputs" style="display:${this.config.modo === 'hibrido' ? 'block' : 'none'};background:var(--bg);padding:12px;border-radius:var(--radius-md);margin-bottom:16px;border:1px solid var(--border)">
-                        <div class="grid-2" style="gap:10px">
+                    <div id="hibridoConfigInputs" style="display:${this.config.modo === 'hibrido' ? 'block' : 'none'};background:#f8fafc;padding:14px;border-radius:12px;margin-bottom:18px;border:1px solid #e2e8f0">
+                        <div class="grid-2" style="gap:12px">
                             <div>
                                 <label class="form-label text-xs">Preguntas de Plantilla</label>
                                 <input type="number" id="cantPlantilla" class="form-input text-xs" min="1" max="10" value="${this.config.cant_plantilla || 3}">
@@ -163,60 +170,60 @@ class AdminProfesoresPage {
                         </div>
                     </div>
 
-                    <button type="submit" class="btn btn-primary btn-block">
-                        Guardar Configuración de Examen
+                    <button type="submit" class="btn btn-primary btn-block" style="font-weight:700;padding:12px">
+                        Guardar Modalidad de Examen
                     </button>
                 </form>
             </div>
 
             <!-- COLUMNA 2: VISTA PREVIA DE PREGUNTAS EN VIVO -->
-            <div class="glass-card p-6">
-                <div class="flex-between mb-3">
-                    <h2 class="font-bold text-base mb-0" style="display:flex;align-items:center;gap:6px;color:var(--text-main,#f8fafc)">
-                        <span style="color:var(--primary);display:flex;align-items:center">${Icons.doc}</span> Vista Previa de Preguntas (${this.previewPreguntas.length})
-                    </h2>
+            <div class="dash-card">
+                <div class="flex-between mb-3" style="flex-wrap:wrap;gap:8px">
+                    <div>
+                        <h2 style="font-size:1.15rem;font-weight:800;color:var(--text-primary);margin:0;display:flex;align-items:center;gap:6px">
+                            <span style="color:#0284c7;display:flex;align-items:center">${Icons.doc}</span> Vista Previa (${this.previewPreguntas.length})
+                        </h2>
+                        <span style="font-size:0.75rem;color:#64748b">Modalidad: <strong style="color:#0284c7">${this.config.modo.toUpperCase()}</strong></span>
+                    </div>
+
                     <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
-                        <span style="padding:4px 10px;border-radius:12px;background:rgba(37,99,235,0.2);color:#60a5fa;border:1px solid #3b82f6;font-size:0.7rem;font-weight:700">
-                            ${this.config.modo.toUpperCase()}
-                        </span>
-                        <button type="button" class="btn btn-ghost btn-sm text-xs" style="color:#f87171;border:1px solid #ef4444;padding:3px 8px;display:inline-flex;align-items:center;gap:4px;font-weight:700" onclick="AdminProfesoresPage.vaciarPreguntasPlantilla()">
-                            ${Icons.x} Vaciar plantilla base
+                        <button type="button" class="btn btn-ghost btn-sm text-xs" style="color:#ef4444;border:1px solid #fca5a5;padding:4px 8px;display:inline-flex;align-items:center;gap:4px;font-weight:700" onclick="AdminProfesoresPage.vaciarPreguntasPlantilla()">
+                            ${Icons.x} Vaciar base
                         </button>
-                        <button type="button" class="btn btn-ghost btn-sm text-xs" style="color:#60a5fa;border:1px solid #3b82f6;padding:3px 8px;display:inline-flex;align-items:center;gap:4px;font-weight:700" onclick="AdminProfesoresPage.restaurarPreguntasPlantilla()">
-                            ${Icons.check} Restaurar plantilla base
+                        <button type="button" class="btn btn-ghost btn-sm text-xs" style="color:#0284c7;border:1px solid #bae6fd;padding:4px 8px;display:inline-flex;align-items:center;gap:4px;font-weight:700" onclick="AdminProfesoresPage.restaurarPreguntasPlantilla()">
+                            ${Icons.check} Restaurar base
                         </button>
-                        <button type="button" class="btn btn-ghost btn-sm text-xs" style="color:#f87171;border:1px solid #ef4444;padding:3px 8px;display:inline-flex;align-items:center;gap:4px;font-weight:700" onclick="AdminProfesoresPage.vaciarPreguntasProfesor()">
-                            ${Icons.x} Vaciar preguntas de profesor
+                        <button type="button" class="btn btn-ghost btn-sm text-xs" style="color:#dc2626;border:1px solid #fca5a5;padding:4px 8px;display:inline-flex;align-items:center;gap:4px;font-weight:700" onclick="AdminProfesoresPage.vaciarPreguntasProfesor()">
+                            ${Icons.x} Vaciar profesor
                         </button>
                     </div>
                 </div>
-                <p class="text-xs text-muted mb-4">Estas son las preguntas que verán los alumnos al rendir el examen con la configuración actual:</p>
 
-                <div class="stack" style="max-height:400px;overflow-y:auto;gap:12px">
+                <div class="stack" style="max-height:480px;overflow-y:auto;gap:12px">
                     ${this.previewPreguntas.length === 0 ? `
-                    <div class="empty-state">
-                        <p class="text-xs text-muted">No hay preguntas disponibles para el modo seleccionado. Podés cargar nuevas preguntas o vaciar las anteriores.</p>
+                    <div class="dash-card text-center" style="padding:32px 14px;background:#f8fafc">
+                        <p style="font-size:0.85rem;color:#64748b;margin:0">No hay preguntas disponibles para el modo seleccionado. Podés cargar nuevas preguntas o restaurar la plantilla base.</p>
                     </div>` : this.previewPreguntas.map((q, i) => `
-                    <div style="background:rgba(15,23,42,0.6);padding:14px;border-radius:var(--radius-md);border-left:4px solid ${q.es_plantilla ? '#3b82f6' : '#a855f7'};border-top:1px solid var(--border);border-right:1px solid var(--border);border-bottom:1px solid var(--border)">
-                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-                            <span class="font-bold text-xs" style="color:var(--text-main,#f8fafc)">Pregunta ${i + 1}</span>
+                    <div style="background:#ffffff;padding:16px;border-radius:12px;border-left:4px solid ${q.es_plantilla ? '#0284c7' : '#9333ea'};border-top:1px solid #e2e8f0;border-right:1px solid #e2e8f0;border-bottom:1px solid #e2e8f0;box-shadow:var(--shadow-sm)">
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+                            <span style="font-weight:800;font-size:0.85rem;color:#0f172a">Pregunta ${i + 1}</span>
                             ${q.es_plantilla ? `
-                            <span style="font-size:0.65rem;padding:3px 8px;border-radius:12px;background:rgba(37,99,235,0.25);color:#60a5fa;border:1px solid #3b82f6;font-weight:700">
+                            <span class="badge badge-info" style="font-size:0.68rem;padding:3px 8px">
                                 Plantilla Base
                             </span>` : `
-                            <span style="font-size:0.65rem;padding:3px 8px;border-radius:12px;background:rgba(168,85,247,0.25);color:#c084fc;border:1px solid #a855f7;font-weight:700">
-                                Creada por Profesor
+                            <span class="badge" style="background:#f3e8ff;color:#7e22ce;font-size:0.68rem;padding:3px 8px">
+                                Docente Local
                             </span>`}
                         </div>
-                        <p class="font-bold text-xs mb-3" style="color:var(--text-main,#f8fafc);font-size:0.85rem">${q.pregunta}</p>
-                        <div class="grid-2" style="font-size:0.8rem;gap:6px;font-weight:600">
-                            <div style="background:rgba(255,255,255,0.06);color:var(--text-main,#f8fafc);padding:6px 10px;border-radius:6px;border:1px solid rgba(255,255,255,0.1)">A) ${q.opcion_a}</div>
-                            <div style="background:rgba(255,255,255,0.06);color:var(--text-main,#f8fafc);padding:6px 10px;border-radius:6px;border:1px solid rgba(255,255,255,0.1)">B) ${q.opcion_b}</div>
-                            <div style="background:rgba(255,255,255,0.06);color:var(--text-main,#f8fafc);padding:6px 10px;border-radius:6px;border:1px solid rgba(255,255,255,0.1)">C) ${q.opcion_c}</div>
-                            <div style="background:rgba(255,255,255,0.06);color:var(--text-main,#f8fafc);padding:6px 10px;border-radius:6px;border:1px solid rgba(255,255,255,0.1)">D) ${q.opcion_d}</div>
+                        <p style="font-weight:700;color:#1e293b;font-size:0.88rem;margin-bottom:10px">${q.pregunta}</p>
+                        <div class="grid-2" style="font-size:0.8rem;gap:6px">
+                            <div style="background:#f8fafc;color:#334155;padding:8px 10px;border-radius:8px;border:1px solid #e2e8f0"><strong>A)</strong> ${q.opcion_a}</div>
+                            <div style="background:#f8fafc;color:#334155;padding:8px 10px;border-radius:8px;border:1px solid #e2e8f0"><strong>B)</strong> ${q.opcion_b}</div>
+                            <div style="background:#f8fafc;color:#334155;padding:8px 10px;border-radius:8px;border:1px solid #e2e8f0"><strong>C)</strong> ${q.opcion_c}</div>
+                            <div style="background:#f8fafc;color:#334155;padding:8px 10px;border-radius:8px;border:1px solid #e2e8f0"><strong>D)</strong> ${q.opcion_d}</div>
                         </div>
-                        <div class="text-xs font-bold text-success mt-3" style="display:inline-flex;align-items:center;gap:4px">
-                            ${Icons.check} Respuesta Correcta: ${q.respuesta_correcta?.toUpperCase()}
+                        <div style="margin-top:10px;font-size:0.8rem;font-weight:700;color:#059669;display:flex;align-items:center;gap:4px">
+                            ${Icons.check} Correcta: Opción ${q.respuesta_correcta?.toUpperCase()}
                         </div>
                     </div>`).join('')}
                 </div>
@@ -268,8 +275,7 @@ class AdminProfesoresPage {
 
     // ============================================================
     // TAB 2: BANCO DE PREGUNTAS
-    // ============================================================
-    static async renderTabPreguntas(container) {
+    // =========================    static async renderTabPreguntas(container) {
         try {
             const data = await ApiService.adminGetPreguntas();
             this.preguntas = data.preguntas || [];
@@ -278,19 +284,20 @@ class AdminProfesoresPage {
         }
 
         container.innerHTML = `
-        <div class="grid-2" style="gap:20px">
+        <div class="grid-2" style="gap:20px;align-items:start">
             <!-- COLUMNA 1: FORMULARIO CREAR PREGUNTA -->
-            <div class="glass-card p-6">
-                <h2 class="font-bold text-base mb-2" style="display:flex;align-items:center;gap:6px;color:var(--text-main,#f8fafc)">
-                    <span style="color:var(--primary);display:flex;align-items:center">${Icons.doc}</span> Nueva Pregunta de Examen
-                </h2>
-                <p class="text-xs text-muted mb-4">Agregá preguntas personalizadas al sistema:</p>
+            <div class="dash-card">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+                    <span style="color:#0284c7;display:flex;align-items:center">${Icons.doc}</span>
+                    <h2 style="font-size:1.15rem;font-weight:800;color:var(--text-primary);margin:0">Nueva Pregunta Docente</h2>
+                </div>
+                <p style="font-size:0.84rem;color:var(--text-secondary);margin-bottom:18px">Agregá preguntas personalizadas con 4 alternativas y consigna oficial:</p>
 
                 <form onsubmit="AdminProfesoresPage.crearPregunta(event)">
                     <div class="stack">
                         <div class="form-group">
-                            <label class="form-label text-xs">Pregunta / Consigna *</label>
-                            <textarea id="newPreguntaText" class="form-input text-xs" rows="3" placeholder="Ej: ¿Qué velocidad máxima corresponde en avenidas de Baradero?" required></textarea>
+                            <label class="form-label text-xs">Pregunta / Consigna Reglamentaria *</label>
+                            <textarea id="newPreguntaText" class="form-input text-xs" rows="3" placeholder="Ej: ¿Cuál es la velocidad máxima permitida en avenidas de Baradero según ordenanza vial?" required></textarea>
                         </div>
 
                         <div class="form-group">
@@ -330,57 +337,57 @@ class AdminProfesoresPage {
                             </div>
                         </div>
 
-                        <button type="submit" class="btn btn-primary btn-block mt-2">
-                            Guardar Pregunta
+                        <button type="submit" class="btn btn-primary btn-block mt-2" style="font-weight:700;padding:12px">
+                            Guardar Pregunta en el Banco
                         </button>
                     </div>
                 </form>
             </div>
 
             <!-- COLUMNA 2: LISTA DE PREGUNTAS CON BOTÓN DE VACIADO -->
-            <div class="glass-card p-6">
+            <div class="dash-card">
                 <div class="flex-between mb-3" style="flex-wrap:wrap;gap:8px">
-                    <h2 class="font-bold text-base mb-0" style="color:var(--text-main,#f8fafc)">Banco de Preguntas (${this.preguntas.length})</h2>
+                    <h2 style="font-size:1.15rem;font-weight:800;color:var(--text-primary);margin:0">Banco de Reactivos (${this.preguntas.length})</h2>
                     <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
-                        <button type="button" class="btn btn-ghost btn-sm text-xs" style="color:#f87171;border:1px solid #ef4444;padding:3px 8px;display:inline-flex;align-items:center;gap:4px;font-weight:700" onclick="AdminProfesoresPage.vaciarPreguntasPlantilla()">
-                            ${Icons.x} Vaciar plantilla base
+                        <button type="button" class="btn btn-ghost btn-sm text-xs" style="color:#ef4444;border:1px solid #fca5a5;padding:4px 8px;display:inline-flex;align-items:center;gap:4px;font-weight:700" onclick="AdminProfesoresPage.vaciarPreguntasPlantilla()">
+                            ${Icons.x} Vaciar base
                         </button>
-                        <button type="button" class="btn btn-ghost btn-sm text-xs" style="color:#60a5fa;border:1px solid #3b82f6;padding:3px 8px;display:inline-flex;align-items:center;gap:4px;font-weight:700" onclick="AdminProfesoresPage.restaurarPreguntasPlantilla()">
-                            ${Icons.check} Restaurar plantilla base
+                        <button type="button" class="btn btn-ghost btn-sm text-xs" style="color:#0284c7;border:1px solid #bae6fd;padding:4px 8px;display:inline-flex;align-items:center;gap:4px;font-weight:700" onclick="AdminProfesoresPage.restaurarPreguntasPlantilla()">
+                            ${Icons.check} Restaurar base
                         </button>
-                        <button type="button" class="btn btn-ghost btn-sm text-xs" style="color:#f87171;border:1px solid #ef4444;padding:3px 8px;display:inline-flex;align-items:center;gap:4px;font-weight:700" onclick="AdminProfesoresPage.vaciarPreguntasProfesor()">
-                            ${Icons.x} Vaciar preguntas del profesor
+                        <button type="button" class="btn btn-ghost btn-sm text-xs" style="color:#dc2626;border:1px solid #fca5a5;padding:4px 8px;display:inline-flex;align-items:center;gap:4px;font-weight:700" onclick="AdminProfesoresPage.vaciarPreguntasProfesor()">
+                            ${Icons.x} Vaciar profesor
                         </button>
                     </div>
                 </div>
                 
-                <div class="stack" style="max-height:480px;overflow-y:auto;gap:12px">
+                <div class="stack" style="max-height:520px;overflow-y:auto;gap:12px">
                     ${this.preguntas.length === 0 ? `
-                    <div class="empty-state">
-                        <p class="text-xs text-muted">No hay preguntas registradas actualmente en el banco.</p>
+                    <div class="dash-card text-center" style="padding:32px 14px;background:#f8fafc">
+                        <p style="font-size:0.85rem;color:#64748b;margin:0">No hay preguntas registradas actualmente en el banco.</p>
                     </div>` : this.preguntas.map((q, i) => `
-                    <div style="background:rgba(15,23,42,0.6);padding:14px;border-radius:var(--radius-md);border-left:4px solid ${q.es_plantilla ? '#3b82f6' : '#a855f7'};border-top:1px solid var(--border);border-right:1px solid var(--border);border-bottom:1px solid var(--border)">
-                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+                    <div style="background:#ffffff;padding:16px;border-radius:12px;border-left:4px solid ${q.es_plantilla ? '#0284c7' : '#9333ea'};border-top:1px solid #e2e8f0;border-right:1px solid #e2e8f0;border-bottom:1px solid #e2e8f0;box-shadow:var(--shadow-sm)">
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
                             ${q.es_plantilla ? `
-                            <span style="font-size:0.65rem;padding:3px 8px;border-radius:12px;background:rgba(37,99,235,0.25);color:#60a5fa;border:1px solid #3b82f6;font-weight:700">
+                            <span class="badge badge-info" style="font-size:0.68rem;padding:3px 8px">
                                 Plantilla Base
                             </span>` : `
-                            <span style="font-size:0.65rem;padding:3px 8px;border-radius:12px;background:rgba(168,85,247,0.25);color:#c084fc;border:1px solid #a855f7;font-weight:700">
-                                Creada por Profesor
+                            <span class="badge" style="background:#f3e8ff;color:#7e22ce;font-size:0.68rem;padding:3px 8px">
+                                Docente Local
                             </span>`}
-                            <button class="btn btn-ghost btn-sm" onclick="AdminProfesoresPage.eliminarPregunta(${q.id})" style="color:#f87171;font-size:0.75rem;padding:2px 8px;display:inline-flex;align-items:center;gap:2px">
+                            <button class="btn btn-ghost btn-sm" onclick="AdminProfesoresPage.eliminarPregunta(${q.id})" style="color:#ef4444;font-size:0.75rem;padding:2px 8px;display:inline-flex;align-items:center;gap:2px">
                                 ${Icons.x} Eliminar
                             </button>
                         </div>
-                        <p class="font-bold text-xs mb-3" style="color:var(--text-main,#f8fafc);font-size:0.85rem">${q.pregunta}</p>
-                        <div class="grid-2" style="font-size:0.8rem;gap:6px;font-weight:600">
-                            <div style="background:rgba(255,255,255,0.06);color:var(--text-main,#f8fafc);padding:6px 10px;border-radius:6px;border:1px solid rgba(255,255,255,0.1)">A) ${q.opcion_a}</div>
-                            <div style="background:rgba(255,255,255,0.06);color:var(--text-main,#f8fafc);padding:6px 10px;border-radius:6px;border:1px solid rgba(255,255,255,0.1)">B) ${q.opcion_b}</div>
-                            <div style="background:rgba(255,255,255,0.06);color:var(--text-main,#f8fafc);padding:6px 10px;border-radius:6px;border:1px solid rgba(255,255,255,0.1)">C) ${q.opcion_c}</div>
-                            <div style="background:rgba(255,255,255,0.06);color:var(--text-main,#f8fafc);padding:6px 10px;border-radius:6px;border:1px solid rgba(255,255,255,0.1)">D) ${q.opcion_d}</div>
+                        <p style="font-weight:700;color:#1e293b;font-size:0.88rem;margin-bottom:10px">${q.pregunta}</p>
+                        <div class="grid-2" style="font-size:0.8rem;gap:6px">
+                            <div style="background:#f8fafc;color:#334155;padding:8px 10px;border-radius:8px;border:1px solid #e2e8f0"><strong>A)</strong> ${q.opcion_a}</div>
+                            <div style="background:#f8fafc;color:#334155;padding:8px 10px;border-radius:8px;border:1px solid #e2e8f0"><strong>B)</strong> ${q.opcion_b}</div>
+                            <div style="background:#f8fafc;color:#334155;padding:8px 10px;border-radius:8px;border:1px solid #e2e8f0"><strong>C)</strong> ${q.opcion_c}</div>
+                            <div style="background:#f8fafc;color:#334155;padding:8px 10px;border-radius:8px;border:1px solid #e2e8f0"><strong>D)</strong> ${q.opcion_d}</div>
                         </div>
-                        <div class="text-xs font-bold text-success mt-3" style="display:inline-flex;align-items:center;gap:4px">
-                            ${Icons.check} Correcta: ${q.respuesta_correcta?.toUpperCase()}
+                        <div style="margin-top:10px;font-size:0.8rem;font-weight:700;color:#059669;display:flex;align-items:center;gap:4px">
+                            ${Icons.check} Correcta: Opción ${q.respuesta_correcta?.toUpperCase()}
                         </div>
                     </div>`).join('')}
                 </div>
@@ -466,62 +473,67 @@ class AdminProfesoresPage {
 
             container.innerHTML = `
             <div>
-                <div class="flex-between mb-4">
+                <div class="flex-between mb-4" style="flex-wrap:wrap;gap:12px">
                     <div>
-                        <h2 class="font-bold text-base mb-1" style="display:flex;align-items:center;gap:6px;color:var(--text-main,#f8fafc)">
-                            <span style="color:var(--danger);display:flex;align-items:center">${Icons.camera}</span> Centro de Supervisión en Tiempo Real
+                        <h2 style="font-size:1.15rem;font-weight:800;color:var(--text-primary);margin:0;display:flex;align-items:center;gap:8px">
+                            <span style="color:#ef4444;display:flex;align-items:center">${Icons.camera}</span> Centro de Supervisión Remota en Vivo
                         </h2>
-                        <p class="text-xs text-muted">Visualización en vivo de cámaras web, captura de pantalla, alertas anti-trampa y botón de expulsión inmediata.</p>
+                        <p style="font-size:0.82rem;color:var(--text-secondary);margin-top:2px">
+                            Monitoreo en tiempo real de video del aspirante, captura de escritorio y detección anti-trampa con expulsión inmediata.
+                        </p>
                     </div>
-                    <span style="padding:6px 12px;font-size:0.75rem;border-radius:12px;background:rgba(34,197,94,0.2);color:#4ade80;border:1px solid #22c55e;font-weight:700;animation:pulse 2s infinite">
-                        ● Transmisión en Vivo
+                    <span style="padding:6px 14px;font-size:0.75rem;border-radius:20px;background:#dcfce7;color:#15803d;border:1px solid #86efac;font-weight:800;display:inline-flex;align-items:center;gap:6px">
+                        <span style="width:8px;height:8px;border-radius:50%;background:#22c55e;animation:pulse 1.5s infinite"></span>
+                        Transmisión en Vivo
                     </span>
                 </div>
 
-                <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(320px, 1fr));gap:16px">
+                <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(320px, 1fr));gap:18px">
                     ${this.estudiantes.length === 0 ? `
-                    <div class="glass-card p-6 text-center" style="grid-column:1/-1">
-                        <div style="display:flex;justify-content:center;margin-bottom:10px;color:var(--primary);font-size:2rem">${Icons.camera}</div>
-                        <h3 class="font-bold text-sm" style="color:var(--text-main,#f8fafc)">No hay alumnos rindiendo el examen en este momento</h3>
-                        <p class="text-xs text-muted mt-1">Los exámenes activos aparecerán aquí en vivo cuando los ciudadanos inicien la evaluación.</p>
+                    <div class="dash-card text-center" style="grid-column:1/-1;padding:48px 20px">
+                        <div style="width:64px;height:64px;border-radius:50%;background:#eff6ff;color:#0284c7;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:2rem">
+                            ${Icons.camera}
+                        </div>
+                        <h3 style="font-size:1.1rem;font-weight:700;color:var(--text-primary);margin-bottom:6px">No hay alumnos rindiendo en este momento</h3>
+                        <p style="font-size:0.85rem;color:var(--text-muted);max-width:440px;margin:0 auto">Las sesiones activas de examen teórico con cámara web y pantalla compartida se sincronizarán aquí automáticamente.</p>
                     </div>` : this.estudiantes.map(st => `
-                    <div class="glass-card p-4" style="border-top:4px solid ${st.warnings_count > 0 ? '#ef4444' : '#22c55e'}">
-                        <div class="flex-between mb-2">
+                    <div class="dash-card" style="border-top:4px solid ${st.warnings_count > 0 ? '#ef4444' : '#10b981'}">
+                        <div class="flex-between mb-3">
                             <div>
-                                <strong class="text-sm" style="color:var(--text-main,#f8fafc)">${st.nombre}</strong>
-                                <div class="text-xs text-muted">DNI ${st.dni}</div>
+                                <strong style="font-size:0.95rem;color:#0f172a">${st.nombre}</strong>
+                                <div style="font-size:0.78rem;color:#64748b">DNI ${st.dni}</div>
                             </div>
-                            <span style="font-size:0.65rem;padding:3px 8px;border-radius:12px;background:${st.warnings_count > 0 ? 'rgba(239,68,68,0.25)' : 'rgba(34,197,94,0.25)'};color:${st.warnings_count > 0 ? '#f87171' : '#4ade80'};border:1px solid ${st.warnings_count > 0 ? '#ef4444' : '#22c55e'};font-weight:700">
-                                Alt-Tab: ${st.warnings_count} alertas
+                            <span class="badge ${st.warnings_count > 0 ? 'badge-danger' : 'badge-success'}" style="font-size:0.75rem;padding:4px 10px">
+                                ${st.warnings_count > 0 ? `⚠️ Alt-Tab: ${st.warnings_count}` : '✓ Sin Alertas'}
                             </span>
                         </div>
 
                         <!-- STREAMING CAM Y SCREEN -->
-                        <div class="grid-2" style="gap:8px;margin-bottom:10px">
-                            <div style="position:relative;height:120px;background:#000;border-radius:var(--radius-sm);overflow:hidden">
+                        <div class="grid-2" style="gap:10px;margin-bottom:12px">
+                            <div style="position:relative;height:120px;background:#0f172a;border-radius:10px;overflow:hidden;border:1px solid #334155">
                                 ${st.cam_frame ? `
                                 <img src="${st.cam_frame}" style="width:100%;height:100%;object-fit:cover">` : `
-                                <div style="display:flex;align-items:center;justify-content:center;height:100%;color:#aaa;font-size:0.7rem">Sin video cam</div>`}
-                                <span style="position:absolute;bottom:4px;left:4px;background:rgba(0,0,0,0.6);color:#fff;font-size:0.6rem;padding:2px 6px;border-radius:4px">Cámara Web</span>
+                                <div style="display:flex;align-items:center;justify-content:center;height:100%;color:#94a3b8;font-size:0.75rem">Sin video cam</div>`}
+                                <span style="position:absolute;bottom:4px;left:4px;background:rgba(0,0,0,0.7);color:#fff;font-size:0.65rem;padding:2px 6px;border-radius:4px">Cámara Web</span>
                             </div>
 
-                            <div style="position:relative;height:120px;background:#000;border-radius:var(--radius-sm);overflow:hidden">
+                            <div style="position:relative;height:120px;background:#0f172a;border-radius:10px;overflow:hidden;border:1px solid #334155">
                                 ${st.screen_frame ? `
                                 <img src="${st.screen_frame}" style="width:100%;height:100%;object-fit:cover">` : `
-                                <div style="display:flex;align-items:center;justify-content:center;height:100%;color:#aaa;font-size:0.7rem">Sin pantalla</div>`}
-                                <span style="position:absolute;bottom:4px;left:4px;background:rgba(0,0,0,0.6);color:#fff;font-size:0.6rem;padding:2px 6px;border-radius:4px">Pantalla Entera</span>
+                                <div style="display:flex;align-items:center;justify-content:center;height:100%;color:#94a3b8;font-size:0.75rem">Sin pantalla</div>`}
+                                <span style="position:absolute;bottom:4px;left:4px;background:rgba(0,0,0,0.7);color:#fff;font-size:0.65rem;padding:2px 6px;border-radius:4px">Pantalla Entera</span>
                             </div>
                         </div>
 
-                        <div class="flex-between text-xs mb-3" style="background:rgba(15,23,42,0.6);padding:8px 10px;border-radius:var(--radius-sm);color:var(--text-main,#f8fafc);border:1px solid var(--border)">
-                            <span>Pregunta: <strong style="color:var(--text-main,#f8fafc)">${st.current_question}/5</strong></span>
-                            <span>Tiempo: <strong style="color:var(--text-main,#f8fafc)">${st.elapsed_seconds || 0} seg</strong></span>
-                            ${st.tiene_cud ? `<span style="font-size:0.6rem;padding:2px 6px;border-radius:10px;background:rgba(34,197,94,0.2);color:#4ade80;border:1px solid #22c55e;font-weight:700;display:inline-flex;align-items:center;gap:2px">${Icons.wheelchair} CUD</span>` : ''}
+                        <div class="flex-between text-xs mb-3" style="background:#f8fafc;padding:10px 12px;border-radius:10px;color:#334155;border:1px solid #e2e8f0">
+                            <span>Pregunta activa: <strong style="color:#0284c7">${st.current_question}/5</strong></span>
+                            <span>Tiempo transcurrido: <strong>${st.elapsed_seconds || 0} seg</strong></span>
+                            ${st.tiene_cud ? `<span class="badge badge-success" style="font-size:0.65rem;padding:2px 6px">${Icons.wheelchair} CUD</span>` : ''}
                         </div>
 
                         <!-- BOTÓN DE EXPULSIÓN INMEDIATA EN VIVO -->
-                        <button class="btn btn-primary btn-block btn-sm" style="background:#ef4444;color:#fff;border:none;font-weight:700;display:inline-flex;align-items:center;justify-content:center;gap:4px" onclick="AdminProfesoresPage.expulsarEstudiante(${st.tramite_id}, '${st.nombre}')">
-                            ${Icons.x} Expulsar del Examen en Vivo
+                        <button class="btn btn-primary btn-block btn-sm" style="background:#ef4444;color:#fff;border:none;font-weight:700;display:inline-flex;align-items:center;justify-content:center;gap:6px;border-radius:8px" onclick="AdminProfesoresPage.expulsarEstudiante(${st.tramite_id}, '${st.nombre}')">
+                            ${Icons.x} Expulsar por Falta Grave
                         </button>
                     </div>`).join('')}
                 </div>
@@ -561,61 +573,62 @@ class AdminProfesoresPage {
         <div>
             <div class="flex-between mb-4">
                 <div>
-                    <h2 class="font-bold text-base mb-1" style="display:flex;align-items:center;gap:6px;color:var(--text-main,#f8fafc)">
-                        <span style="color:var(--primary);display:flex;align-items:center">${Icons.check}</span> Exámenes Entregados & Dictamen del Profesor
+                    <h2 style="font-size:1.15rem;font-weight:800;color:var(--text-primary);margin:0;display:flex;align-items:center;gap:8px">
+                        <span style="color:#0284c7;display:flex;align-items:center">${Icons.check}</span> Evaluaciones Entregadas & Dictamen Docente
                     </h2>
-                    <p class="text-xs text-muted">Revisá las respuestas de los alumnos, su porcentaje de aciertos, sus alertas anti-trampa y emití el dictamen con justificación oficial.</p>
+                    <p style="font-size:0.82rem;color:var(--text-secondary);margin-top:2px">
+                        Revisá las respuestas de los aspirantes, porcentaje de aprobación, incidentes reportados y emití el dictamen fundado.
+                    </p>
                 </div>
             </div>
 
             <div class="stack" style="gap:16px">
                 ${this.revisionExamenes.length === 0 ? `
-                <div class="glass-card p-6 text-center">
-                    <div style="display:flex;justify-content:center;margin-bottom:10px;color:var(--primary);font-size:2rem">${Icons.doc}</div>
-                    <h3 class="font-bold text-sm" style="color:var(--text-main,#f8fafc)">No hay exámenes entregados registrados</h3>
-                    <p class="text-xs text-muted mt-1">Los exámenes entregados por los alumnos aparecerán aquí para tu revisión.</p>
+                <div class="dash-card text-center" style="padding:48px 20px">
+                    <div style="width:64px;height:64px;border-radius:50%;background:#eff6ff;color:#0284c7;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:2rem">
+                        ${Icons.doc}
+                    </div>
+                    <h3 style="font-size:1.1rem;font-weight:700;color:var(--text-primary);margin-bottom:6px">No hay exámenes entregados pendientes</h3>
+                    <p style="font-size:0.85rem;color:var(--text-muted);max-width:440px;margin:0 auto">Los exámenes finalizados por los ciudadanos aparecerán aquí para dictamen oficial.</p>
                 </div>` : this.revisionExamenes.map(ex => `
-                <div class="glass-card p-5" style="border-left:4px solid ${ex.estado_revision === 'aprobado' ? '#22c55e' : (ex.estado_revision === 'desaprobado' ? '#ef4444' : '#3b82f6')}">
+                <div class="dash-card" style="border-left:4px solid ${ex.estado_revision === 'aprobado' ? '#10b981' : (ex.estado_revision === 'desaprobado' ? '#ef4444' : '#0284c7')}">
                     <div class="flex-between mb-3" style="flex-wrap:wrap;gap:10px">
                         <div>
-                            <h3 class="font-bold text-sm mb-0" style="color:var(--text-main,#f8fafc)">${ex.nombre} ${ex.apellido}</h3>
-                            <div class="text-xs text-muted">DNI ${ex.dni} · Trámite #${ex.tramite_id} · Fecha: ${ex.created_at || ''}</div>
+                            <h3 style="font-size:1.05rem;font-weight:800;color:#0f172a;margin:0">${ex.nombre} ${ex.apellido}</h3>
+                            <div style="font-size:0.8rem;color:#64748b;margin-top:2px"><strong>DNI:</strong> ${ex.dni} · <strong>Trámite:</strong> #${ex.tramite_id} · <strong>Fecha:</strong> ${ex.created_at || ''}</div>
                         </div>
 
-                        <div style="display:flex;gap:8px;align-items:center">
-                            <span style="padding:4px 10px;border-radius:12px;font-size:0.75rem;font-weight:700;background:rgba(37,99,235,0.25);color:#60a5fa;border:1px solid #3b82f6">
+                        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+                            <span class="badge badge-info" style="font-size:0.8rem;padding:5px 12px">
                                 Acierto: ${ex.porcentaje_acierto || Math.round(((ex.puntaje || 0) / (ex.total_preguntas || 1)) * 100)}% (${ex.puntaje || 0}/${ex.total_preguntas || 0})
                             </span>
 
-                            <span style="padding:4px 10px;border-radius:12px;font-size:0.75rem;font-weight:700;
-                                background:${ex.estado_revision === 'aprobado' ? 'rgba(34,197,94,0.25)' : (ex.estado_revision === 'desaprobado' || ex.expulsado ? 'rgba(239,68,68,0.25)' : 'rgba(245,158,11,0.25)')};
-                                color:${ex.estado_revision === 'aprobado' ? '#4ade80' : (ex.estado_revision === 'desaprobado' || ex.expulsado ? '#f87171' : '#fbbf24')};
-                                border:1px solid ${ex.estado_revision === 'aprobado' ? '#22c55e' : (ex.estado_revision === 'desaprobado' || ex.expulsado ? '#ef4444' : '#f59e0b')}">
+                            <span class="badge ${ex.estado_revision === 'aprobado' ? 'badge-success' : (ex.estado_revision === 'desaprobado' || ex.expulsado ? 'badge-danger' : 'badge-pending')}" style="font-size:0.8rem;padding:5px 12px">
                                 ${ex.expulsado ? '🚫 EXPULSADO' : (ex.estado_revision === 'aprobado' ? '✅ APROBADO' : (ex.estado_revision === 'desaprobado' ? '❌ DESAPROBADO' : '⏳ PENDIENTE DE REVISIÓN'))}
                             </span>
                         </div>
                     </div>
 
                     ${ex.motivo_justificacion ? `
-                    <div class="p-3 mb-3" style="background:rgba(255,255,255,0.04);border-radius:6px;border-left:3px solid var(--primary)">
-                        <strong class="text-xs" style="color:var(--text-main,#f8fafc)">Justificación del Profesor:</strong>
-                        <p class="text-xs text-muted mb-0 mt-1">${ex.motivo_justificacion}</p>
+                    <div style="background:#f8fafc;padding:12px;border-radius:8px;border-left:3px solid #0284c7;margin-bottom:14px">
+                        <strong style="font-size:0.8rem;color:#0f172a">Justificación del Docente:</strong>
+                        <p style="font-size:0.82rem;color:#475569;margin:4px 0 0 0">${ex.motivo_justificacion}</p>
                     </div>` : ''}
 
                     <!-- ACCIONES DE DICTAMEN DE REVISIÓN -->
-                    <div style="background:rgba(15,23,42,0.6);padding:14px;border-radius:var(--radius-md);border:1px solid var(--border)">
-                        <label class="form-label text-xs font-bold mb-1">Justificación u Observación Oficial del Profesor *</label>
-                        <input type="text" id="motivo_${ex.tramite_id}" class="form-input text-xs mb-3" placeholder="Ej: Cumple con el 70% mínimo de respuestas correctas y sin alertas de Alt-Tab." value="${ex.motivo_justificacion || ''}">
+                    <div style="background:#f8fafc;padding:16px;border-radius:12px;border:1px solid #e2e8f0">
+                        <label class="form-label text-xs font-bold mb-1">Dictamen / Justificación Pedagógica Oficial *</label>
+                        <input type="text" id="motivo_${ex.tramite_id}" class="form-input text-xs mb-3" placeholder="Ej: Cumple con el porcentaje reglamentario (mínimo 70%) sin incidencias en proctoring." value="${ex.motivo_justificacion || ''}">
 
                         <div style="display:flex;gap:10px;flex-wrap:wrap">
-                            <button type="button" class="btn btn-sm" style="background:#22c55e;color:#fff;font-weight:700;display:inline-flex;align-items:center;gap:4px" onclick="AdminProfesoresPage.dictaminarExamen(${ex.tramite_id}, 'aprobar')">
-                                ${Icons.check} Aprobar Examen
+                            <button type="button" class="btn btn-sm" style="background:#10b981;color:#fff;font-weight:700;display:inline-flex;align-items:center;gap:6px;border-radius:8px" onclick="AdminProfesoresPage.dictaminarExamen(${ex.tramite_id}, 'aprobar')">
+                                ${Icons.check} Dictaminar Aprobado
                             </button>
-                            <button type="button" class="btn btn-sm" style="background:#ef4444;color:#fff;font-weight:700;display:inline-flex;align-items:center;gap:4px" onclick="AdminProfesoresPage.dictaminarExamen(${ex.tramite_id}, 'desaprobar')">
-                                ${Icons.x} Desaprobar Examen
+                            <button type="button" class="btn btn-sm" style="background:#ef4444;color:#fff;font-weight:700;display:inline-flex;align-items:center;gap:6px;border-radius:8px" onclick="AdminProfesoresPage.dictaminarExamen(${ex.tramite_id}, 'desaprobar')">
+                                ${Icons.x} Dictaminar Reprobado
                             </button>
-                            <button type="button" class="btn btn-outline btn-sm text-xs" onclick="AdminProfesoresPage.enviarChatDirecto(${ex.tramite_id}, '${ex.nombre}')">
-                                Send Mensaje / Justificación Directa al Alumno
+                            <button type="button" class="btn btn-outline btn-sm text-xs" style="border-radius:8px" onclick="AdminProfesoresPage.enviarChatDirecto(${ex.tramite_id}, '${ex.nombre}')">
+                                ✉️ Enviar Notificación Directa al Alumno
                             </button>
                         </div>
                     </div>
@@ -649,3 +662,4 @@ class AdminProfesoresPage {
         }
     }
 }
+

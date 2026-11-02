@@ -182,184 +182,355 @@ class DashboardPage {
 
         app.innerHTML = `
         ${renderNavbar(citizen)}
-        <div class="page-content stack-lg animate-fadeIn">
-            <!-- HERO CLASSIC -->
-            <section class="hero gradient-hero">
-                <div style="position:relative;z-index:1">
-                    <div class="hero__badge">
-                        <span style="display:flex;align-items:center;color:var(--warning)">${Icons.sparkles}</span>
-                        Baradero · Portal de Ciudadano
-                    </div>
-                    <h1 class="hero__title">
-                        Bienvenido/a, <span>${citizen.nombre || 'Ciudadano'}</span>
-                    </h1>
-                    <p class="hero__subtitle">
-                        Gestioná todos tus trámites de licencia de conducir en un solo lugar de forma simple y digital.
-                    </p>
-                </div>
-            </section>
-
-            <!-- PANEL DE DATOS PERSONALES DEL CIUDADANO -->
-            <section class="glass-card p-6" style="border-left: 4px solid var(--primary)">
-                <div class="flex-between mb-4">
-                    <div style="display:flex;align-items:center;gap:12px">
-                        <div style="width:48px;height:48px;border-radius:50%;background:var(--primary-soft);display:flex;align-items:center;justify-content:center;font-size:1.5rem;color:var(--primary)">
-                            ${Icons.user}
-                        </div>
-                        <div>
-                            <h2 class="font-bold text-lg mb-0">${citizen.nombre || ''} ${citizen.apellido || ''}</h2>
-                            <p class="text-xs text-muted">DNI ${citizen.dni || ''} · ${citizen.edad || '--'} años</p>
-                        </div>
-                    </div>
-
-                    <!-- BADGES Y ESTADO -->
-                    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
-                        <span class="badge badge-success" style="padding:6px 12px;font-size:0.8rem;display:inline-flex;align-items:center;gap:6px">
-                            ${Icons.check} Cuenta Verificada y Aprobada
-                        </span>
-                        ${citizen.tiene_cud ? `
-                        <span class="badge badge-success" style="padding:4px 10px;font-size:0.75rem;display:inline-flex;align-items:center;gap:6px;background:#dcfce7;color:#15803d;border:1px solid #86efac">
-                            ${Icons.wheelchair} CUD N° ${citizen.numero_cud || ''} (Prioridad)
-                        </span>` : ''}
-                    </div>
-                </div>
-
-                <div class="grid-3" style="font-size:0.85rem;gap:16px;background:rgba(255,255,255,0.05);padding:14px;border-radius:var(--radius-md)">
-                    <div><strong class="text-muted">Fecha Nacimiento:</strong> ${citizen.fecha_nacimiento || '--'}</div>
-                    <div><strong class="text-muted">Email:</strong> ${citizen.email || 'No registrado'}</div>
-                    <div><strong class="text-muted">Teléfono:</strong> ${citizen.telefono || 'No registrado'}</div>
-                    <div><strong class="text-muted">Dirección:</strong> ${citizen.direccion || 'Baradero'}</div>
-                    <div><strong class="text-muted">Infracciones:</strong> <span style="color:var(--success);font-weight:700">Libre de Deuda</span></div>
-                    <div><strong class="text-muted">Estado General:</strong> En Regla</div>
-                </div>
-            </section>
-
-            <!-- SECCIÓN: SELECCIÓN DE TRÁMITES -->
-            <section class="glass-card p-6">
-                <div class="mb-4">
-                    <h2 class="section-title mb-1" style="display:flex;align-items:center;gap:8px">
-                        <span style="color:var(--primary);display:flex;align-items:center">${Icons.doc}</span> Elegir mi Trámite
-                    </h2>
-                    <p class="text-xs text-muted">Seleccioná un botón para activar el trámite correspondiente y visualizar sus pasos específicos:</p>
-                </div>
-
-                <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(210px, 1fr));gap:14px">
-                    <button class="tramite-card-btn ${tramiteSeleccionado === 'nueva' ? 'tramite-card-btn--active' : ''}" 
-                            onclick="DashboardPage.seleccionarTramite('nueva')">
-                        <div style="font-size:1.5rem;margin-bottom:6px;color:var(--primary);display:flex;justify-content:center">${Icons.car}</div>
-                        <strong style="font-size:0.95rem;margin-bottom:4px">Licencia Nueva</strong>
-                        <span class="text-xs ${tramiteSeleccionado === 'nueva' ? '' : 'text-muted'}">Primera vez · Examen teórico, práctico y biometría.</span>
-                        ${tramiteSeleccionado === 'nueva' ? `<span class="badge mt-2" style="background:rgba(255,255,255,0.25);display:inline-flex;align-items:center;gap:4px">${Icons.check} En curso</span>` : ''}
-                    </button>
-
-                    <button class="tramite-card-btn ${tramiteSeleccionado === 'renovacion' ? 'tramite-card-btn--active' : ''}" 
-                            onclick="DashboardPage.seleccionarTramite('renovacion')">
-                        <div style="font-size:1.5rem;margin-bottom:6px;color:var(--primary);display:flex;justify-content:center">${Icons.sparkles}</div>
-                        <strong style="font-size:0.95rem;margin-bottom:4px">Renovar Licencia</strong>
-                        <span class="text-xs ${tramiteSeleccionado === 'renovacion' ? '' : 'text-muted'}">Renovación directa online · Salud + Pago del arancel.</span>
-                        ${tramiteSeleccionado === 'renovacion' ? `<span class="badge mt-2" style="background:rgba(255,255,255,0.25);display:inline-flex;align-items:center;gap:4px">${Icons.check} En curso</span>` : ''}
-                    </button>
-
-                    <button class="tramite-card-btn ${tramiteSeleccionado === 'vencida' ? 'tramite-card-btn--active' : ''}" 
-                            onclick="DashboardPage.seleccionarTramite('vencida')">
-                        <div style="font-size:1.5rem;margin-bottom:6px;color:var(--warning);display:flex;justify-content:center">${Icons.clock}</div>
-                        <strong style="font-size:0.95rem;margin-bottom:4px">Licencia Vencida</strong>
-                        <span class="text-xs ${tramiteSeleccionado === 'vencida' ? '' : 'text-muted'}">Fuera de término (+90 días) · Requiere re-examen.</span>
-                        ${tramiteSeleccionado === 'vencida' ? `<span class="badge mt-2" style="background:rgba(255,255,255,0.25);display:inline-flex;align-items:center;gap:4px">${Icons.check} En curso</span>` : ''}
-                    </button>
-
-                    <button class="tramite-card-btn ${tramiteSeleccionado === 'categoria' ? 'tramite-card-btn--active' : ''}" 
-                            onclick="DashboardPage.seleccionarTramite('categoria')">
-                        <div style="font-size:1.5rem;margin-bottom:6px;color:var(--primary);display:flex;justify-content:center">${Icons.shield}</div>
-                        <strong style="font-size:0.95rem;margin-bottom:4px">Subir de Categoría</strong>
-                        <span class="text-xs ${tramiteSeleccionado === 'categoria' ? '' : 'text-muted'}">Ampliación de licencia · Agregar auto/moto.</span>
-                        ${tramiteSeleccionado === 'categoria' ? `<span class="badge mt-2" style="background:rgba(255,255,255,0.25);display:inline-flex;align-items:center;gap:4px">${Icons.check} En curso</span>` : ''}
-                    </button>
-
-                    <button class="tramite-card-btn ${tramiteSeleccionado === 'profesional' ? 'tramite-card-btn--active' : ''}" 
-                            onclick="DashboardPage.seleccionarTramite('profesional')">
-                        <div style="font-size:1.5rem;margin-bottom:6px;color:var(--primary);display:flex;justify-content:center">${Icons.truck}</div>
-                        <strong style="font-size:0.95rem;margin-bottom:4px">Licencia Profesional</strong>
-                        <span class="text-xs ${tramiteSeleccionado === 'profesional' ? '' : 'text-muted'}">Categorías C, D y E · Camiones, taxis, colectivos.</span>
-                        ${tramiteSeleccionado === 'profesional' ? `<span class="badge mt-2" style="background:rgba(255,255,255,0.25);display:inline-flex;align-items:center;gap:4px">${Icons.check} En curso</span>` : ''}
-                    </button>
-
-                    <button class="tramite-card-btn ${tramiteSeleccionado === 'extravio' ? 'tramite-card-btn--active' : ''}" 
-                            onclick="DashboardPage.seleccionarTramite('extravio')">
-                        <div style="font-size:1.5rem;margin-bottom:6px;color:var(--accent);display:flex;justify-content:center">${Icons.box}</div>
-                        <strong style="font-size:0.95rem;margin-bottom:4px">Extravío o Robo</strong>
-                        <span class="text-xs ${tramiteSeleccionado === 'extravio' ? '' : 'text-muted'}">Duplicado por pérdida/robo · Trámite ágil Salud + Pago.</span>
-                        ${tramiteSeleccionado === 'extravio' ? `<span class="badge mt-2" style="background:rgba(255,255,255,0.25);display:inline-flex;align-items:center;gap:4px">${Icons.check} En curso</span>` : ''}
-                    </button>
-                </div>
-            </section>
-
-            <!-- MOSTRAR PROGRESO Y PASOS ÚNICAMENTE SI SE SELECCIONÓ UN TRÁMITE PREVIAMENTE -->
-            ${!tramiteSeleccionado ? `
-            <div class="glass-card p-6 text-center" style="border: 2px dashed var(--primary-light,#93c5fd); background: rgba(37,99,235,0.03)">
-                <div style="display:flex;justify-content:center;margin-bottom:8px;color:var(--primary);font-size:1.5rem">${Icons.id}</div>
-                <h3 class="font-bold text-base mb-1">Seleccioná un Trámite para Comenzar</h3>
-                <p class="text-xs text-muted mb-0">
-                    Hacé clic en cualquiera de las opciones superiores para ver la barra de progreso y los pasos correspondientes.
-                </p>
-            </div>` : `
+        <div class="page-content animate-fadeIn" style="max-width:1220px;margin:0 auto;padding-top:12px;">
             
-            <!-- PROGRESO DEL TRÁMITE SELECCIONADO -->
-            <div class="glass-card p-5 animate-slideUp">
-                <div class="flex-between mb-3">
-                    <div style="display:flex;align-items:center;gap:10px">
-                        <div style="width:40px;height:40px;border-radius:var(--radius-md);background:var(--primary-soft);display:flex;align-items:center;justify-content:center;font-size:1.2rem;color:var(--primary)">${Icons.id}</div>
-                        <div>
-                            <div class="font-bold text-sm">Progreso del Trámite Actual (${tramiteSeleccionado.toUpperCase()})</div>
-                            <div class="text-xs text-muted">${data.pasos.filter(p => p.status === 'completed').length} de ${data.pasos.length} pasos completados</div>
+            <!-- 1. HERO AUTENTICADO ESTILO SUBI -->
+            <section class="home-hero">
+                <div class="hero-wave-bg">
+                    <svg viewBox="0 0 1440 320" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+                        <path d="M0,96L48,112C96,128,192,160,288,186.7C384,213,480,235,576,218.7C672,203,768,149,864,138.7C960,128,1056,160,1152,176C1248,192,1344,192,1392,192L1440,192L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z" fill="#ffffff" fill-opacity="0.12" />
+                    </svg>
+                </div>
+
+                <div class="home-hero-content">
+                    <!-- Credencial del Vecino -->
+                    <div class="citizen-badge-bar">
+                        <span>DNI: <strong>${citizen.dni || ''}</strong></span>
+                        <span class="badge-dot">•</span>
+                        <span>Domicilio: <strong>${citizen.direccion || 'Baradero'}</strong></span>
+                        <span class="badge-dot">•</span>
+                        <span class="badge-level-verified">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                                <polyline points="20 6 9 17 4 12" />
+                            </svg>
+                            Nivel 2 Verificado
+                        </span>
+                    </div>
+
+                    <h1 class="home-hero-title">¡Hola, ${citizen.nombre || 'Vecino'}!</h1>
+                    <p class="home-hero-subtitle">Sistema de Gestión de Licencias de Conducir · Municipalidad de Baradero</p>
+
+                    <!-- Buscador en tiempo real -->
+                    <div class="hero-search-wrapper">
+                        <div class="hero-search-box">
+                            <svg class="search-box-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <circle cx="11" cy="11" r="8" />
+                                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                            </svg>
+                            <input type="text" id="dashboardSearchInput" class="hero-search-input"
+                                   placeholder="Buscá por trámite, paso o arancel (ej: examen, pago, turno, médico)..."
+                                   autocomplete="off" oninput="DashboardPage.handleSearch(this.value)" />
+                            <span class="search-kbd-hint" title="Presiona / para buscar"><kbd>/</kbd></span>
+                            <button type="button" class="hero-search-btn" aria-label="Buscar">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                    <line x1="5" y1="12" x2="19" y2="12" />
+                                    <polyline points="12 5 19 12 12 19" />
+                                </svg>
+                            </button>
                         </div>
                     </div>
-                    <span style="font-size:1.25rem;font-weight:800;color:var(--primary)">${data.progreso_porcentaje}%</span>
+
+                    <!-- Chips populares de acceso rápido -->
+                    <div class="hero-popular-row">
+                        <span class="hero-popular-label">Accesos rápidos:</span>
+                        <button type="button" class="popular-chip" onclick="DashboardPage.seleccionarTramite('nueva')">Licencia Nueva</button>
+                        <button type="button" class="popular-chip" onclick="DashboardPage.seleccionarTramite('renovacion')">Renovar Licencia</button>
+                        <button type="button" class="popular-chip" onclick="Router.navigate('pago')">Pagar Arancel</button>
+                        <button type="button" class="popular-chip" onclick="Router.navigate('practico')">Turno Práctico</button>
+                        <button type="button" class="popular-chip" onclick="DashboardPage.abrirInboxCiudadano()">Mensajes Oficiales</button>
+                    </div>
                 </div>
-                <div class="progress-bar">
-                    <div class="progress-bar__fill" style="width:${data.progreso_porcentaje}%"></div>
+            </section>
+
+            <!-- 2. CUATRO TARJETAS DE ACCIÓN PRINCIPALES (FLOTANTES ESTILO SUBI) -->
+            <section class="action-cards-grid" aria-label="Servicios Principales">
+                <!-- 1. Trámite Activo -->
+                <div class="action-card" onclick="document.getElementById('sectionPasos')?.scrollIntoView({behavior:'smooth'})">
+                    <span class="action-card-badge">${data.progreso_porcentaje}%</span>
+                    <div class="action-card-icon-circle icon-blue">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                            <polyline points="14 2 14 8 20 8" />
+                            <line x1="16" y1="13" x2="8" y2="13" />
+                            <line x1="16" y1="17" x2="8" y2="17" />
+                        </svg>
+                    </div>
+                    <div class="action-card-title">Trámite Actual</div>
+                    <div class="action-card-desc">${(tramiteSeleccionado || 'NUEVA').toUpperCase()} · En curso</div>
                 </div>
+
+                <!-- 2. Pagar Aranceles -->
+                <div class="action-card" onclick="Router.navigate('pago')">
+                    <span class="action-card-badge badge-amber">ARANCEL</span>
+                    <div class="action-card-icon-circle icon-amber">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="2" y="5" width="20" height="14" rx="2" />
+                            <line x1="2" y1="10" x2="22" y2="10" />
+                        </svg>
+                    </div>
+                    <div class="action-card-title">Pagar Tasas</div>
+                    <div class="action-card-desc">Arancel y Sellado Digital</div>
+                </div>
+
+                <!-- 3. Turnos y Práctico -->
+                <div class="action-card" onclick="Router.navigate('practico')">
+                    <span class="action-card-badge badge-green">PISTA</span>
+                    <div class="action-card-icon-circle icon-emerald">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                            <line x1="16" y1="2" x2="16" y2="6" />
+                            <line x1="8" y1="2" x2="8" y2="6" />
+                            <line x1="3" y1="10" x2="21" y2="10" />
+                        </svg>
+                    </div>
+                    <div class="action-card-title">Turnos Práctico</div>
+                    <div class="action-card-desc">Circuito y Evaluadores</div>
+                </div>
+
+                <!-- 4. Licencia Digital -->
+                <div class="action-card" onclick="${licencia ? 'DashboardPage.openLicenciaModal()' : 'Router.navigate(\'entrega\')'}">
+                    <span class="action-card-badge">${licencia ? 'EMITIDA' : 'FINAL'}</span>
+                    <div class="action-card-icon-circle icon-indigo">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="4" width="18" height="16" rx="3" />
+                            <circle cx="9" cy="10" r="2" />
+                            <line x1="15" y1="8" x2="17" y2="8" />
+                            <line x1="15" y1="12" x2="17" y2="12" />
+                            <line x1="7" y1="16" x2="17" y2="16" />
+                        </svg>
+                    </div>
+                    <div class="action-card-title">Licencia Digital</div>
+                    <div class="action-card-desc">${licencia ? 'Ver credencial oficial' : 'Etapa de Entrega'}</div>
+                </div>
+            </section>
+
+            <!-- 3. SPLIT GRID DASHBOARD (2 COLUMNAS EQUILIBRADAS ESTILO SUBI) -->
+            <div class="dashboard-split-grid">
+                
+                <!-- COLUMNA IZQUIERDA: TRÁMITES Y PASOS -->
+                <div class="dashboard-left-col">
+                    
+                    <!-- SECCIÓN: SELECCIÓN DE TRÁMITES -->
+                    <div class="dash-card">
+                        <div class="card-header-row">
+                            <div style="display:flex;align-items:center;gap:10px;">
+                                <div style="width:34px;height:34px;border-radius:50%;background:#e0f2fe;color:#0284c7;display:flex;align-items:center;justify-content:center;">
+                                    ${Icons.doc}
+                                </div>
+                                <div>
+                                    <h2 style="font-size:1.05rem;font-weight:800;margin:0;color:#1e293b;">Tipo de Trámite</h2>
+                                    <p style="font-size:0.78rem;color:#64748b;margin:0;">Seleccioná el trámite a cursar para configurar los pasos requeridos:</p>
+                                </div>
+                            </div>
+                            <span class="badge badge-info" style="font-size:0.75rem;padding:3px 8px;">6 opciones</span>
+                        </div>
+
+                        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));gap:12px">
+                            <button class="tramite-card-btn ${tramiteSeleccionado === 'nueva' ? 'tramite-card-btn--active' : ''}" 
+                                    onclick="DashboardPage.seleccionarTramite('nueva')">
+                                <div style="font-size:1.4rem;margin-bottom:6px;color:#0284c7;display:flex;justify-content:center">${Icons.car}</div>
+                                <strong style="font-size:0.92rem;margin-bottom:2px">Licencia Nueva</strong>
+                                <span class="text-xs ${tramiteSeleccionado === 'nueva' ? '' : 'text-muted'}">Teórico, práctico y salud</span>
+                                ${tramiteSeleccionado === 'nueva' ? `<span class="badge mt-2" style="background:#0284c7;color:#fff;display:inline-flex;align-items:center;gap:4px">✓ Activo</span>` : ''}
+                            </button>
+
+                            <button class="tramite-card-btn ${tramiteSeleccionado === 'renovacion' ? 'tramite-card-btn--active' : ''}" 
+                                    onclick="DashboardPage.seleccionarTramite('renovacion')">
+                                <div style="font-size:1.4rem;margin-bottom:6px;color:#0284c7;display:flex;justify-content:center">${Icons.sparkles}</div>
+                                <strong style="font-size:0.92rem;margin-bottom:2px">Renovación</strong>
+                                <span class="text-xs ${tramiteSeleccionado === 'renovacion' ? '' : 'text-muted'}">Salud + Pago directo</span>
+                                ${tramiteSeleccionado === 'renovacion' ? `<span class="badge mt-2" style="background:#0284c7;color:#fff;display:inline-flex;align-items:center;gap:4px">✓ Activo</span>` : ''}
+                            </button>
+
+                            <button class="tramite-card-btn ${tramiteSeleccionado === 'vencida' ? 'tramite-card-btn--active' : ''}" 
+                                    onclick="DashboardPage.seleccionarTramite('vencida')">
+                                <div style="font-size:1.4rem;margin-bottom:6px;color:#f59e0b;display:flex;justify-content:center">${Icons.clock}</div>
+                                <strong style="font-size:0.92rem;margin-bottom:2px">Licencia Vencida</strong>
+                                <span class="text-xs ${tramiteSeleccionado === 'vencida' ? '' : 'text-muted'}">Fuera de término (+90d)</span>
+                                ${tramiteSeleccionado === 'vencida' ? `<span class="badge mt-2" style="background:#0284c7;color:#fff;display:inline-flex;align-items:center;gap:4px">✓ Activo</span>` : ''}
+                            </button>
+
+                            <button class="tramite-card-btn ${tramiteSeleccionado === 'categoria' ? 'tramite-card-btn--active' : ''}" 
+                                    onclick="DashboardPage.seleccionarTramite('categoria')">
+                                <div style="font-size:1.4rem;margin-bottom:6px;color:#0284c7;display:flex;justify-content:center">${Icons.shield}</div>
+                                <strong style="font-size:0.92rem;margin-bottom:2px">Categoría</strong>
+                                <span class="text-xs ${tramiteSeleccionado === 'categoria' ? '' : 'text-muted'}">Ampliación de clase</span>
+                                ${tramiteSeleccionado === 'categoria' ? `<span class="badge mt-2" style="background:#0284c7;color:#fff;display:inline-flex;align-items:center;gap:4px">✓ Activo</span>` : ''}
+                            </button>
+
+                            <button class="tramite-card-btn ${tramiteSeleccionado === 'profesional' ? 'tramite-card-btn--active' : ''}" 
+                                    onclick="DashboardPage.seleccionarTramite('profesional')">
+                                <div style="font-size:1.4rem;margin-bottom:6px;color:#0284c7;display:flex;justify-content:center">${Icons.truck}</div>
+                                <strong style="font-size:0.92rem;margin-bottom:2px">Profesional</strong>
+                                <span class="text-xs ${tramiteSeleccionado === 'profesional' ? '' : 'text-muted'}">Clases C, D y E</span>
+                                ${tramiteSeleccionado === 'profesional' ? `<span class="badge mt-2" style="background:#0284c7;color:#fff;display:inline-flex;align-items:center;gap:4px">✓ Activo</span>` : ''}
+                            </button>
+
+                            <button class="tramite-card-btn ${tramiteSeleccionado === 'extravio' ? 'tramite-card-btn--active' : ''}" 
+                                    onclick="DashboardPage.seleccionarTramite('extravio')">
+                                <div style="font-size:1.4rem;margin-bottom:6px;color:#0ea5e9;display:flex;justify-content:center">${Icons.box}</div>
+                                <strong style="font-size:0.92rem;margin-bottom:2px">Extravío / Robo</strong>
+                                <span class="text-xs ${tramiteSeleccionado === 'extravio' ? '' : 'text-muted'}">Duplicado simplificado</span>
+                                ${tramiteSeleccionado === 'extravio' ? `<span class="badge mt-2" style="background:#0284c7;color:#fff;display:inline-flex;align-items:center;gap:4px">✓ Activo</span>` : ''}
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- PROGRESO Y PASOS -->
+                    ${!tramiteSeleccionado ? `
+                    <div class="dash-card text-center" style="border: 2px dashed #bae6fd; background: #f0f9ff; padding: 36px 20px;">
+                        <div style="display:flex;justify-content:center;margin-bottom:8px;color:#0284c7;font-size:2rem">${Icons.id}</div>
+                        <h3 style="font-weight:800;font-size:1.1rem;margin-bottom:4px;color:#1e293b;">Seleccioná un Trámite para Comenzar</h3>
+                        <p style="font-size:0.85rem;color:#64748b;margin:0;">
+                            Hacé clic en cualquiera de las opciones superiores para ver la barra de progreso y habilitar los pasos del trámite.
+                        </p>
+                    </div>` : `
+                    
+                    <div class="dash-card" id="sectionPasos">
+                        <div class="card-header-row">
+                            <div style="display:flex;align-items:center;gap:10px;">
+                                <div style="width:34px;height:34px;border-radius:50%;background:#ecfdf5;color:#10b981;display:flex;align-items:center;justify-content:center;">
+                                    ${Icons.check}
+                                </div>
+                                <div>
+                                    <h2 style="font-size:1.05rem;font-weight:800;margin:0;color:#1e293b;">Hoja de Ruta del Trámite</h2>
+                                    <p style="font-size:0.78rem;color:#64748b;margin:0;">${data.pasos.filter(p => p.status === 'completed').length} de ${data.pasos.length} pasos completados (${tramiteSeleccionado.toUpperCase()})</p>
+                                </div>
+                            </div>
+                            <span style="font-size:1.3rem;font-weight:900;color:#0284c7;">${data.progreso_porcentaje}%</span>
+                        </div>
+
+                        <div class="progress-bar mb-5">
+                            <div class="progress-bar__fill" style="width:${data.progreso_porcentaje}%"></div>
+                        </div>
+
+                        <div class="grid-steps" id="dashboardStepsContainer">
+                            ${data.pasos.map((paso, i) => `
+                            <div class="step-card step-card--${paso.status}" 
+                                 data-step-title="${(paso.title || '').toLowerCase()}"
+                                 onclick="Router.navigate('${paso.id}')"
+                                 style="animation-delay:${i * 0.05}s">
+                                <div class="step-card__icon">${paso.status === 'completed' ? Icons.check : paso.status === 'current' ? Icons.clock : Icons.lock}</div>
+                                <div class="step-card__content">
+                                    <h3 class="step-card__title">${paso.title}</h3>
+                                    <p class="step-card__desc">${paso.description}</p>
+                                </div>
+                                <div class="step-card__status">
+                                    <span class="badge ${paso.status === 'completed' ? 'badge-success' : paso.status === 'current' ? 'badge-warning' : 'badge-muted'}">
+                                        ${paso.status === 'completed' ? 'Completado' : paso.status === 'current' ? 'En curso' : 'Bloqueado'}
+                                    </span>
+                                </div>
+                            </div>`).join('')}
+                        </div>
+                    </div>`}
+
+                    <!-- SECCIÓN LICENCIA DIGITAL (SI ESTÁ EMITIDA) -->
+                    ${licencia ? `
+                    <div id="licenciaSection" class="dash-card text-center animate-slideUp" style="border:2px solid #10b981;background:#ecfdf5;">
+                        <div style="font-size:2.2rem;color:#10b981;margin-bottom:8px">🎉</div>
+                        <h2 style="font-size:1.2rem;font-weight:800;color:#065f46;margin-bottom:4px">¡Tu Licencia Digital ya fue emitida!</h2>
+                        <p style="font-size:0.85rem;color:#047857;margin-bottom:16px;">Podés visualizarla, descargarla o imprimir tu credencial oficial con QR.</p>
+                        <button class="btn btn-success btn-lg" onclick="DashboardPage.openLicenciaModal()" style="display:inline-flex;align-items:center;gap:8px;font-weight:700">
+                            ${Icons.id} Ver Licencia Digital Oficial
+                        </button>
+                    </div>` : ''}
+
+                </div>
+
+                <!-- COLUMNA DERECHA: PERFIL CIUDADANO & ASISTENCIA -->
+                <div class="dashboard-right-col">
+                    
+                    <!-- TARJETA CIUDADANO OFICIAL -->
+                    <div class="dash-card">
+                        <div class="card-header-row">
+                            <div style="font-weight:800;font-size:0.92rem;color:#1e293b;display:flex;align-items:center;gap:6px;">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                                Credencial del Ciudadano
+                            </div>
+                            <span class="badge badge-success" style="font-size:0.7rem;padding:2px 8px;">Aprobado</span>
+                        </div>
+
+                        <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;">
+                            <div style="width:62px;height:62px;border-radius:50%;border:2.5px solid #0284c7;overflow:hidden;background:#f0f9ff;display:flex;align-items:center;justify-content:center;font-size:1.6rem;color:#0284c7;flex-shrink:0;box-shadow:0 3px 10px rgba(2,132,199,0.2);">
+                                ${citizen.foto_rostro ? `<img src="${citizen.foto_rostro}" alt="Foto DNI" style="width:100%;height:100%;object-fit:cover;">` : Icons.user}
+                            </div>
+                            <div style="flex:1;min-width:0;">
+                                <h3 style="font-weight:800;font-size:1.02rem;color:#1e293b;margin:0 0 2px 0;">${citizen.nombre || ''} ${citizen.apellido || ''}</h3>
+                                <p style="font-size:0.8rem;color:#64748b;margin:0;">DNI ${citizen.dni || ''} · ${citizen.edad || '--'} años</p>
+                            </div>
+                        </div>
+
+                        ${citizen.tiene_cud ? `
+                        <div style="background:#dcfce7;border:1px solid #86efac;padding:8px 12px;border-radius:8px;margin-bottom:14px;display:flex;align-items:center;gap:8px;font-size:0.78rem;color:#15803d;font-weight:700;">
+                            <span style="display:flex;align-items:center;">${Icons.wheelchair}</span>
+                            Certificado CUD N° ${citizen.numero_cud || ''} (Prioridad Asignada)
+                        </div>` : ''}
+
+                        <div style="display:flex;flex-direction:column;gap:8px;font-size:0.82rem;background:#f8fafc;padding:12px;border-radius:10px;border:1px solid #e2e8f0;margin-bottom:16px;">
+                            <div style="display:flex;justify-content:space-between;"><span class="text-muted">Nacimiento:</span> <strong>${citizen.fecha_nacimiento || '--'}</strong></div>
+                            <div style="display:flex;justify-content:space-between;"><span class="text-muted">Email:</span> <span style="font-weight:600;max-width:180px;overflow:hidden;text-overflow:ellipsis;">${citizen.email || 'No registrado'}</span></div>
+                            <div style="display:flex;justify-content:space-between;"><span class="text-muted">Teléfono:</span> <strong>${citizen.telefono || 'No registrado'}</strong></div>
+                            <div style="display:flex;justify-content:space-between;"><span class="text-muted">Domicilio:</span> <strong>${citizen.direccion || 'Baradero'}</strong></div>
+                            <div style="display:flex;justify-content:space-between;padding-top:6px;border-top:1px solid #e2e8f0;">
+                                <span class="text-muted">Infracciones:</span>
+                                <span style="color:#10b981;font-weight:800;display:inline-flex;align-items:center;gap:4px;">
+                                    ✓ Libre de Deuda
+                                </span>
+                            </div>
+                        </div>
+
+                        <button class="btn btn-outline btn-block btn-sm" onclick="DashboardPage.abrirInboxCiudadano()" style="display:inline-flex;align-items:center;justify-content:center;gap:6px;font-weight:700;">
+                            ${Icons.chat} Abrir Mensajería Oficial
+                        </button>
+                    </div>
+
+                    <!-- ASISTENCIA CIUDADANA -->
+                    <div class="dash-card">
+                        <div class="card-header-row">
+                            <div style="font-weight:800;font-size:0.92rem;color:#1e293b;display:flex;align-items:center;gap:6px;">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                                Ayuda & Soporte Digital
+                            </div>
+                        </div>
+
+                        <p style="font-size:0.8rem;color:#64748b;line-height:1.4;margin-bottom:12px;">
+                            ¿Tenés dudas sobre las etapas del examen teórico o práctico en Baradero? Consultá a nuestro asistente oficial Tramibot.
+                        </p>
+
+                        <div style="display:flex;flex-direction:column;gap:8px;">
+                            <button type="button" class="btn btn-ghost btn-sm btn-block" style="justify-content:flex-start;text-align:left;gap:8px;border:1px solid #e2e8f0;padding:8px 12px;" onclick="if(window.Tutorial) window.Tutorial.startTutorialWithContext('dashboard', true)">
+                                <span>🤖</span> <strong>Guía guiada por el sistema</strong>
+                            </button>
+                            <a href="tel:147" class="btn btn-ghost btn-sm btn-block" style="justify-content:flex-start;text-align:left;gap:8px;border:1px solid #e2e8f0;padding:8px 12px;text-decoration:none;color:inherit;">
+                                <span>📞</span> <strong>Línea Municipal 147</strong>
+                            </a>
+                        </div>
+                    </div>
+
+                </div>
+
             </div>
-
-            <!-- PASOS DEL TRÁMITE -->
-            <section class="animate-slideUp">
-                <div class="flex-between mb-3">
-                    <h2 class="section-title">Pasos del trámite (${tramiteSeleccionado.toUpperCase()})</h2>
-                    <span class="text-xs text-muted">${isRenovacion ? 'Renovación: Salud + Pago' : 'Completá cada paso en orden'}</span>
-                </div>
-                <div class="grid-steps">
-                    ${data.pasos.map((paso, i) => `
-                    <div class="step-card step-card--${paso.status}" 
-                         onclick="Router.navigate('${paso.id}')"
-                         style="animation-delay:${i * 0.05}s">
-                        <div class="step-card__icon">${paso.status === 'completed' ? Icons.check : paso.status === 'current' ? Icons.clock : Icons.lock}</div>
-                        <div class="step-card__content">
-                            <h3 class="step-card__title">${paso.title}</h3>
-                            <p class="step-card__desc">${paso.description}</p>
-                        </div>
-                        <div class="step-card__status">
-                            <span class="badge ${paso.status === 'completed' ? 'badge-success' : paso.status === 'current' ? 'badge-warning' : 'badge-muted'}">
-                                ${paso.status === 'completed' ? 'Completado' : paso.status === 'current' ? 'En curso' : 'Bloqueado'}
-                            </span>
-                        </div>
-                    </div>`).join('')}
-                </div>
-            </section>`}
-
-            <!-- SECCIÓN LICENCIA DIGITAL (SI ESTÁ EMITIDA) -->
-            ${licencia ? `
-            <section id="licenciaSection" class="glass-card p-6 text-center animate-slideUp" style="border:2px solid var(--success);background:rgba(16,185,129,0.04)">
-                <div style="font-size:2rem;color:var(--success);margin-bottom:8px">🎉</div>
-                <h2 class="font-bold text-xl mb-2">¡Tu Licencia Digital ya fue emitida!</h2>
-                <p class="text-sm text-muted mb-4">Podés verla y descargarla en cualquier momento desde aquí.</p>
-                <button class="btn btn-success btn-lg" onclick="DashboardPage.openLicenciaModal()" style="display:inline-flex;align-items:center;gap:8px">
-                    ${Icons.id} Ver Licencia Digital
-                </button>
-            </section>` : ''}
         </div>
 
         <div id="citizenInboxModalContainer"></div>
         `;
+    }
+
+    /**
+     * Búsqueda en tiempo real dentro del dashboard
+     */
+    static handleSearch(val) {
+        const term = (val || '').toLowerCase().trim();
+        const cards = document.querySelectorAll('#dashboardStepsContainer .step-card');
+        cards.forEach(card => {
+            const title = card.getAttribute('data-step-title') || '';
+            const text = card.textContent.toLowerCase();
+            if (!term || title.includes(term) || text.includes(term)) {
+                card.style.display = 'flex';
+            } else {
+                card.style.display = 'none';
+            }
+        });
     }
 
     /**
@@ -557,12 +728,78 @@ class DashboardPage {
 
     static openLicenciaModal() {
         const data = this.currentData || {};
+        const citizen = data.usuario || ApiService.getUsuario() || {};
+        const lic = data.licencia || {};
         const isCompletado = data.progreso_porcentaje === 100 || data.estado === 'completado' || data.paso_actual === 'finalizado';
-        if (!data.licencia && !isCompletado) {
-            Toast.warning(`Tu trámite está al ${data.progreso_porcentaje || 0}%.`);
-            return;
+        
+        let container = document.getElementById('citizenLicenciaModalContainer');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'citizenLicenciaModalContainer';
+            document.body.appendChild(container);
         }
-        const modal = document.getElementById('licenciaModal');
-        if (modal) modal.classList.add('active');
+
+        const foto = citizen.foto_rostro || lic.foto_rostro || null;
+
+        container.innerHTML = `
+        <div class="modal-backdrop" style="position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(5px);" onclick="if(event.target===this) this.remove()">
+            <div class="modal-content glass-card p-6 animate-slideUp" style="max-width:480px;width:100%;border:2px solid var(--primary);box-shadow:var(--shadow-lg);position:relative;">
+                <button type="button" class="btn btn-ghost btn-sm" onclick="this.closest('.modal-backdrop').remove()" style="position:absolute;top:12px;right:12px;font-size:1.1rem;padding:4px 8px;">✕</button>
+                
+                <div class="licencia-digital-card" style="background:linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #2563eb 100%);color:#fff;border-radius:14px;padding:20px;box-shadow:0 10px 25px rgba(0,0,0,0.35);position:relative;overflow:hidden;border:1px solid rgba(255,255,255,0.25);">
+                    <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(255,255,255,0.2);padding-bottom:10px;margin-bottom:14px;">
+                        <div>
+                            <div style="font-size:0.65rem;text-transform:uppercase;letter-spacing:1px;color:#93c5fd;font-weight:700;">REPÚBLICA ARGENTINA</div>
+                            <div style="font-size:0.95rem;font-weight:800;letter-spacing:0.5px;">LICENCIA NACIONAL DE CONDUCIR</div>
+                            <div style="font-size:0.7rem;color:#bfdbfe;">Provincia de Buenos Aires · Baradero</div>
+                        </div>
+                        <div style="font-size:1.8rem;">🚗</div>
+                    </div>
+
+                    <div style="display:flex;gap:14px;align-items:center;">
+                        <div style="width:96px;height:120px;border-radius:8px;border:2px solid #fff;overflow:hidden;background:#cbd5e1;flex-shrink:0;box-shadow:0 4px 10px rgba(0,0,0,0.25);">
+                            ${foto ? `<img src="${foto}" alt="Rostro DNI" style="width:100%;height:100%;object-fit:cover;">` : '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#1e3a8a;font-size:2.2rem;">👤</div>'}
+                        </div>
+                        <div style="flex:1;font-size:0.75rem;line-height:1.4;">
+                            <div style="color:#93c5fd;font-size:0.65rem;text-transform:uppercase;">Apellido y Nombres</div>
+                            <div style="font-weight:800;font-size:0.95rem;margin-bottom:6px;color:#fff;">${citizen.apellido || ''}, ${citizen.nombre || ''}</div>
+                            
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+                                <div>
+                                    <span style="color:#93c5fd;font-size:0.65rem;">DNI</span><br>
+                                    <strong style="font-size:0.85rem;">${citizen.dni || ''}</strong>
+                                </div>
+                                <div>
+                                    <span style="color:#93c5fd;font-size:0.65rem;">CLASE</span><br>
+                                    <strong style="color:#fde047;font-size:0.9rem;">${lic.categoria || 'B1'}</strong>
+                                </div>
+                                <div>
+                                    <span style="color:#93c5fd;font-size:0.65rem;">FECHA EMISIÓN</span><br>
+                                    <span>${lic.fecha_emision || new Date().toISOString().split('T')[0]}</span>
+                                </div>
+                                <div>
+                                    <span style="color:#93c5fd;font-size:0.65rem;">VENCIMIENTO</span><br>
+                                    <strong style="color:#86efac;">${lic.fecha_vencimiento || '2031-08-31'}</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top:14px;padding-top:8px;border-top:1px dashed rgba(255,255,255,0.25);display:flex;justify-content:space-between;align-items:center;font-size:0.7rem;color:#bfdbfe;">
+                        <span>N° Licencia: <strong>${citizen.dni || ''}</strong></span>
+                        <span style="background:rgba(34,197,94,0.3);color:#86efac;padding:2px 8px;border-radius:4px;font-weight:700;">OFICIAL VIGENTE</span>
+                    </div>
+                </div>
+
+                <div style="margin-top:16px;display:flex;gap:10px;justify-content:center;">
+                    <button type="button" class="btn btn-primary btn-sm" onclick="window.print()" style="display:inline-flex;align-items:center;gap:6px;">
+                        ${Icons.file || '📄'} Imprimir Credencial
+                    </button>
+                    <button type="button" class="btn btn-ghost btn-sm" onclick="this.closest('.modal-backdrop').remove()">
+                        Cerrar
+                    </button>
+                </div>
+            </div>
+        </div>`;
     }
 }

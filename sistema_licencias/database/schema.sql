@@ -316,6 +316,32 @@ CREATE TABLE IF NOT EXISTS inbox_cuentas (
 
 
 -- ============================================================
+-- TABLA: user_activity_log (memoria de interacciones del usuario)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS user_activity_log (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  usuario_id  INTEGER NOT NULL,
+  action      TEXT NOT NULL,
+  detail      TEXT DEFAULT NULL,
+  created_at  TEXT DEFAULT (datetime('now','localtime')),
+  FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
+);
+
+-- ============================================================
+-- TABLA: user_preferences (preferencias persistentes del usuario)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS user_preferences (
+  id                INTEGER PRIMARY KEY AUTOINCREMENT,
+  usuario_id        INTEGER NOT NULL UNIQUE,
+  theme             TEXT DEFAULT 'light',
+  last_page         TEXT DEFAULT 'dashboard',
+  sidebar_collapsed INTEGER DEFAULT 0,
+  updated_at        TEXT DEFAULT (datetime('now','localtime')),
+  FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
+);
+
+
+-- ============================================================
 -- DATOS INICIALES
 -- ============================================================
 
