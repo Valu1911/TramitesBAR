@@ -1,73 +1,59 @@
-# Welcome to your Lovable project
+# TramitesBAR
 
-## Project info
+Sistema municipal de licencias de conducir de Baradero. Este repositorio contiene el módulo de licencias que después se integra al portal SUBI.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## Estado
 
-## How can I edit this code?
+En implementación. La v1 operativa cubre el circuito administrativo completo: registro, políticas, trámites, documentación, pagos por transferencia, examen teórico, turnos prácticos, credencial con QR, notificaciones y backoffice.
 
-There are several ways of editing your application.
+El examen vigilado en vivo (proctoring) y la lectura automática de DNI se activan en una fase posterior, cuando existan la infraestructura y las validaciones legales correspondientes.
 
-**Use Lovable**
+## Documentación obligatoria
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+Antes de tocar código, leer:
 
-Changes made via Lovable will be committed automatically to this repo.
+- [`docs/plan/PLAN_MAESTRO.md`](docs/plan/PLAN_MAESTRO.md): alcance, arquitectura, seguridad y fases.
+- [`docs/plan/DECISIONES.md`](docs/plan/DECISIONES.md): decisiones de arquitectura cerradas.
+- [`docs/plan/GUIA_RAMAS_Y_MERGE.md`](docs/plan/GUIA_RAMAS_Y_MERGE.md): ramas, distribución y merge.
+- [`AGENTS.md`](AGENTS.md): reglas para personas y agentes.
+- [`CONTRIBUTING.md`](CONTRIBUTING.md): cómo contribuir.
+- [`docs/HANDOFF.md`](docs/HANDOFF.md): estado del trabajo.
 
-**Use your preferred IDE**
+## Estructura
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+```
+sistema_licencias/
+  backend/       API FastAPI, modelos, migraciones y tests
+  frontend/      Aplicación React + TypeScript + Vite
+  docs/          Documentación técnica y operativa
+  scripts/       Utilidades de desarrollo y despliegue
+  storage/       Archivos locales de desarrollo (no versionado)
 ```
 
-**Edit a file directly in GitHub**
+## Desarrollo rápido
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+Windows:
 
-**Use GitHub Codespaces**
+```powershell
+cd sistema_licencias
+.\iniciar.bat
+```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+Linux:
 
-## What technologies are used for this project?
+```bash
+cd sistema_licencias
+./iniciar.sh
+```
 
-This project is built with:
+La API queda en `http://127.0.0.1:8000` y el frontend en `http://127.0.0.1:5173`.
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## Reglas que no se negocian
 
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+- Nada de datos demo ni credenciales por defecto en producción.
+- Nada de datos de tarjeta.
+- Nada de secretos en git.
+- Nada de `innerHTML` con datos del usuario.
+- Nada de emojis en la interfaz.
+- Nada de mergear con CI en rojo.
+- Nada de prometer SOC 2 Type II antes de que el auditor lo emita.
