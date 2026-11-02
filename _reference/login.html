@@ -1,0 +1,1202 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description"
+    content="SUBI - Portal Municipal del Ciudadano de Baradero. Réplica de Ciudadano Digital para trámites, servicios, legajo digital y atención al vecino.">
+  <title>SUBI - Portal Público del Ciudadano | Municipio de Baradero</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+    rel="stylesheet">
+
+  <link rel="stylesheet" href="css/login.css?v=2.2">
+</head>
+
+<body>
+
+  <!-- ================================================================ -->
+  <!-- 1. HEADER & TOPBAR INSTITUCIONAL                                -->
+  <!-- ================================================================ -->
+  <header class="portal-topbar">
+    <a href="login.html" class="portal-brand" title="SUBI Baradero - Portal del Ciudadano">
+      <!-- Logo vector circular concéntrico idéntico a Ciudadano Digital -->
+      <div class="brand-icon-subi">
+        <svg viewBox="0 0 44 44" width="44" height="44" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="22" cy="22" r="21" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+          <!-- Anillo exterior azul -->
+          <path d="M12 22C12 16.477 16.477 12 22 12C25.5 12 28.5 13.8 30.2 16.5" stroke="#1976d2" stroke-width="3.5" stroke-linecap="round"/>
+          <path d="M32 22C32 27.523 27.523 32 22 32C18.5 32 15.5 30.2 13.8 27.5" stroke="#1976d2" stroke-width="3.5" stroke-linecap="round"/>
+          <!-- Anillo interior naranja/cian -->
+          <path d="M17 22C17 19.239 19.239 17 22 17C23.8 17 25.3 18 26.2 19.5" stroke="#f59e0b" stroke-width="3" stroke-linecap="round"/>
+          <path d="M27 22C27 24.761 24.761 27 22 27C20.2 27 18.7 26 17.8 24.5" stroke="#0284c7" stroke-width="3" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="brand-text-block">
+        <div class="brand-title">CIUDADANO <span>DIGITAL</span></div>
+        <div class="brand-sub">SUBI · MUNICIPIO DE BARADERO</div>
+      </div>
+    </a>
+
+    <div class="header-actions">
+      <a href="preguntas-frecuentes.html" class="btn-header-help" id="btnHeaderHelp" title="Centro de ayuda y preguntas frecuentes">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+          <line x1="12" y1="17" x2="12.01" y2="17"></line>
+        </svg>
+        AYUDA
+      </a>
+      <button type="button" class="btn-header-login" id="btnHeaderLogin">
+        INGRESAR
+      </button>
+    </div>
+  </header>
+
+  <!-- Subnavegación institucional en barra oscura -->
+  <nav class="portal-subnav" aria-label="Navegación principal">
+    <ul class="subnav-links">
+      <li>
+        <a href="#inicio" class="subnav-link active">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+            <polyline points="9 22 9 12 15 12 15 22"/>
+          </svg>
+          Inicio
+        </a>
+      </li>
+      <li>
+        <a href="preguntas-frecuentes.html#que-es" class="subnav-link" id="navLinkQueEs">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+            <line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+          ¿Qué es?
+        </a>
+      </li>
+      <li>
+        <a href="preguntas-frecuentes.html#como-ser-ciudadano" class="subnav-link" id="navLinkComoSer">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+          ¿Cómo ser Ciudadano Digital?
+        </a>
+      </li>
+      <li>
+        <a href="preguntas-frecuentes.html#accesibilidad" class="subnav-link">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="4" r="1.5"/>
+            <path d="m3 9 9-2 9 2M12 7v14M8 21l4-5 4 5"/>
+          </svg>
+          Accesibilidad
+        </a>
+      </li>
+      <li>
+        <a href="preguntas-frecuentes.html#normativa" class="subnav-link">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+          </svg>
+          Normativa
+        </a>
+      </li>
+      <li>
+        <a href="preguntas-frecuentes.html#contacto" class="subnav-link" id="navLinkAyuda">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
+          Ayuda
+        </a>
+      </li>
+    </ul>
+  </nav>
+
+  <!-- ================================================================ -->
+  <!-- 2. HERO CON BUSCADOR DE TRÁMITES & PALABRAS CLAVE              -->
+  <!-- ================================================================ -->
+  <section class="portal-hero" id="inicio">
+    <!-- Ondas de fondo fluidas -->
+    <div class="hero-wave-bg">
+      <svg viewBox="0 0 1440 320" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+        <path d="M0,96L48,112C96,128,192,160,288,186.7C384,213,480,235,576,218.7C672,203,768,149,864,138.7C960,128,1056,160,1152,176C1248,192,1344,192,1392,192L1440,192L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z" fill="#ffffff" fill-opacity="0.1"/>
+      </svg>
+    </div>
+
+    <div class="hero-content">
+      <h1 class="hero-title">Buscá por trámite, servicio o palabra clave</h1>
+
+      <div class="hero-search-wrapper">
+        <div class="hero-search-box">
+          <input type="text" id="heroSearchInput" class="hero-search-input"
+            placeholder="¿Qué trámites querés realizar?" autocomplete="off" />
+          <button type="button" class="hero-search-btn" id="btnHeroSearch" aria-label="Buscar">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"/>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Resultados predictivos instantáneos desplegables -->
+        <div class="search-results-dropdown" id="searchResultsDropdown">
+          <!-- Renderizado dinámico por JS -->
+        </div>
+      </div>
+
+      <!-- Chips populares estilo CiDi -->
+      <div class="hero-popular-row">
+        <span class="hero-popular-label">Lo más buscado:</span>
+        <button type="button" class="popular-chip" data-query="Empleado Digital">Empleado Digital</button>
+        <button type="button" class="popular-chip" data-query="Gestión Estudiantes">Gestión Estudiantes</button>
+        <button type="button" class="popular-chip" data-query="Turnos Salud">Turnos Salud</button>
+        <button type="button" class="popular-chip" data-query="Libreta Sanitaria">Libreta Digital</button>
+        <button type="button" class="popular-chip" data-query="Trámites Ambientales">Trámites Ambientales</button>
+        <button type="button" class="popular-chip" data-query="Reclamos 147">Atención 147</button>
+        <button type="button" class="popular-chip" data-query="Tasas">Tasas Baradero</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================================ -->
+  <!-- 3. BANNER: FIRMA SUBI & TRÁMITES POR ÁREA                       -->
+  <!-- ================================================================ -->
+  <main class="portal-container">
+
+    <!-- Banner "Firma SUBI" -->
+    <div class="firma-cidi-banner">
+      <div class="firma-brand">
+        <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 19l7-7 3 3-7 7-3-3z"/>
+          <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/>
+          <path d="M2 2l7.586 7.586"/>
+          <circle cx="11" cy="11" r="2"/>
+        </svg>
+        <div class="firma-title">Firma <span>SUBI</span></div>
+      </div>
+      <div class="firma-desc">
+        Gestioná y validá documentos legalmente desde tu casa.
+        <a href="#firma" class="firma-link" id="linkFirmaCidi">Acceder a Firma SUBI</a>
+      </div>
+    </div>
+
+    <!-- Bloque dividido: Trámites de áreas y Consulta de expediente -->
+    <div class="portal-cards-split">
+      <!-- Izquierda: Trámites por área -->
+      <div class="cidi-box-card">
+        <h2 class="cidi-box-title">Iniciá o consultá información de los trámites de</h2>
+        <div class="cidi-icons-row">
+          <div class="cidi-icon-item" data-area="social" role="button" tabindex="0">
+            <div class="cidi-circle-icon">
+              <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+              </svg>
+            </div>
+            <span class="cidi-icon-label">Desarrollo Social</span>
+          </div>
+
+          <div class="cidi-icon-item" data-area="civico" role="button" tabindex="0">
+            <div class="cidi-circle-icon">
+              <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="12 2 2 7 12 12 22 7 12 2"/>
+                <polyline points="2 17 12 22 22 17"/>
+                <polyline points="2 12 12 17 22 12"/>
+              </svg>
+            </div>
+            <span class="cidi-icon-label">Centro Cívico</span>
+          </div>
+
+          <div class="cidi-icon-item" data-area="economia" role="button" tabindex="0">
+            <div class="cidi-circle-icon">
+              <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
+                <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+                <circle cx="16" cy="13" r="3"/>
+                <line x1="18.5" y1="15.5" x2="21" y2="18"/>
+              </svg>
+            </div>
+            <span class="cidi-icon-label">Economía</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Derecha: Consulta de expediente -->
+      <div class="cidi-box-card">
+        <h2 class="cidi-box-title">¿Iniciaste un trámite?</h2>
+        <div class="cidi-icons-row" style="justify-content: center;">
+          <div class="cidi-icon-item" id="btnConsultarExpediente" role="button" tabindex="0">
+            <div class="cidi-circle-icon" style="width: 76px; height: 76px;">
+              <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+                <line x1="12" y1="11" x2="12" y2="17"/>
+                <line x1="9" y1="14" x2="15" y2="14"/>
+              </svg>
+            </div>
+            <span class="cidi-icon-label" style="font-size: 0.95rem;">Consulta de expediente</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Consulta Ciudadana prompt link -->
+    <div class="consulta-ciudadana-bar">
+      ¿Sugerencias, dudas o reclamos?
+      <a href="atencion147.html" id="linkConsultaCiudadana">INGRESÁ A CONSULTA CIUDADANA</a>
+    </div>
+
+    <!-- ============================================================== -->
+    <!-- 4. SECCIÓN: ATENCIÓN AL CIUDADANO                             -->
+    <!-- ============================================================== -->
+    <section class="atencion-section">
+      <h2 class="section-title">Atención al Ciudadano</h2>
+      <div class="atencion-grid">
+        <div class="atencion-card" id="cardCentrosContacto">
+          <div class="atencion-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+            </svg>
+          </div>
+          <div class="atencion-body">
+            <h3>Centros de Contacto</h3>
+            <p>Conocé nuestros Centros de Atención al Ciudadano y Mesas de Entradas SUAC Baradero.</p>
+          </div>
+        </div>
+
+        <div class="atencion-card" id="cardTelefonos">
+          <div class="atencion-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+            </svg>
+          </div>
+          <div class="atencion-body">
+            <h3>Teléfonos</h3>
+            <p>Encontrá el número telefónico de acuerdo a lo que necesites realizar en el municipio.</p>
+          </div>
+        </div>
+
+        <div class="atencion-card" id="cardChatVirtual">
+          <div class="atencion-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+          </div>
+          <div class="atencion-body">
+            <h3>Chat</h3>
+            <p>Conocé los medios virtuales de atención, dejándonos consultas o mediante el chat de atención al ciudadano.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================== -->
+    <!-- 5. SECCIÓN: IDENTIDAD DIGITAL                                  -->
+    <!-- ============================================================== -->
+    <section class="identidad-section">
+      <h2 class="section-title">Identidad Digital</h2>
+      <div class="identidad-grid">
+        <div class="identidad-card" id="cardCreaTuCuenta">
+          <div class="identidad-icon">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+              <circle cx="8.5" cy="7" r="4"/>
+              <line x1="20" y1="8" x2="20" y2="14"/>
+              <line x1="23" y1="11" x2="17" y2="11"/>
+            </svg>
+          </div>
+          <div class="identidad-body">
+            <h3>Creá tu cuenta</h3>
+            <p>Si todavía no tenés SUBI, conocé en simples pasos cómo podés crear tu cuenta.</p>
+          </div>
+        </div>
+
+        <div class="identidad-card" id="cardRecuperaAcceso">
+          <div class="identidad-icon">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/>
+            </svg>
+          </div>
+          <div class="identidad-body">
+            <h3>Recuperá tu acceso</h3>
+            <p>¿No recordás la contraseña de tu cuenta o los datos para acceder? <strong>INGRESÁ ACÁ.</strong></p>
+          </div>
+        </div>
+
+        <div class="identidad-card" id="cardObteneNivel2">
+          <div class="identidad-icon">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="5" y="2" width="14" height="20" rx="2" ry="2"/>
+              <path d="m9 12 2 2 4-4"/>
+            </svg>
+          </div>
+          <div class="identidad-body">
+            <h3>Obtené el Nivel 2</h3>
+            <p>Constatá tu identidad para obtener más beneficios. <strong>CONOCÉ CÓMO HACERLO.</strong></p>
+          </div>
+        </div>
+
+        <div class="identidad-card" id="cardQueEsCidi">
+          <div class="identidad-icon">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+              <path d="M8 10h.01M12 10h.01M16 10h.01"/>
+            </svg>
+          </div>
+          <div class="identidad-body">
+            <h3>¿Qué es SUBI?</h3>
+            <p>Descubrí todos los servicios y beneficios de Ciudadano Digital Baradero.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================== -->
+    <!-- 6. TARJETAS DE SERVICIOS SUPERIORES                            -->
+    <!-- ============================================================== -->
+    <div class="servicios-grid-3">
+      <div class="servicio-info-card">
+        <div class="servicio-info-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+            <line x1="16" y1="2" x2="16" y2="6"/>
+            <line x1="8" y1="2" x2="8" y2="6"/>
+            <line x1="3" y1="10" x2="21" y2="10"/>
+            <path d="m9 16 2 2 4-4"/>
+          </svg>
+        </div>
+        <h3>Identidad digital y servicios digitales</h3>
+        <p>Accedé de forma simple, rápida y segura a trámites y servicios, desde un solo lugar y con una única contraseña.</p>
+      </div>
+
+      <div class="servicio-info-card">
+        <div class="servicio-info-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+            <circle cx="8.5" cy="7" r="4"/>
+            <line x1="18" y1="8" x2="23" y2="13"/>
+            <line x1="23" y1="8" x2="18" y2="13"/>
+          </svg>
+        </div>
+        <h3>Mis representados y autorizados</h3>
+        <p>Autorizá a otros usuarios a acceder a servicios puntuales para que te representen. Permite también representar a Personas Jurídicas.</p>
+      </div>
+
+      <div class="servicio-info-card">
+        <div class="servicio-info-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <circle cx="12" cy="14" r="2"/>
+          </svg>
+        </div>
+        <h3>Centro de documentación</h3>
+        <p>Accedé a tu documentación personal asociada a los trámites. Evitá el pedido reiterado de documentación personal.</p>
+      </div>
+    </div>
+
+    <!-- ============================================================== -->
+    <!-- 7. SECCIÓN NOVEDADES                                           -->
+    <!-- ============================================================== -->
+    <section class="novedades-section">
+      <h2 class="section-title">Novedades</h2>
+      <div class="novedades-grid">
+        <article class="novedad-card">
+          <div class="novedad-img">
+            Pre inscripciones<br>escolares 2027
+          </div>
+          <div class="novedad-body">
+            <h3 class="novedad-title">Preinscripción escolar 2027 en escuelas estatales de Baradero</h3>
+            <div class="novedad-footer">
+              <span class="novedad-date">24/08/2026</span>
+              <a href="#novedad-1" class="novedad-link" id="btnNovedad1">LEER MÁS</a>
+            </div>
+          </div>
+        </article>
+
+        <article class="novedad-card">
+          <div class="novedad-img" style="background: linear-gradient(135deg, #065f46 0%, #10b981 100%);">
+            Punto Limpio &<br>Plan de Poda 2026
+          </div>
+          <div class="novedad-body">
+            <h3 class="novedad-title">Nueva campaña municipal de reciclado y registro ambiental en Baradero</h3>
+            <div class="novedad-footer">
+              <span class="novedad-date">18/08/2026</span>
+              <a href="#novedad-2" class="novedad-link" id="btnNovedad2">LEER MÁS</a>
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <div class="novedades-action-row">
+        <button type="button" class="btn-ver-todas" id="btnVerTodasNovedades">VER TODAS</button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ================================================================ -->
+  <!-- 8. SECCIÓN APP MÓVIL (MOCKUP & TIENDAS)                         -->
+  <!-- ================================================================ -->
+  <section class="portal-app-section">
+    <div class="app-pattern-bg"></div>
+    <div class="app-inner">
+      <!-- Doble Smartphone Mockup en Vector SVG -->
+      <div class="app-phones-display">
+        <svg class="phone-mockup-svg" viewBox="0 0 300 360" width="300" height="360" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- Teléfono Posterior -->
+          <g transform="translate(10, 20) rotate(-10)">
+            <rect x="0" y="0" width="160" height="300" rx="24" fill="#ffffff" stroke="#cbd5e1" stroke-width="4"/>
+            <rect x="8" y="8" width="144" height="284" rx="18" fill="#f1f5f9"/>
+            <!-- Notch y pantalla -->
+            <rect x="50" y="12" width="60" height="8" rx="4" fill="#94a3b8"/>
+            <rect x="20" y="40" width="120" height="20" rx="4" fill="#0284c7" fill-opacity="0.2"/>
+            <rect x="20" y="70" width="80" height="12" rx="3" fill="#cbd5e1"/>
+            <rect x="20" y="92" width="120" height="60" rx="8" fill="#ffffff"/>
+            <rect x="20" y="162" width="120" height="60" rx="8" fill="#ffffff"/>
+          </g>
+          <!-- Teléfono Frontal Principal -->
+          <g transform="translate(110, 10) rotate(4)">
+            <rect x="0" y="0" width="170" height="320" rx="26" fill="#ffffff" stroke="#0f172a" stroke-width="5"/>
+            <rect x="8" y="8" width="154" height="304" rx="20" fill="#ffffff"/>
+            <!-- Header App SUBI -->
+            <rect x="8" y="8" width="154" height="56" rx="20" fill="#1976d2"/>
+            <circle cx="85" cy="30" r="12" fill="#ffffff" fill-opacity="0.3"/>
+            <!-- Íconos de servicios en pantalla -->
+            <rect x="22" y="80" width="36" height="36" rx="10" fill="#f0f7ff"/>
+            <circle cx="40" cy="98" r="8" fill="#0284c7"/>
+            <rect x="68" y="80" width="36" height="36" rx="10" fill="#f0f7ff"/>
+            <circle cx="86" cy="98" r="8" fill="#10b981"/>
+            <rect x="114" y="80" width="36" height="36" rx="10" fill="#f0f7ff"/>
+            <circle cx="132" cy="98" r="8" fill="#f59e0b"/>
+            <!-- Tarjeta Legajo Digital -->
+            <rect x="20" y="132" width="130" height="74" rx="10" fill="#0369a1"/>
+            <rect x="32" y="146" width="60" height="8" rx="2" fill="#ffffff"/>
+            <rect x="32" y="160" width="80" height="6" rx="2" fill="#e0f2fe" fill-opacity="0.8"/>
+            <circle cx="126" cy="168" r="14" fill="#ffffff" fill-opacity="0.2"/>
+            <!-- Feed de notificaciones -->
+            <rect x="20" y="220" width="130" height="42" rx="8" fill="#f8fafc" stroke="#e2e8f0"/>
+            <rect x="20" y="270" width="130" height="30" rx="8" fill="#f8fafc" stroke="#e2e8f0"/>
+          </g>
+        </svg>
+      </div>
+
+      <div class="app-info">
+        <h2 class="app-title">Descubrí nuestra App y accedé a tus servicios digitales</h2>
+        <p class="app-desc">Ahora podrás realizar tus consultas, trámites y acceder a tus servicios de forma rápida y accesible.</p>
+        <p class="app-sub">Realizá trámites, llevá tus credenciales, recibí notificaciones y más.</p>
+        <div class="app-badges-row">
+          <a href="#" class="store-badge-btn" id="badgeAppStore">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.37c.61-.75 1.04-1.8 0.92-2.85-.9.04-2 .6-2.65 1.34-.56.64-1.06 1.71-.92 2.74 1.02.08 2.05-.51 2.65-1.23z"/>
+            </svg>
+            <div class="store-badge-text">
+              <span class="store-badge-sub">Descárgalo en el</span>
+              <span class="store-badge-name">App Store</span>
+            </div>
+          </a>
+
+          <a href="#" class="store-badge-btn" id="badgeGooglePlay">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M3.609 1.814L13.793 12 3.61 22.186c-.347-.38-.56-.91-.56-1.556V3.37c0-.646.213-1.176.56-1.556zm11.236 11.237l2.259 2.26-11.75 6.78 9.491-9.04zm0-2.102L5.354 1.908l11.75 6.781-2.259 2.26zm3.328 1.051l3.037 1.752c.866.5.866 1.314 0 1.814l-3.037 1.752-2.23-2.23 2.23-2.23z"/>
+            </svg>
+            <div class="store-badge-text">
+              <span class="store-badge-sub">Disponible en</span>
+              <span class="store-badge-name">Google Play</span>
+            </div>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================================ -->
+  <!-- 9. FOOTER INSTITUCIONAL (BARADERO)                              -->
+  <!-- ================================================================ -->
+  <footer class="portal-footer">
+    <div class="footer-curved-top">
+      <svg viewBox="0 0 1440 40" fill="none" preserveAspectRatio="none" style="width:100%; height:100%;">
+        <path d="M0,40 C480,0 960,0 1440,40 L1440,40 L0,40 Z" fill="#1e3a8a"/>
+      </svg>
+    </div>
+
+    <div class="footer-main">
+      <div class="footer-col">
+        <h4>CIUDADANO DIGITAL</h4>
+        <ul class="footer-links">
+          <li><a href="#" class="open-login-trigger">Ingresar</a></li>
+          <li><a href="#" class="open-register-trigger">Crear Cuenta</a></li>
+          <li><a href="preguntas-frecuentes.html#como-registrarse">¿Cómo me registro?</a></li>
+          <li><a href="preguntas-frecuentes.html#centros-constatacion">Centros de Constatación</a></li>
+          <li><a href="preguntas-frecuentes.html#como-ser-ciudadano">¿Cómo ser Ciudadano SUBI?</a></li>
+          <li><a href="preguntas-frecuentes.html#accesibilidad">Accesibilidad</a></li>
+          <li><a href="preguntas-frecuentes.html#que-es-e-tramite">¿Qué es e-trámite?</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>SOBRE NOSOTROS</h4>
+        <ul class="footer-links">
+          <li><a href="preguntas-frecuentes.html#que-es">¿Qué es?</a></li>
+          <li><a href="preguntas-frecuentes.html#niveles-acceso">Niveles de Acceso</a></li>
+          <li><a href="preguntas-frecuentes.html#normativa">Normativa</a></li>
+          <li><a href="preguntas-frecuentes.html#terminos">Términos y Condiciones</a></li>
+          <li><a href="preguntas-frecuentes.html#privacidad">Política de Privacidad</a></li>
+          <li><a href="preguntas-frecuentes.html#seguridad">Política de Seguridad</a></li>
+          <li><a href="preguntas-frecuentes.html#requerimientos">Requerimientos Técnicos</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>CONTACTO</h4>
+        <ul class="footer-links">
+          <li><a href="preguntas-frecuentes.html#contacto">Ayuda en línea</a></li>
+          <li><a href="preguntas-frecuentes.html#contacto">Centro de Contacto</a></li>
+          <li><a href="tel:08008881234" class="footer-contact-phone" style="text-decoration:none; display:inline-block;">0800 888 1234</a></li>
+          <li><a href="atencion147.html" style="color: #cbd5e1;">Atención Ciudadana: Línea 147</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>DESCARGÁ LA APP</h4>
+        <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 4px;">
+          <a href="#" class="store-badge-btn" style="background:#0f172a;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.37c.61-.75 1.04-1.8 0.92-2.85-.9.04-2 .6-2.65 1.34-.56.64-1.06 1.71-.92 2.74 1.02.08 2.05-.51 2.65-1.23z"/>
+            </svg>
+            <div class="store-badge-text">
+              <span class="store-badge-sub">Descárgalo en</span>
+              <span class="store-badge-name" style="font-size:0.85rem;">App Store</span>
+            </div>
+          </a>
+          <a href="#" class="store-badge-btn" style="background:#0f172a;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M3.609 1.814L13.793 12 3.61 22.186c-.347-.38-.56-.91-.56-1.556V3.37c0-.646.213-1.176.56-1.556zm11.236 11.237l2.259 2.26-11.75 6.78 9.491-9.04zm0-2.102L5.354 1.908l11.75 6.781-2.259 2.26zm3.328 1.051l3.037 1.752c.866.5.866 1.314 0 1.814l-3.037 1.752-2.23-2.23 2.23-2.23z"/>
+            </svg>
+            <div class="store-badge-text">
+              <span class="store-badge-sub">Disponible en</span>
+              <span class="store-badge-name" style="font-size:0.85rem;">Google Play</span>
+            </div>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-bottom-bar">
+      <div class="footer-bottom-inner">
+        <div class="baradero-footer-brand">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+          Baradero <span>GOBIERNO MUNICIPAL</span>
+        </div>
+
+        <div class="footer-legal-links">
+          <a href="preguntas-frecuentes.html#que-es">Sobre Ciudadano Digital</a> |
+          <a href="preguntas-frecuentes.html#contacto">Contacto</a> |
+          <a href="preguntas-frecuentes.html#terminos">Términos y Condiciones de Uso</a> |
+          <a href="preguntas-frecuentes.html#privacidad">Política de Privacidad</a> |
+          <a href="preguntas-frecuentes.html#seguridad">Política de Seguridad</a>
+        </div>
+
+        <div class="footer-social-row">
+          <a href="#" aria-label="Facebook">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>
+            </svg>
+          </a>
+          <a href="#" aria-label="Instagram">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+              <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
+              <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>
+            </svg>
+          </a>
+          <a href="#" aria-label="X (Twitter)">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+            </svg>
+          </a>
+          <a href="#" aria-label="YouTube">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33zM9.75 15.02V8.48l5.75 3.27-5.75 3.27z"/>
+            </svg>
+          </a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Botón flotante para el Chat Ciudadano -->
+  <button type="button" class="portal-float-chat" id="btnFloatingChat" aria-label="Abrir asistente ciudadano">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+    </svg>
+  </button>
+
+
+  <!-- ================================================================ -->
+  <!-- 10. MODAL FLOTANTE DE LOGIN (RÉPLICA EXACTA IMAGEN 2)           -->
+  <!-- ================================================================ -->
+  <div class="modal-overlay" id="modalLoginOverlay">
+    <div class="modal-cidi-login">
+      <button class="modal-btn-close" id="btnCloseLoginModal" type="button" aria-label="Cerrar modal">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+
+      <!-- Formulario Login estilo CiDi -->
+      <form id="formCidiLogin" novalidate autocomplete="on">
+        <!-- Campo CUIL -->
+        <div class="cidi-form-group">
+          <label for="cidiCuilInput" class="cidi-label">CUIL*</label>
+          <div class="cidi-input-wrap" id="wrap-cuil">
+            <input type="text" id="cidiCuilInput" class="cidi-input" placeholder="" autocomplete="username" spellcheck="false" />
+            <span class="cidi-input-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                <circle cx="12" cy="7" r="4"/>
+              </svg>
+            </span>
+          </div>
+
+          <div class="cidi-checkbox-row">
+            <input type="checkbox" id="cidiRememberCuil" />
+            <label for="cidiRememberCuil">Recordar mi CUIL</label>
+          </div>
+        </div>
+
+        <!-- Campo Contraseña -->
+        <div class="cidi-form-group">
+          <label for="cidiPasswordInput" class="cidi-label">CONTRASEÑA*</label>
+          <div class="cidi-input-wrap" id="wrap-contrasena">
+            <input type="password" id="cidiPasswordInput" class="cidi-input" placeholder="" autocomplete="current-password" />
+            <button type="button" class="cidi-input-icon-btn" id="btnTogglePassword" aria-label="Mostrar u ocultar contraseña">
+              <!-- Ojo tachado (por default oculto) -->
+              <svg id="iconEyeOff" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+                <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+                <path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"/>
+                <line x1="1" y1="1" x2="23" y2="23"/>
+              </svg>
+              <svg id="iconEyeOn" style="display:none;" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Enlace Olvidaste tu contraseña -->
+        <div class="cidi-forgot-row">
+          <a href="#recuperar" class="cidi-link-forgot" id="btnOpenRecuperar">¿Olvidaste tu contraseña?</a>
+        </div>
+
+        <!-- Botón INGRESAR -->
+        <button type="submit" class="btn-cidi-ingresar" id="btnSubmitLogin">
+          INGRESAR
+        </button>
+
+        <!-- Divisor y botón ARCA -->
+        <div class="cidi-divider-arca">O accedé con</div>
+        <button type="button" class="btn-cidi-arca" id="btnOpenArcaModal">
+          ARCA
+        </button>
+
+        <!-- Prompt de Registro -->
+        <div class="cidi-register-prompt">
+          <span>¿No sos usuario?</span>
+          <button type="button" class="btn-cidi-create-account" id="btnTriggerCreateAccount">
+            + CREÁ TU CUENTA
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+
+  <!-- ================================================================ -->
+  <!-- 11. MODAL STEPPER DE REGISTRO EN 4 PASOS (RÉPLICA IMÁGENES 6 Y 7) -->
+  <!-- ================================================================ -->
+  <div class="modal-overlay" id="modalRegisterOverlay">
+    <div class="modal-cidi-stepper">
+      <div class="stepper-header-row">
+        <!-- Logo en modal de registro -->
+        <div class="portal-brand">
+          <div class="brand-icon-subi">
+            <svg viewBox="0 0 44 44" width="38" height="38" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="22" cy="22" r="21" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+              <path d="M12 22C12 16.477 16.477 12 22 12C25.5 12 28.5 13.8 30.2 16.5" stroke="#1976d2" stroke-width="3.5" stroke-linecap="round"/>
+              <path d="M32 22C32 27.523 27.523 32 22 32C18.5 32 15.5 30.2 13.8 27.5" stroke="#1976d2" stroke-width="3.5" stroke-linecap="round"/>
+              <path d="M17 22C17 19.239 19.239 17 22 17C23.8 17 25.3 18 26.2 19.5" stroke="#f59e0b" stroke-width="3" stroke-linecap="round"/>
+              <path d="M27 22C27 24.761 24.761 27 22 27C20.2 27 18.7 26 17.8 24.5" stroke="#0284c7" stroke-width="3" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div class="brand-text-block">
+            <div class="brand-title" style="font-size:1.1rem;">CIUDADANO <span>DIGITAL</span></div>
+          </div>
+        </div>
+
+        <button class="modal-btn-close" id="btnCloseRegisterModal" type="button" aria-label="Cerrar modal">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Barra de progreso Chevron Stepper -->
+      <div class="stepper-progress-bar">
+        <div class="stepper-step active" id="stepIndicator1">Datos personales</div>
+        <div class="stepper-step" id="stepIndicator2">Datos de Contacto</div>
+        <div class="stepper-step" id="stepIndicator3">Datos de Cuenta</div>
+        <div class="stepper-step" id="stepIndicator4">Confirmación</div>
+      </div>
+
+      <!-- Cuerpo dividido con panel azul a la izquierda -->
+      <div class="stepper-body-split">
+        <!-- Panel azul lateral con tips e ilustración -->
+        <div class="stepper-blue-panel" id="stepperBluePanel">
+          <div class="stepper-panel-icon">
+            <svg viewBox="0 0 72 72" width="72" height="72" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="12" y="8" width="48" height="56" rx="8" fill="#ffffff" fill-opacity="0.2"/>
+              <rect x="18" y="14" width="36" height="44" rx="4" fill="#ffffff"/>
+              <line x1="24" y1="24" x2="44" y2="24" stroke="#0284c7" stroke-width="2" stroke-linecap="round"/>
+              <line x1="24" y1="30" x2="48" y2="30" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/>
+              <line x1="24" y1="36" x2="40" y2="36" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/>
+              <circle cx="28" cy="46" r="3" fill="#10b981"/>
+              <line x1="34" y1="46" x2="48" y2="46" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div class="stepper-panel-title" id="panelHeading">¡Comencemos!</div>
+          <div class="stepper-panel-text" id="panelDescription">
+            Completá el formulario con la información tal cual figura en tu Documento o seleccioná las otras opciones disponibles para registrar tu cuenta de Ciudadano Digital.
+          </div>
+        </div>
+
+        <!-- Contenido principal del formulario -->
+        <div class="stepper-main-content">
+
+          <!-- ==================== PASO 1: DATOS PERSONALES ==================== -->
+          <div class="stepper-step-view" id="stepView1">
+            <h2 class="stepper-step-title">Registro</h2>
+            <p class="stepper-step-sub">Complete los siguientes campos</p>
+
+            <div class="paso1-layout">
+              <div class="paso1-form">
+                <!-- CUIL -->
+                <div class="cidi-form-group">
+                  <label for="regCuil" class="cidi-label">CUIL *</label>
+                  <div class="cidi-input-wrap">
+                    <input type="text" id="regCuil" class="cidi-input" placeholder="Ej: 20-41234567-9" maxlength="13" />
+                  </div>
+                </div>
+
+                <!-- Sexo (M, F, X) -->
+                <div class="cidi-form-group">
+                  <div class="sexo-selector-label">Sexo</div>
+                  <div class="sexo-options-row">
+                    <label class="sexo-option-label">
+                      <input type="radio" name="regSexo" value="M" checked />
+                      <span class="sexo-circle-btn">M</span>
+                      <span>Masculino</span>
+                    </label>
+                    <label class="sexo-option-label">
+                      <input type="radio" name="regSexo" value="F" />
+                      <span class="sexo-circle-btn">F</span>
+                      <span>Femenino</span>
+                    </label>
+                    <label class="sexo-option-label">
+                      <input type="radio" name="regSexo" value="X" />
+                      <span class="sexo-circle-btn">X</span>
+                      <span>No Binario</span>
+                    </label>
+                  </div>
+                </div>
+
+                <!-- Apellidos -->
+                <div class="cidi-form-group">
+                  <label for="regApellidos" class="cidi-label">Apellidos *</label>
+                  <div class="cidi-input-wrap">
+                    <input type="text" id="regApellidos" class="cidi-input" placeholder="" />
+                  </div>
+                </div>
+
+                <!-- Nombres -->
+                <div class="cidi-form-group">
+                  <label for="regNombres" class="cidi-label">Nombres *</label>
+                  <div class="cidi-input-wrap">
+                    <input type="text" id="regNombres" class="cidi-input" placeholder="" />
+                  </div>
+                </div>
+
+                <!-- Fecha de nacimiento -->
+                <div class="cidi-form-group">
+                  <label for="regFechaNac" class="cidi-label">Fecha de nacimiento *</label>
+                  <div class="cidi-input-wrap">
+                    <input type="date" id="regFechaNac" class="cidi-input" />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Tarjeta lateral: DNI Scanner / Subida -->
+              <div class="otras-opciones-card" id="btnTriggerDniScan">
+                <div class="otras-opciones-title">Otras opciones de registro</div>
+                <div class="dni-scanner-icon-wrap">
+                  <svg viewBox="0 0 64 64" width="64" height="64" fill="none" stroke="#0284c7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="8" y="16" width="48" height="34" rx="4"/>
+                    <line x1="14" y1="36" x2="26" y2="36"/>
+                    <line x1="14" y1="42" x2="36" y2="42"/>
+                    <circle cx="20" cy="26" r="4"/>
+                    <path d="M40 22h10v10"/>
+                  </svg>
+                </div>
+                <strong style="font-size: 1.05rem; color: #1e293b; margin-bottom: 6px;">DNI</strong>
+                <p class="otras-opciones-desc">Subí imágenes o escaneá con tu cámara el frente y dorso de tu DNI para autocompletar.</p>
+              </div>
+            </div>
+
+            <div class="stepper-buttons-row">
+              <button type="button" class="btn-stepper-confirm active" id="btnStep1Confirmar">
+                Confirmar
+              </button>
+            </div>
+          </div>
+
+          <!-- ==================== PASO 2: DATOS DE CONTACTO ==================== -->
+          <div class="stepper-step-view" id="stepView2" style="display: none;">
+            <h2 class="stepper-step-title">Datos de Contacto</h2>
+            <p class="stepper-step-sub">Complete los siguientes campos</p>
+
+            <div class="cidi-form-group">
+              <label for="regEmail" class="cidi-label" style="color:#0284c7;">Correo Electrónico *</label>
+              <div class="cidi-input-wrap" id="wrap-reg-email">
+                <input type="email" id="regEmail" class="cidi-input" placeholder="correo@ejemplo.com" />
+              </div>
+              <p class="cidi-error-text" id="err-reg-email" style="display:none; font-size:0.75rem; color:#ef4444; margin-top:4px;">Email es requerido</p>
+            </div>
+
+            <div class="cidi-form-group">
+              <div class="contacto-grid-row">
+                <div>
+                  <label for="regAreaCel" class="cidi-label">Área *</label>
+                  <div class="cidi-input-wrap">
+                    <input type="text" id="regAreaCel" class="cidi-input" placeholder="3329" maxlength="5" />
+                  </div>
+                </div>
+                <div>
+                  <label for="regCelular" class="cidi-label">Celular *</label>
+                  <div class="cidi-input-wrap">
+                    <input type="tel" id="regCelular" class="cidi-input" placeholder="481234" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="cidi-form-group">
+              <div class="contacto-grid-row">
+                <div>
+                  <label for="regAreaFijo" class="cidi-label">Área</label>
+                  <div class="cidi-input-wrap">
+                    <input type="text" id="regAreaFijo" class="cidi-input" placeholder="3329" maxlength="5" />
+                  </div>
+                </div>
+                <div>
+                  <label for="regFijo" class="cidi-label">Teléfono fijo</label>
+                  <div class="cidi-input-wrap">
+                    <input type="tel" id="regFijo" class="cidi-input" placeholder="480000" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="stepper-buttons-row">
+              <button type="button" class="btn-stepper-back" id="btnStep2Volver">Volver</button>
+              <button type="button" class="btn-stepper-confirm active" id="btnStep2Confirmar">Confirmar</button>
+            </div>
+          </div>
+
+          <!-- ==================== PASO 3: DATOS DE CUENTA ==================== -->
+          <div class="stepper-step-view" id="stepView3" style="display: none;">
+            <h2 class="stepper-step-title">Datos de Cuenta</h2>
+            <p class="stepper-step-sub">Configurá tu domicilio en Baradero y tu clave de acceso</p>
+
+            <div class="cidi-form-group">
+              <label for="regDomicilio" class="cidi-label">Domicilio en Baradero *</label>
+              <div class="cidi-input-wrap">
+                <input type="text" id="regDomicilio" class="cidi-input" placeholder="Ej: San Martín 450" />
+              </div>
+            </div>
+
+            <div class="cidi-form-group">
+              <label for="regLocalidad" class="cidi-label">Localidad</label>
+              <div class="cidi-input-wrap">
+                <input type="text" id="regLocalidad" class="cidi-input" value="Baradero" readonly />
+              </div>
+            </div>
+
+            <div class="cidi-form-group">
+              <label for="regPassword" class="cidi-label">Contraseña de acceso *</label>
+              <div class="cidi-input-wrap">
+                <input type="password" id="regPassword" class="cidi-input" placeholder="Mínimo 6 caracteres" />
+              </div>
+            </div>
+
+            <div class="cidi-form-group">
+              <label for="regPasswordConfirm" class="cidi-label">Confirmar Contraseña *</label>
+              <div class="cidi-input-wrap">
+                <input type="password" id="regPasswordConfirm" class="cidi-input" placeholder="Repetí tu contraseña" />
+              </div>
+            </div>
+
+            <!-- Aceptación de Términos y Condiciones (Integración con develop) -->
+            <label
+              style="display: flex; align-items: flex-start; gap: 10px; margin-top: 10px; padding: 10px 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; cursor: pointer; user-select: none;">
+              <input type="checkbox" id="reg-acepta-terminos" checked
+                style="accent-color: #0284c7; width: 16px; height: 16px; margin-top: 2px; cursor: pointer; flex-shrink: 0;" />
+              <span style="font-size: 11.5px; color: #64748b; line-height: 1.45;">He leído y acepto los
+                <a href="#terminos" id="link-terminos" style="color: #0284c7; text-decoration: underline;">Términos y Condiciones</a>
+                y la
+                <a href="#privacidad" id="link-privacidad" style="color: #0284c7; text-decoration: underline;">Política de Privacidad</a>
+                del Municipio de Baradero. <span style="color: #ef4444;">*</span>
+              </span>
+            </label>
+            <p id="err-terminos" style="display: none; color: #ef4444; font-size: 11.5px; margin-top: 4px;">Debés aceptar los términos y condiciones para continuar</p>
+
+            <div class="stepper-buttons-row">
+              <button type="button" class="btn-stepper-back" id="btnStep3Volver">Volver</button>
+              <button type="button" class="btn-stepper-confirm active" id="btnStep3Confirmar">Confirmar y Enviar Código</button>
+            </div>
+          </div>
+
+          <!-- ==================== PASO 4: CONFIRMACIÓN 2FA ==================== -->
+          <div class="stepper-step-view" id="stepView4" style="display: none; text-align: center;">
+            <div style="width: 56px; height: 56px; border-radius: 50%; background: #ecfdf5; color: #10b981; display: flex; align-items: center; justify-content: center; margin: 0 auto 14px;">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+            </div>
+            <h2 class="stepper-step-title">Validá tu Correo Electrónico</h2>
+            <p class="stepper-step-sub">Enviamos un código de seguridad de 6 dígitos a <strong id="regEmailTarget">tu correo</strong></p>
+
+            <div class="otp-container" id="otp-inputs-reg">
+              <input type="text" maxlength="1" inputmode="numeric" class="otp-digit-input" id="reg-otp-1" autofocus />
+              <input type="text" maxlength="1" inputmode="numeric" class="otp-digit-input" id="reg-otp-2" />
+              <input type="text" maxlength="1" inputmode="numeric" class="otp-digit-input" id="reg-otp-3" />
+              <input type="text" maxlength="1" inputmode="numeric" class="otp-digit-input" id="reg-otp-4" />
+              <input type="text" maxlength="1" inputmode="numeric" class="otp-digit-input" id="reg-otp-5" />
+              <input type="text" maxlength="1" inputmode="numeric" class="otp-digit-input" id="reg-otp-6" />
+            </div>
+
+            <label class="twofa-remember-card">
+              <input type="checkbox" id="regRememberDevice" checked />
+              <div class="twofa-remember-text">
+                <span class="twofa-remember-title">Recordar en este dispositivo durante 30 días</span>
+                <span class="twofa-remember-sub">Acceso directo al portal municipal sin pedir código por un mes.</span>
+              </div>
+            </label>
+
+            <div style="font-size: 0.84rem; color: #64748b; margin-bottom: 20px;">
+              ¿No recibiste el código?
+              <button type="button" id="btnResendRegCode" style="background:none; border:none; color:#0284c7; font-weight:700; cursor:pointer; text-decoration:underline;">Reenviar código</button>
+            </div>
+
+            <div class="stepper-buttons-row" style="justify-content: center;">
+              <button type="button" class="btn-stepper-confirm active" id="btnFinalizarRegistro" style="padding: 12px 36px; font-size: 0.95rem;">
+                Confirmar y Acceder al Portal
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ================================================================ -->
+  <!-- 12. MODAL 2FA DE LOGIN (CUANDO EL USUARIO YA TIENE CUENTA)      -->
+  <!-- ================================================================ -->
+  <div class="modal-overlay" id="modal2FAOverlay">
+    <div class="modal-cidi-login" style="max-width: 440px; text-align: center;">
+      <button class="modal-btn-close" id="btnClose2FAModal" type="button" aria-label="Cerrar modal">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+
+      <div style="width: 52px; height: 52px; border-radius: 50%; background: #e0f2fe; color: #0284c7; display: flex; align-items: center; justify-content: center; margin: 0 auto 14px;">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+      </div>
+
+      <h2 style="font-size: 1.28rem; font-weight: 800; color: #1e293b;">Verificación de Seguridad</h2>
+      <p style="font-size: 0.85rem; color: #64748b; margin: 4px 0 16px;">
+        Ingresá el código de 6 dígitos enviado a:<br>
+        <strong id="twofaUserEmailDisplay" style="color: #0284c7;">tu correo registrado</strong>
+      </p>
+
+      <div class="otp-container" id="otp-inputs-login">
+        <input type="text" maxlength="1" inputmode="numeric" class="otp-digit-input" id="login-otp-1" autofocus />
+        <input type="text" maxlength="1" inputmode="numeric" class="otp-digit-input" id="login-otp-2" />
+        <input type="text" maxlength="1" inputmode="numeric" class="otp-digit-input" id="login-otp-3" />
+        <input type="text" maxlength="1" inputmode="numeric" class="otp-digit-input" id="login-otp-4" />
+        <input type="text" maxlength="1" inputmode="numeric" class="otp-digit-input" id="login-otp-5" />
+        <input type="text" maxlength="1" inputmode="numeric" class="otp-digit-input" id="login-otp-6" />
+      </div>
+
+      <label class="twofa-remember-card">
+        <input type="checkbox" id="loginRememberDevice" checked />
+        <div class="twofa-remember-text">
+          <span class="twofa-remember-title">Recordar en este dispositivo durante 30 días</span>
+          <span class="twofa-remember-sub">No volveremos a pedirte el código en este navegador por 1 mes.</span>
+        </div>
+      </label>
+
+      <button type="button" class="btn-cidi-ingresar" id="btnSubmit2FALogin" style="background: #0284c7;">
+        Verificar e Ingresar
+      </button>
+
+      <div style="font-size: 0.82rem; color: #64748b; margin-top: 18px;">
+        ¿No recibiste el código?
+        <button type="button" id="btnResendLogin2FA" style="background:none; border:none; color:#0284c7; font-weight:700; cursor:pointer; text-decoration:underline;">Reenviar código</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ================================================================ -->
+  <!-- 13. MODAL: RECUPERAR CONTRASEÑA                                 -->
+  <!-- ================================================================ -->
+  <div class="modal-overlay" id="modalRecuperarOverlay">
+    <div class="modal-cidi-login" style="max-width: 440px;">
+      <button class="modal-btn-close" id="btnCloseRecuperarModal" type="button" aria-label="Cerrar modal">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+
+      <h2 style="font-size: 1.25rem; font-weight: 800; color: #1e293b; margin-bottom: 6px;">Recuperar contraseña</h2>
+      <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 22px;">Ingresá el correo electrónico asociado a tu cuenta de SUBI Baradero y te enviaremos las instrucciones de restablecimiento.</p>
+
+      <form id="formRecuperarClave" novalidate>
+        <div class="cidi-form-group">
+          <label for="recuperarEmailInput" class="cidi-label">Correo Electrónico *</label>
+          <div class="cidi-input-wrap">
+            <input type="email" id="recuperarEmailInput" class="cidi-input" placeholder="correo@ejemplo.com" required />
+          </div>
+        </div>
+
+        <button type="submit" class="btn-cidi-ingresar" id="btnSubmitRecuperar" style="margin-top: 12px;">
+          Enviar Enlace de Recuperación
+        </button>
+      </form>
+    </div>
+  </div>
+
+
+  <!-- ================================================================ -->
+  <!-- 14. MODAL: ESCÁNER / SUBIDA DE DNI CON CÁMARA (OCR)             -->
+  <!-- ================================================================ -->
+  <div class="modal-overlay" id="modalScanDNI">
+    <div class="modal-cidi-login" style="max-width: 540px; padding: 24px;">
+      <button class="modal-btn-close" id="btnCloseScanDNI" type="button" aria-label="Cerrar modal">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+
+      <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px;">
+        <div style="width:40px; height:40px; border-radius:10px; background:#e0f2fe; color:#0284c7; display:flex; align-items:center; justify-content:center;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="4" width="18" height="16" rx="2"/>
+            <circle cx="9" cy="10" r="2"/>
+            <line x1="15" y1="8" x2="17" y2="8"/>
+            <line x1="15" y1="12" x2="17" y2="12"/>
+          </svg>
+        </div>
+        <div>
+          <h2 style="font-size: 1.15rem; font-weight: 800; color:#1e293b; margin:0;">Escáner de DNI Argentino</h2>
+          <p style="font-size: 0.8rem; color:#64748b; margin:2px 0 0;">Capturá tu documento o subí fotos para autocompletar tu registro</p>
+        </div>
+      </div>
+
+      <!-- Viewport de Cámara -->
+      <div style="position:relative; width:100%; height:240px; background:#0f172a; border-radius:12px; overflow:hidden; display:flex; align-items:center; justify-content:center; border:2px solid #38bdf8;">
+        <video id="dniVideoFeed" autoplay playsinline muted style="width:100%; height:100%; object-fit:cover;"></video>
+        <canvas id="dniCanvasAnalysis" style="display:none;"></canvas>
+
+        <div style="position:absolute; inset:0; pointer-events:none; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+          <div style="width:80%; height:70%; border:2px dashed #38bdf8; border-radius:8px; box-shadow:0 0 0 9999px rgba(0,0,0,0.45);"></div>
+          <span style="font-size:11px; color:#e0f2fe; background:rgba(15,23,42,0.8); padding:3px 12px; border-radius:14px; margin-top:8px;">
+            Alineá el DNI dentro del recuadro
+          </span>
+        </div>
+      </div>
+
+      <!-- Botones de captura y archivo -->
+      <div style="display:flex; gap:10px; margin-top:16px;">
+        <label style="flex:1; padding:10px 14px; border:1px solid #cbd5e1; border-radius:var(--radius-pill); font-size:0.85rem; font-weight:600; color:#334155; text-align:center; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          Subir foto DNI
+          <input type="file" id="inputDniPhotoUpload" accept="image/*" style="display:none;" />
+        </label>
+        <button type="button" class="btn-cidi-ingresar" id="btnCaptureDniScan" style="flex:1.5; padding:10px; background:#0284c7;">
+          Capturar y Extraer
+        </button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ================================================================ -->
+  <!-- 15. MODAL INFORMATIVO: ACCESO ARCA (EX AFIP)                    -->
+  <!-- ================================================================ -->
+  <div class="modal-overlay" id="modalArcaOverlay">
+    <div class="modal-cidi-login" style="max-width: 420px; text-align: center;">
+      <button class="modal-btn-close" id="btnCloseArcaModal" type="button" aria-label="Cerrar modal">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+
+      <div style="width: 56px; height: 56px; border-radius: 14px; border: 1.5px solid #334155; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-weight: 900; font-size: 1.15rem; color: #1e293b;">
+        ARCA
+      </div>
+
+      <h2 style="font-size: 1.25rem; font-weight: 800; color: #1e293b; margin-bottom: 8px;">Acceso con Clave Fiscal ARCA</h2>
+      <p style="font-size: 0.85rem; color: #64748b; line-height: 1.5; margin-bottom: 20px;">
+        La integración con la Agencia de Recaudación y Control Aduanero (ex AFIP) permite validar tu identidad con nivel de seguridad fiscal para trámites tributarios de Baradero.
+      </p>
+
+      <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px 14px; font-size: 0.82rem; color: #475569; margin-bottom: 20px;">
+        ¿Deseas probar el ingreso con un perfil ciudadano de prueba homologado con ARCA?
+      </div>
+
+      <button type="button" class="btn-cidi-ingresar" id="btnSimularLoginArca" style="background: #1e293b;">
+        Ingresar con Demo ARCA / AFIP
+      </button>
+    </div>
+  </div>
+
+  <div id="toast-container"></div>
+
+  <!-- Script principal de lógica institucional -->
+  <script src="js/login.js?v=2.0"></script>
+</body>
+
+</html>
