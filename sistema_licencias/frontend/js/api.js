@@ -1,7 +1,9 @@
 /**
  * API Helper - Comunicación con el backend
  */
-const API_BASE = 'http://localhost:5000/api';
+const API_BASE = (window.location.origin && window.location.origin !== 'null' && !window.location.origin.startsWith('file:'))
+    ? `${window.location.origin}/api`
+    : 'http://localhost:5000/api';
 
 class ApiService {
     static getToken() {

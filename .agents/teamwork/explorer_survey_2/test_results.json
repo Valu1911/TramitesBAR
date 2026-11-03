@@ -1,0 +1,142 @@
+[
+  {
+    "test": "Registro con DNI corto (<7 dígitos)",
+    "passed": true,
+    "details": "Status: 400, Resp: {'error': 'DNI inválido (7 u 8 dígitos)'}"
+  },
+  {
+    "test": "Registro con DNI no numérico",
+    "passed": true,
+    "details": "Status: 400"
+  },
+  {
+    "test": "Registro válido inicial (HTTP 201)",
+    "passed": true,
+    "details": "ID: 317, Token exists: True"
+  },
+  {
+    "test": "Estado inicial de cuenta es 'pendiente'",
+    "passed": true,
+    "details": "Estado: pendiente"
+  },
+  {
+    "test": "Multas iniciales en 0",
+    "passed": true,
+    "details": "Cant: 0, Monto: 0.0"
+  },
+  {
+    "test": "Rechazo de DNI duplicado (HTTP 409)",
+    "passed": true,
+    "details": "Status: 409"
+  },
+  {
+    "test": "Login de admin_cuentas (HTTP 200)",
+    "passed": true,
+    "details": "Rol: cuentas"
+  },
+  {
+    "test": "Admin Cuentas visualiza usuario en pestaña 'Pendientes'",
+    "passed": true,
+    "details": "Total pendientes: 249"
+  },
+  {
+    "test": "Admin Cuentas obtiene detalle y expediente del ciudadano",
+    "passed": true,
+    "details": "DNI detalle: 51484169"
+  },
+  {
+    "test": "Admin Cuentas rechaza cuenta por multas (HTTP 200)",
+    "passed": true,
+    "details": "Resp: {'message': 'Cuenta de Juan actualizada con 2 infracción(es). Notificación enviada.'}"
+  },
+  {
+    "test": "Base de datos actualizada a 'rechazada_multas'",
+    "passed": true,
+    "details": "DB: {'estado_cuenta': 'rechazada_multas', 'multas_cantidad': 2, 'multas_monto': 48500.5, 'multas_motivo': 'Exceso de velocidad en Ruta 41 (km 5) y cruce de semáforo rojo en San Martín y Malvinas.'}"
+  },
+  {
+    "test": "Notificación automática generada en inbox_cuentas",
+    "passed": true,
+    "details": "Mensaje preview: Estimado/a Juan Perez: Tras consultar las bases de datos de seguridad vial se de..."
+  },
+  {
+    "test": "Progreso de ciudadano refleja estado 'rechazada_multas'",
+    "passed": true,
+    "details": "Progreso estado: rechazada_multas"
+  },
+  {
+    "test": "Ciudadano presiona 'Ya pagué' con comprobante (HTTP 200)",
+    "passed": true,
+    "details": "Resp: {'message': 'Notificación de pago enviada al administrador con éxito.'}"
+  },
+  {
+    "test": "Campo infracciones_pagadas_solicitadas actualizado a 1",
+    "passed": true,
+    "details": "Valor: 1"
+  },
+  {
+    "test": "Ciudadano puede leer su historial en el Inbox",
+    "passed": true,
+    "details": "Total mensajes: 2"
+  },
+  {
+    "test": "Admin Cuentas aprueba la cuenta tras verificar pago (HTTP 200)",
+    "passed": true,
+    "details": "Resp: {'message': 'Cuenta de Juan Perez (DNI: 51484169) aprobada con éxito.'}"
+  },
+  {
+    "test": "Base de datos actualizada a 'aprobada' con multas reseteadas a 0",
+    "passed": true,
+    "details": "DB: {'estado_cuenta': 'aprobada', 'multas_cantidad': 0, 'multas_monto': 0.0}"
+  },
+  {
+    "test": "Usuario B se encuentra oficialmente en 'rechazada_multas'",
+    "passed": true,
+    "details": ""
+  },
+  {
+    "test": "[SEGURIDAD VERIFICADA] Usuario con multas bloqueado en /api/charlas/videos (HTTP 403)",
+    "passed": true,
+    "details": "Status: 403"
+  },
+  {
+    "test": "[SEGURIDAD VERIFICADA] Usuario con multas bloqueado en /api/charlas/marcar-visto (HTTP 403)",
+    "passed": true,
+    "details": "Status: 403, Resp: {'error': 'Tu cuenta registra infracciones de tránsito pendientes o restricciones administrativas. Regularizá tu situación en el panel principal antes de avanzar.'}"
+  },
+  {
+    "test": "[SEGURIDAD VERIFICADA] Usuario con multas bloqueado en /api/tramite/saltar-paso (HTTP 403)",
+    "passed": true,
+    "details": "Status: 403, Resp: {'error': 'Tu cuenta registra infracciones de tránsito pendientes o restricciones administrativas. Regularizá tu situación en el panel principal antes de avanzar.'}"
+  },
+  {
+    "test": "[SEGURIDAD VERIFICADA] Usuario con multas bloqueado al enviar formularios de salud (HTTP 403)",
+    "passed": true,
+    "details": "Status: 403, Resp: {'error': 'Tu cuenta registra infracciones de tránsito pendientes o restricciones administrativas. Regularizá tu situación en el panel principal antes de avanzar.'}"
+  },
+  {
+    "test": "[SEGURIDAD VERIFICADA] Usuario con multas no puede emitir licencia digital con saltar-paso",
+    "passed": true,
+    "details": "Status: 403, Licencia: None"
+  },
+  {
+    "test": "[SEGURIDAD VERIFICADA] Usuario con multas bloqueado en /api/examen/preguntas (HTTP 403)",
+    "passed": true,
+    "details": "Status: 403"
+  },
+  {
+    "test": "[SEGURIDAD VERIFICADA] Usuario con multas bloqueado al entregar examen teórico (HTTP 403)",
+    "passed": true,
+    "details": "Status: 403, Resp: {'error': 'Tu cuenta registra infracciones de tránsito pendientes o restricciones administrativas. Regularizá tu situación en el panel principal antes de avanzar.'}"
+  },
+  {
+    "test": "[SEGURIDAD VERIFICADA] Usuario con multas bloqueado al registrar pago de arancel (HTTP 403)",
+    "passed": true,
+    "details": "Status: 403, Resp: {'error': 'Tu cuenta registra infracciones de tránsito pendientes o restricciones administrativas. Regularizá tu situación en el panel principal antes de avanzar.'}"
+  },
+  {
+    "test": "[SEGURIDAD VERIFICADA] Usuario C con multas bloqueado al marcar video como visto (HTTP 403)",
+    "passed": true,
+    "details": "Status: 403, Resp: {'error': 'Tu cuenta registra infracciones de tránsito pendientes o restricciones administrativas. Regularizá tu situación en el panel principal antes de avanzar.'}"
+  }
+]

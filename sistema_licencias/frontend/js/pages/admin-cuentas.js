@@ -23,8 +23,7 @@ class AdminCuentasPage {
             this.renderContent(app, data, admin);
         } catch (err) {
             if (err.status === 403 || err.status === 401) {
-                Toast.error('Acceso denegado. Iniciá sesión como administrador.');
-                adminLogout();
+                adminLogout(true, true);
                 return;
             }
             Toast.error(err.message || 'Error al cargar cuentas');
@@ -66,18 +65,17 @@ class AdminCuentasPage {
                 <div class="flex-between" style="flex-wrap:wrap;gap:16px;position:relative;z-index:1">
                     <div>
                         <div class="admin-badge-pill">
-                            ${Icons.shield} Panel de Verificación & Antecedentes Viales
+                            ${Icons.shield} Panel de Verificación y Antecedentes Viales
                         </div>
-                        <h1 style="font-size:1.6rem;font-weight:800;color:#ffffff;margin-bottom:6px;font-family:var(--font-title);letter-spacing:-0.02em">
+                        <h1 style="color:#ffffff;font-size:1.6rem;font-weight:800;margin-bottom:6px;letter-spacing:-0.02em">
                             Administración de Cuentas Ciudadanas
                         </h1>
-                        <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;max-width:680px;margin:0">
+                        <p style="color:rgba(255,255,255,0.92);font-size:0.88rem;max-width:680px;margin:0">
                             Auditoría oficial de antecedentes de tránsito e infracciones en el Registro Provincial de Seguridad Vial previo a la emisión de licencias.
                         </p>
                     </div>
                     <div style="display:flex;gap:10px;align-items:center">
-                        <button class="btn btn-sm" onclick="AdminCuentasPage.render(document.getElementById('app'))" 
-                                style="background:rgba(255,255,255,0.18);color:#ffffff;border:1px solid rgba(255,255,255,0.3);backdrop-filter:blur(6px);font-weight:700;display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:10px">
+                        <button class="admin-hero__refresh-btn" onclick="AdminCuentasPage.render(document.getElementById('app'))">
                             ${Icons.refresh} Refrescar Datos
                         </button>
                     </div>
@@ -86,7 +84,7 @@ class AdminCuentasPage {
 
             <!-- KPI METRICS GRID -->
             <div class="admin-kpi-grid">
-                <div class="admin-kpi-card">
+                <div class="admin-kpi-card" style="border-left:3px solid #0284c7">
                     <div class="admin-kpi-icon" style="background:#e0f2fe;color:#0284c7">
                         ${Icons.users}
                     </div>
@@ -106,12 +104,12 @@ class AdminCuentasPage {
                     </div>
                 </div>
 
-                <div class="admin-kpi-card" style="border-left:3px solid #ef4444">
-                    <div class="admin-kpi-icon" style="background:#fee2e2;color:#dc2626">
-                        ${Icons.alert}
+                <div class="admin-kpi-card" style="border-left:3px solid #e57373">
+                    <div class="admin-kpi-icon" style="background:#fff5f5;color:#b84a54">
+                        ${Icons.alertTriangle}
                     </div>
                     <div>
-                        <div class="admin-kpi-val" style="color:#b91c1c">${conMultas}</div>
+                        <div class="admin-kpi-val" style="color:#b84a54">${conMultas}</div>
                         <div class="admin-kpi-label">Con Infracciones</div>
                     </div>
                 </div>
@@ -127,28 +125,28 @@ class AdminCuentasPage {
                 </div>
             </div>
 
-            <!-- FILTROS Y BUSCADOR SUBI -->
+            <!-- FILTROS Y BUSCADOR -->
             <div class="admin-filter-bar">
                 <div class="admin-tabs-list">
                     <button class="admin-tab-btn ${this.filtro === 'todos' ? 'active' : ''}" onclick="AdminCuentasPage.setFiltro('todos')">
-                        Todos (${usuarios.length})
+                        ${Icons.filter} Todos (${usuarios.length})
                     </button>
                     <button class="admin-tab-btn ${this.filtro === 'pendiente' ? 'active' : ''}" onclick="AdminCuentasPage.setFiltro('pendiente')">
-                        ⏳ Pendientes (${pendientes})
+                        ${Icons.clock} Pendientes (${pendientes})
                     </button>
                     <button class="admin-tab-btn ${this.filtro === 'rechazada_multas' ? 'active' : ''}" onclick="AdminCuentasPage.setFiltro('rechazada_multas')">
-                        ⚠️ Con Multas (${conMultas})
+                        ${Icons.alertTriangle} Con Multas (${conMultas})
                     </button>
                     <button class="admin-tab-btn ${this.filtro === 'aprobada' ? 'active' : ''}" onclick="AdminCuentasPage.setFiltro('aprobada')">
-                        ✓ Aprobadas (${aprobados})
+                        ${Icons.check} Aprobadas (${aprobados})
                     </button>
                     <button class="admin-tab-btn ${this.filtro === 'papelera' ? 'active' : ''}" onclick="AdminCuentasPage.setFiltro('papelera')">
-                        🗑️ Papelera (${papelera})
+                        ${Icons.trash} Papelera (${papelera})
                     </button>
                 </div>
 
                 <div class="admin-search-wrap">
-                    <span class="admin-search-icon">🔍</span>
+                    <span class="admin-search-icon">${Icons.search}</span>
                     <input type="text" class="admin-search-input" placeholder="Buscar por DNI o Nombre..." 
                            value="${this.busqueda}" oninput="AdminCuentasPage.handleSearch(this.value)">
                 </div>
@@ -158,16 +156,16 @@ class AdminCuentasPage {
             <div id="cuentasLista">
                 ${usuarios.length === 0 ? `
                 <div class="dash-card text-center" style="padding:48px 20px">
-                    <div style="width:60px;height:60px;background:#f1f5f9;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;color:#94a3b8">
+                    <div style="width:56px;height:56px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;color:#64748b">
                         ${Icons.users}
                     </div>
-                    <h3 style="font-size:1.1rem;font-weight:700;color:var(--text-primary);margin-bottom:6px">No se encontraron solicitudes</h3>
-                    <p style="font-size:0.85rem;color:var(--text-muted);max-width:400px;margin:0 auto">No hay expedientes ciudadanos registrados bajo el filtro seleccionado (${this.filtro}).</p>
+                    <h3 style="font-size:1.05rem;font-weight:700;color:#0f172a;margin-bottom:6px">No se encontraron solicitudes</h3>
+                    <p style="font-size:0.85rem;color:#64748b;max-width:400px;margin:0 auto">No hay expedientes ciudadanos registrados bajo el filtro seleccionado (${this.filtro}).</p>
                 </div>` : usuarios.map(u => {
                     const stMap = {
                         'pendiente': { badge: 'badge-pending', label: 'Pendiente de Verificación', icon: Icons.clock },
                         'aprobada': { badge: 'badge-success', label: 'Cuenta Aprobada', icon: Icons.check },
-                        'rechazada_multas': { badge: 'badge-danger', label: `Multas (${u.multas_cantidad} - $${Number(u.multas_monto).toLocaleString('es-AR')})`, icon: Icons.alert },
+                        'rechazada_multas': { badge: 'badge-danger', label: `Multas (${u.multas_cantidad} - $${Number(u.multas_monto).toLocaleString('es-AR')})`, icon: Icons.alertTriangle },
                         'papelera': { badge: 'badge', label: 'En Papelera', icon: Icons.trash }
                     };
                     const st = stMap[u.estado_cuenta] || stMap['pendiente'];
@@ -178,33 +176,33 @@ class AdminCuentasPage {
                          style="cursor:pointer" onclick="AdminCuentasPage.abrirModalVerificacion(${u.id})">
                         <div class="admin-item__header">
                             <div style="display:flex;align-items:center;gap:14px">
-                                <div style="width:46px;height:46px;border-radius:50%;border:2px solid #0284c7;overflow:hidden;background:#e0f2fe;display:flex;align-items:center;justify-content:center;color:#0284c7;font-weight:800;font-size:1.15rem;flex-shrink:0;">
+                                <div class="admin-item__avatar">
                                     ${u.foto_rostro ? `<img src="${u.foto_rostro}" alt="Foto" style="width:100%;height:100%;object-fit:cover;">` : (u.nombre ? u.nombre.charAt(0).toUpperCase() : 'U')}
                                 </div>
                                 <div>
                                     <div class="admin-item__user" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
                                         <span>${u.nombre} ${u.apellido}</span>
                                         ${u.tiene_cud ? `<span class="badge badge-success" style="font-size:0.7rem;padding:2px 6px">${Icons.wheelchair} CUD</span>` : ''}
-                                        ${tieneAvisoPago ? `<span class="badge badge-warning animate-pulse" style="font-size:0.75rem;padding:3px 8px;background:#fef3c7;color:#b45309;border:1px solid #f59e0b;font-weight:bold">🔔 Notificó Pago</span>` : ''}
-                                        ${u.mensajes_sin_leer > 0 ? `<span class="badge badge-danger" style="font-size:0.7rem;padding:2px 6px">${Icons.chat} ${u.mensajes_sin_leer} msj</span>` : ''}
+                                        ${tieneAvisoPago ? `<span class="badge badge-warning" style="font-size:0.74rem;padding:3px 8px;background:#fef3c7;color:#b45309;border:1px solid #f59e0b;font-weight:700;display:inline-flex;align-items:center;gap:4px">${Icons.bell} Notificó Pago</span>` : ''}
+                                        ${u.mensajes_sin_leer > 0 ? `<span class="badge badge-danger" style="font-size:0.7rem;padding:2px 6px;display:inline-flex;align-items:center;gap:4px">${Icons.chat} ${u.mensajes_sin_leer} msj</span>` : ''}
                                     </div>
                                     <div class="admin-item__meta" style="margin-top:3px">
                                         <strong>DNI:</strong> ${u.dni} · <strong>Edad:</strong> ${u.edad || '--'} años · <strong>Tel:</strong> ${u.telefono || 'Sin tel'} · <strong>Email:</strong> ${u.email || 'Sin email'}
                                     </div>
                                 </div>
                             </div>
-                            <span class="badge ${st.badge}" style="display:inline-flex;align-items:center;gap:5px;font-size:0.8rem;padding:5px 12px">
+                            <span class="badge ${st.badge}" style="display:inline-flex;align-items:center;gap:5px;font-size:0.78rem;padding:5px 12px">
                                 ${st.icon} ${st.label}
                             </span>
                         </div>
 
-                        <div class="admin-item__detail flex-between" style="margin-top:10px;padding:10px 14px;border-radius:10px;background:#f8fafc;border:1px solid #e2e8f0">
+                        <div class="admin-item__detail flex-between" style="margin-top:10px;padding:10px 14px;border-radius:8px;background:#f8fafc;border:1px solid #e2e8f0">
                             <div class="text-xs text-muted">
                                 Registrado el: <strong>${u.created_at || '--'}</strong> 
-                                ${u.multas_motivo ? ` · <span style="color:#b91c1c;font-weight:700">Infracción: ${u.multas_motivo}</span>` : ''}
+                                ${u.multas_motivo ? ` · <span style="color:#b84a54;font-weight:700">Infracción: ${u.multas_motivo}</span>` : ''}
                             </div>
-                            <button class="btn btn-primary btn-sm" style="display:inline-flex;align-items:center;gap:6px;font-weight:700;border-radius:8px">
-                                ${Icons.shield} Abrir Auditoría & Consulta Oficial →
+                            <button class="btn btn-primary btn-sm" style="display:inline-flex;align-items:center;gap:6px;font-weight:700;border-radius:8px;background:#0284c7;border:none">
+                                ${Icons.shield} Abrir Auditoría y Consulta Oficial ${Icons.chevronRight}
                             </button>
                         </div>
                     </div>`;
@@ -218,18 +216,18 @@ class AdminCuentasPage {
     }
 
     /**
-     * Abre el modal interactivo con iframe, DNI precargado, herramientas y chat inbox
+     * Abre el modal interactivo con consulta de infracciones, DNI precargado, herramientas y chat inbox
      */
     static async abrirModalVerificacion(userId) {
         const modalCont = document.getElementById('modalContainerCuentas');
         if (!modalCont) return;
 
         modalCont.innerHTML = `
-        <div class="modal-backdrop" style="position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px)">
-            <div class="modal-content glass-card p-6" style="max-width:980px;width:100%;max-height:92vh;overflow-y:auto;position:relative">
+        <div class="modal-backdrop" style="position:fixed;inset:0;background:rgba(15,23,42,0.65);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px)">
+            <div class="modal-content glass-card p-6" style="max-width:980px;width:100%;max-height:92vh;overflow-y:auto;position:relative;background:#ffffff;border:1px solid #e2e8f0;border-radius:14px">
                 <div class="text-center" style="padding:50px 0">
                     <div class="spinner" style="margin:0 auto"></div>
-                    <p class="text-muted mt-3">Cargando expediente del ciudadano e iframe...</p>
+                    <p class="text-muted mt-3">Cargando expediente del ciudadano...</p>
                 </div>
             </div>
         </div>`;
@@ -241,93 +239,97 @@ class AdminCuentasPage {
             const mensajes = data.mensajes || [];
 
             modalCont.innerHTML = `
-            <div class="modal-backdrop" style="position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:9999;display:flex;align-items:center;justify-content:center;padding:12px;backdrop-filter:blur(4px)">
-                <div class="modal-content glass-card" style="max-width:1050px;width:100%;max-height:94vh;display:flex;flex-direction:column;position:relative;border:2px solid var(--primary);box-shadow:0 25px 50px -12px rgba(0,0,0,0.5)">
+            <div class="modal-backdrop" style="position:fixed;inset:0;background:rgba(15,23,42,0.65);z-index:9999;display:flex;align-items:center;justify-content:center;padding:12px;backdrop-filter:blur(4px)">
+                <div class="modal-content" style="max-width:1020px;width:100%;max-height:94vh;display:flex;flex-direction:column;position:relative;background:#ffffff;border:1px solid #cbd5e1;border-radius:14px;box-shadow:0 25px 50px -12px rgba(15,23,42,0.35);overflow:hidden">
                     
                     <!-- HEADER DEL MODAL -->
-                    <div class="flex-between p-4" style="background:var(--bg-card);border-bottom:1px solid var(--border);border-top-left-radius:var(--radius-md);border-top-right-radius:var(--radius-md)">
+                    <div class="flex-between p-4" style="background:#ffffff;border-bottom:1px solid #e2e8f0">
                         <div style="display:flex;align-items:center;gap:12px">
-                            <div style="width:46px;height:46px;border-radius:50%;background:var(--primary-soft);display:flex;align-items:center;justify-content:center;color:var(--primary);font-size:1.3rem">
-                                ${Icons.user}
+                            <div class="admin-item__avatar">
+                                ${Icons.userCheck}
                             </div>
                             <div>
-                                <h2 style="font-size:1.15rem;font-weight:800;margin:0;display:flex;align-items:center;gap:8px">
+                                <h2 style="font-size:1.1rem;font-weight:800;color:#0f172a;margin:0;display:flex;align-items:center;gap:8px">
                                     ${u.nombre} ${u.apellido}
-                                    <span class="badge ${u.estado_cuenta === 'aprobada' ? 'badge-success' : u.estado_cuenta === 'rechazada_multas' ? 'badge-danger' : 'badge-pending'}" style="font-size:0.75rem">
+                                    <span class="badge ${u.estado_cuenta === 'aprobada' ? 'badge-success' : u.estado_cuenta === 'rechazada_multas' ? 'badge-danger' : 'badge-pending'}" style="font-size:0.72rem">
                                         ${u.estado_cuenta.toUpperCase().replace('_', ' ')}
                                     </span>
                                 </h2>
                                 <p class="text-xs text-muted" style="margin:2px 0 0 0">
-                                    DNI: <strong style="color:var(--text);font-size:0.9rem">${u.dni}</strong> · Edad: ${u.edad || '--'} años · Fecha Nac: ${u.fecha_nacimiento || '--'} · Tel: ${u.telefono || 'Sin tel'}
+                                    DNI: <strong style="color:#0f172a;font-size:0.88rem">${u.dni}</strong> · Edad: ${u.edad || '--'} años · Fecha Nac: ${u.fecha_nacimiento || '--'} · Tel: ${u.telefono || 'Sin tel'}
                                 </p>
                             </div>
                         </div>
-                        <button class="btn btn-ghost btn-sm" onclick="AdminCuentasPage.cerrarModal()" style="font-size:1.3rem;padding:4px 10px">×</button>
+                        <button class="btn btn-ghost btn-sm" onclick="AdminCuentasPage.cerrarModal()" style="padding:6px;border-radius:8px;color:#64748b">
+                            ${Icons.x}
+                        </button>
                     </div>
 
-                    <!-- CUERPO CON PESTAÑAS (IFRAME VERIFICACIÓN / INBOX MENSAJES) -->
-                    <div style="flex:1;overflow-y:auto;padding:16px;background:var(--bg)">
+                    <!-- CUERPO CON PESTAÑAS -->
+                    <div style="flex:1;overflow-y:auto;padding:18px;background:#f8fafc">
                         
                         <!-- BARRA DE ASISTENCIA RÁPIDA DNI -->
-                        <div style="background:linear-gradient(135deg, rgba(37,99,235,0.12), rgba(147,197,253,0.2));border:1px solid var(--primary-light,#93c5fd);border-radius:var(--radius-md);padding:12px 16px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+                        <div style="background:#ffffff;border:1px solid #cbd5e1;border-radius:10px;padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
                             <div style="display:flex;align-items:center;gap:10px">
-                                <span style="font-size:1.2rem;color:var(--primary);display:flex;align-items:center">${Icons.scan}</span>
+                                <div style="width:36px;height:36px;border-radius:8px;background:#e0f2fe;color:#0284c7;display:flex;align-items:center;justify-content:center">
+                                    ${Icons.scan}
+                                </div>
                                 <div>
                                     <div class="text-xs text-muted">DNI para consulta de Infracciones:</div>
-                                    <strong style="font-size:1.15rem;letter-spacing:1px;color:var(--primary)">${u.dni}</strong>
+                                    <strong style="font-size:1.1rem;letter-spacing:0.04em;color:#0f172a;font-variant-numeric:tabular-nums">${u.dni}</strong>
                                 </div>
                             </div>
 
                             <div style="display:flex;gap:8px;flex-wrap:wrap">
-                                <button type="button" class="btn btn-primary btn-sm" onclick="AdminCuentasPage.copiarDni('${u.dni}')" style="display:inline-flex;align-items:center;gap:6px">
+                                <button type="button" class="btn btn-primary btn-sm" onclick="AdminCuentasPage.copiarDni('${u.dni}')" style="display:inline-flex;align-items:center;gap:6px;background:#0284c7;border:none;border-radius:8px">
                                     ${Icons.copy} Copiar DNI
                                 </button>
-                                <a href="https://infraccionesba.gba.gob.ar/consulta-infraccion" target="_blank" class="btn btn-ghost btn-sm" style="background:rgba(255,255,255,0.7);display:inline-flex;align-items:center;gap:6px">
+                                <a href="https://infraccionesba.gba.gob.ar/consulta-infraccion" target="_blank" class="btn btn-outline btn-sm" style="background:#ffffff;display:inline-flex;align-items:center;gap:6px;border-radius:8px">
                                     ${Icons.externalLink} Abrir en pestaña externa
                                 </a>
                             </div>
                         </div>
 
                         <!-- PESTAÑAS DENTRO DEL MODAL -->
-                        <div class="tabs mb-3" style="border-bottom:1px solid var(--border)">
-                            <button id="tabBtnIframe" class="tab active" onclick="AdminCuentasPage.switchTabModal('iframe')">
+                        <div class="admin-tabs-list" style="margin-bottom:16px">
+                            <button id="tabBtnIframe" class="admin-tab-btn active" onclick="AdminCuentasPage.switchTabModal('iframe')">
                                 ${Icons.shield} Consulta Oficial de Infracciones BA
                             </button>
-                            <button id="tabBtnInbox" class="tab" onclick="AdminCuentasPage.switchTabModal('inbox')">
-                                ${Icons.chat} Inbox / Comprobantes Ciudadano (${mensajes.length})
+                            <button id="tabBtnInbox" class="admin-tab-btn" onclick="AdminCuentasPage.switchTabModal('inbox')">
+                                ${Icons.inbox} Inbox / Comprobantes (${mensajes.length})
                             </button>
-                            <button id="tabBtnDatos" class="tab" onclick="AdminCuentasPage.switchTabModal('datos')">
+                            <button id="tabBtnDatos" class="admin-tab-btn" onclick="AdminCuentasPage.switchTabModal('datos')">
                                 ${Icons.doc} Datos del Ciudadano
                             </button>
                         </div>
 
                         <!-- CONTENIDO 1: HUB DE CONSULTA RÁPIDA DE INFRACCIONES -->
                         <div id="tabContentIframe" style="display:block">
-                            <div class="glass-card p-6 text-center" style="background:var(--bg-card);border:2px solid var(--primary);border-radius:var(--radius-md);box-shadow:var(--shadow-md)">
+                            <div class="dash-card text-center" style="background:#ffffff;border:1px solid #cbd5e1;border-radius:12px;padding:28px 24px">
                                 
-                                <div style="display:inline-flex;align-items:center;gap:8px;background:var(--primary-soft);color:var(--primary);padding:6px 16px;border-radius:20px;font-size:0.8rem;font-weight:700;margin-bottom:14px">
-                                    🌐 Infracciones BA · Dirección Provincial de Seguridad Vial
+                                <div style="display:inline-flex;align-items:center;gap:8px;background:#f0f9ff;color:#0284c7;border:1px solid #bae6fd;padding:6px 14px;border-radius:20px;font-size:0.78rem;font-weight:700;margin-bottom:14px">
+                                    ${Icons.globe} Infracciones BA · Dirección Provincial de Seguridad Vial
                                 </div>
 
-                                <h3 class="font-bold text-xl mb-1" style="color:var(--text)">
+                                <h3 style="font-size:1.2rem;font-weight:800;color:#0f172a;margin-bottom:6px">
                                     Verificación de Antecedentes de Tránsito
                                 </h3>
                                 <p class="text-sm text-muted mb-4" style="max-width:540px;margin-left:auto;margin-right:auto">
-                                    Abrí la consulta oficial con el DNI del titular precargado para comprobar si posee multas impagas antes de aprobar la cuenta.
+                                    Abrí la consulta oficial con el DNI del titular copiado al portapapeles para comprobar si posee multas impagas antes de aprobar la cuenta.
                                 </p>
 
                                 <!-- DNI DESTACADO Y BOTÓN DE ACCIÓN PRINCIPAL -->
-                                <div style="background:linear-gradient(135deg, rgba(37,99,235,0.08), rgba(147,197,253,0.15));border:1px dashed var(--primary);border-radius:var(--radius-md);padding:20px;max-width:500px;margin:0 auto 20px auto">
+                                <div style="background:#f8fafc;border:1px solid #cbd5e1;border-radius:10px;padding:20px;max-width:500px;margin:0 auto 20px auto">
                                     <div class="text-xs text-muted font-bold uppercase mb-1">DNI a Consultar</div>
-                                    <div style="font-size:2.2rem;font-weight:900;letter-spacing:2px;color:var(--primary);margin-bottom:12px">
+                                    <div style="font-size:2rem;font-weight:800;letter-spacing:0.06em;color:#0284c7;margin-bottom:14px;font-variant-numeric:tabular-nums">
                                         ${u.dni}
                                     </div>
                                     
                                     <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
-                                        <button type="button" class="btn btn-primary btn-lg" onclick="AdminCuentasPage.abrirYCopiar('${u.dni}')" style="display:inline-flex;align-items:center;gap:8px;font-weight:800;padding:12px 22px">
-                                            🚀 Abrir Infracciones BA & Copiar DNI
+                                        <button type="button" class="btn btn-primary" onclick="AdminCuentasPage.abrirYCopiar('${u.dni}')" style="display:inline-flex;align-items:center;gap:8px;font-weight:700;padding:10px 20px;background:#0284c7;border:none;border-radius:8px">
+                                            ${Icons.externalLink} Abrir Infracciones BA y Copiar DNI
                                         </button>
-                                        <button type="button" class="btn btn-ghost btn-sm" onclick="AdminCuentasPage.copiarDni('${u.dni}')" style="display:inline-flex;align-items:center;gap:4px">
+                                        <button type="button" class="btn btn-outline btn-sm" onclick="AdminCuentasPage.copiarDni('${u.dni}')" style="display:inline-flex;align-items:center;gap:5px;background:#ffffff;border-radius:8px">
                                             ${Icons.copy} Solo Copiar DNI
                                         </button>
                                     </div>
@@ -335,18 +337,18 @@ class AdminCuentasPage {
 
                                 <!-- GUÍA RÁPIDA PARA EL OPERADOR -->
                                 <div class="grid-2 text-left" style="gap:12px;max-width:680px;margin:0 auto;font-size:0.8rem">
-                                    <div style="background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.3);padding:12px;border-radius:var(--radius-md)">
-                                        <strong style="color:var(--success,#10b981);display:flex;align-items:center;gap:4px;margin-bottom:4px">
-                                            ✓ Si NO registra multas:
+                                    <div style="background:#f0fdf4;border:1px solid #bbf7d0;padding:12px 14px;border-radius:8px">
+                                        <strong style="color:#059669;display:flex;align-items:center;gap:5px;margin-bottom:4px">
+                                            ${Icons.checkCircle} Si NO registra multas:
                                         </strong>
-                                        Hacé clic en el botón verde <strong>"Aprobar Cuenta"</strong> abajo para habilitar al ciudadano a comenzar sus trámites.
+                                        <span style="color:#334155">Hacé clic en el botón verde <strong>"Aprobar Cuenta"</strong> abajo para habilitar al ciudadano a comenzar sus trámites.</span>
                                     </div>
                                     
-                                    <div style="background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.3);padding:12px;border-radius:var(--radius-md)">
-                                        <strong style="color:var(--danger,#ef4444);display:flex;align-items:center;gap:4px;margin-bottom:4px">
-                                            ✕ Si TIENE multas pendientes:
+                                    <div style="background:#fff5f5;border:1px solid #fed7d7;padding:12px 14px;border-radius:8px">
+                                        <strong style="color:#b84a54;display:flex;align-items:center;gap:5px;margin-bottom:4px">
+                                            ${Icons.xCircle} Si TIENE multas pendientes:
                                         </strong>
-                                        Hacé clic en el botón rojo <strong>"Rechazar por Multas"</strong> para cargar la cantidad y el costo en la plantilla.
+                                        <span style="color:#334155">Hacé clic en el botón rojo <strong>"Rechazar por Multas"</strong> para cargar la cantidad y el monto en la plantilla.</span>
                                     </div>
                                 </div>
 
@@ -355,13 +357,13 @@ class AdminCuentasPage {
 
                         <!-- CONTENIDO 2: INBOX Y CHAT CON ADJUNTOS -->
                         <div id="tabContentInbox" style="display:none">
-                            <div style="background:var(--bg-card);border-radius:var(--radius-md);border:1px solid var(--border);padding:14px;display:flex;flex-direction:column;height:440px">
+                            <div style="background:#ffffff;border-radius:10px;border:1px solid #cbd5e1;padding:14px;display:flex;flex-direction:column;height:420px">
                                 <div id="inboxMensajesLista" style="flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:10px">
                                     ${mensajes.length === 0 ? `
-                                    <div class="empty-state" style="padding:20px 0">
+                                    <div class="empty-state" style="padding:36px 0;text-align:center">
                                         <p class="text-xs text-muted">No hay mensajes previos con este ciudadano.</p>
                                     </div>` : mensajes.map(m => `
-                                    <div style="max-width:80%;align-self:${m.emisor === 'admin' ? 'flex-end' : 'flex-start'};background:${m.emisor === 'admin' ? 'var(--primary)' : 'var(--bg-card-hover,#e2e8f0)'};color:${m.emisor === 'admin' ? '#fff' : 'inherit'};padding:10px 14px;border-radius:12px;box-shadow:var(--shadow-sm)">
+                                    <div style="max-width:80%;align-self:${m.emisor === 'admin' ? 'flex-end' : 'flex-start'};background:${m.emisor === 'admin' ? '#0284c7' : '#f1f5f9'};color:${m.emisor === 'admin' ? '#fff' : '#0f172a'};padding:10px 14px;border-radius:10px">
                                         <div style="font-size:0.7rem;opacity:0.8;margin-bottom:4px;font-weight:700">
                                             ${m.emisor === 'admin' ? 'Oficial de Tránsito' : u.nombre + ' ' + u.apellido} · ${m.created_at}
                                         </div>
@@ -380,14 +382,14 @@ class AdminCuentasPage {
                                 </div>
 
                                 <!-- INPUT DE ENVÍO -->
-                                <div style="display:flex;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);align-items:center">
-                                    <label class="btn btn-ghost btn-sm" style="cursor:pointer" title="Adjuntar comprobante o foto">
+                                <div style="display:flex;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid #e2e8f0;align-items:center">
+                                    <label class="btn btn-outline btn-sm" style="cursor:pointer;background:#fff;border-radius:8px" title="Adjuntar comprobante o foto">
                                         ${Icons.paperclip}
                                         <input type="file" id="adminInboxFileInput" accept="image/*,application/pdf" style="display:none" onchange="AdminCuentasPage.handleFileSelect(event)">
                                     </label>
-                                    <span id="adminFileAttachedLabel" class="text-xs text-primary" style="display:none;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
+                                    <span id="adminFileAttachedLabel" class="text-xs" style="display:none;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#0284c7;font-weight:600"></span>
                                     <input type="text" id="adminInboxMsgInput" class="form-input" placeholder="Escribir mensaje de respuesta al ciudadano..." style="flex:1" onkeydown="if(event.key==='Enter') AdminCuentasPage.enviarMensajeAdmin(${u.id})">
-                                    <button class="btn btn-primary btn-sm" onclick="AdminCuentasPage.enviarMensajeAdmin(${u.id})" style="display:inline-flex;align-items:center;gap:6px">
+                                    <button class="btn btn-primary btn-sm" onclick="AdminCuentasPage.enviarMensajeAdmin(${u.id})" style="display:inline-flex;align-items:center;gap:6px;background:#0284c7;border:none;border-radius:8px">
                                         ${Icons.send} Enviar
                                     </button>
                                 </div>
@@ -396,18 +398,40 @@ class AdminCuentasPage {
 
                         <!-- CONTENIDO 3: DATOS COMPLETOS -->
                         <div id="tabContentDatos" style="display:none">
-                            <div class="glass-card p-4" style="background:var(--bg-card)">
-                                <div class="grid-2" style="gap:14px;font-size:0.9rem">
-                                    <div><strong>Nombre:</strong> ${u.nombre}</div>
-                                    <div><strong>Apellido:</strong> ${u.apellido}</div>
-                                    <div><strong>DNI:</strong> ${u.dni}</div>
-                                    <div><strong>Fecha de Nacimiento:</strong> ${u.fecha_nacimiento} (${u.edad} años)</div>
-                                    <div><strong>Email:</strong> ${u.email || 'No registrado'}</div>
-                                    <div><strong>Teléfono:</strong> ${u.telefono || 'No registrado'}</div>
-                                    <div><strong>Dirección:</strong> ${u.direccion || 'Baradero'}</div>
-                                    <div><strong>Posee CUD:</strong> ${u.tiene_cud ? 'SÍ (N° ' + u.numero_cud + ')' : 'NO'}</div>
-                                    <div><strong>Estado de Cuenta:</strong> ${u.estado_cuenta}</div>
-                                    <div><strong>Infracciones Detectadas:</strong> ${u.multas_cantidad} ($${Number(u.multas_monto).toLocaleString('es-AR')})</div>
+                            <div class="dash-card" style="background:#ffffff;border:1px solid #cbd5e1">
+                                <div class="admin-data-grid">
+                                    <div class="admin-data-cell">
+                                        <div class="admin-data-cell__label">Nombre y Apellido</div>
+                                        <div class="admin-data-cell__value">${u.nombre} ${u.apellido}</div>
+                                    </div>
+                                    <div class="admin-data-cell">
+                                        <div class="admin-data-cell__label">Documento Nacional</div>
+                                        <div class="admin-data-cell__value">${u.dni}</div>
+                                    </div>
+                                    <div class="admin-data-cell">
+                                        <div class="admin-data-cell__label">Fecha de Nacimiento</div>
+                                        <div class="admin-data-cell__value">${u.fecha_nacimiento} (${u.edad} años)</div>
+                                    </div>
+                                    <div class="admin-data-cell">
+                                        <div class="admin-data-cell__label">Correo Electrónico</div>
+                                        <div class="admin-data-cell__value">${u.email || 'No registrado'}</div>
+                                    </div>
+                                    <div class="admin-data-cell">
+                                        <div class="admin-data-cell__label">Teléfono de Contacto</div>
+                                        <div class="admin-data-cell__value">${u.telefono || 'No registrado'}</div>
+                                    </div>
+                                    <div class="admin-data-cell">
+                                        <div class="admin-data-cell__label">Domicilio Declarado</div>
+                                        <div class="admin-data-cell__value">${u.direccion || 'Baradero'}</div>
+                                    </div>
+                                    <div class="admin-data-cell">
+                                        <div class="admin-data-cell__label">Certificado CUD</div>
+                                        <div class="admin-data-cell__value">${u.tiene_cud ? 'SÍ (N° ' + u.numero_cud + ')' : 'NO'}</div>
+                                    </div>
+                                    <div class="admin-data-cell">
+                                        <div class="admin-data-cell__label">Infracciones Detectadas</div>
+                                        <div class="admin-data-cell__value">${u.multas_cantidad} ($${Number(u.multas_monto).toLocaleString('es-AR')})</div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -415,26 +439,26 @@ class AdminCuentasPage {
                     </div>
 
                     <!-- FOOTER DE ACCIONES DEL ADMINISTRADOR -->
-                    <div class="p-4" style="background:var(--bg-card);border-top:1px solid var(--border);border-bottom-left-radius:var(--radius-md);border-bottom-right-radius:var(--radius-md);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+                    <div class="p-4" style="background:#ffffff;border-top:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
                         
                         <div style="display:flex;gap:8px">
                             ${u.estado_cuenta !== 'papelera' ? `
-                            <button type="button" class="btn btn-ghost btn-sm" style="color:var(--danger,#ef4444);display:inline-flex;align-items:center;gap:6px" onclick="AdminCuentasPage.moverPapelera(${u.id})">
+                            <button type="button" class="btn btn-outline btn-sm" style="color:#b84a54;border-color:#fed7d7;background:#fff;border-radius:8px;display:inline-flex;align-items:center;gap:6px;font-weight:600" onclick="AdminCuentasPage.moverPapelera(${u.id})">
                                 ${Icons.trash} Mover a Papelera
                             </button>` : `
-                            <button type="button" class="btn btn-ghost btn-sm" style="color:var(--success,#10b981);display:inline-flex;align-items:center;gap:6px" onclick="AdminCuentasPage.darAlta(${u.id})">
-                                ${Icons.refresh} Restaurar / Dar de Alta
+                            <button type="button" class="btn btn-outline btn-sm" style="color:#059669;border-color:#a7f3d0;background:#fff;border-radius:8px;display:inline-flex;align-items:center;gap:6px;font-weight:600" onclick="AdminCuentasPage.darAlta(${u.id})">
+                                ${Icons.rotateCcw} Restaurar / Dar de Alta
                             </button>`}
                         </div>
 
                         <div style="display:flex;gap:10px">
                             <!-- BOTÓN ROJO: RECHAZAR POR MULTAS -->
-                            <button type="button" class="btn btn-danger" onclick="AdminCuentasPage.abrirModalRechazo(${u.id}, '${u.nombre} ${u.apellido}', '${u.dni}')" style="display:inline-flex;align-items:center;gap:6px;background:var(--danger,#ef4444);font-weight:700">
+                            <button type="button" class="btn btn-danger btn-sm" onclick="AdminCuentasPage.abrirModalRechazo(${u.id}, '${u.nombre} ${u.apellido}', '${u.dni}')" style="display:inline-flex;align-items:center;gap:6px;background:#d95360;color:#fff;border:none;border-radius:8px;font-weight:700;padding:9px 16px">
                                 ${Icons.x} Rechazar por Multas
                             </button>
 
                             <!-- BOTÓN VERDE: APROBAR CUENTA -->
-                            <button type="button" class="btn btn-success" onclick="AdminCuentasPage.aprobarCuenta(${u.id})" style="display:inline-flex;align-items:center;gap:6px;background:var(--success,#10b981);color:#fff;font-weight:700">
+                            <button type="button" class="btn btn-success btn-sm" onclick="AdminCuentasPage.aprobarCuenta(${u.id})" style="display:inline-flex;align-items:center;gap:6px;background:#059669;color:#fff;border:none;border-radius:8px;font-weight:700;padding:9px 16px">
                                 ${Icons.check} Aprobar Cuenta (Sin Multas)
                             </button>
                         </div>
@@ -453,9 +477,9 @@ class AdminCuentasPage {
         document.getElementById('tabContentInbox').style.display = tab === 'inbox' ? 'block' : 'none';
         document.getElementById('tabContentDatos').style.display = tab === 'datos' ? 'block' : 'none';
 
-        document.getElementById('tabBtnIframe').className = `tab ${tab === 'iframe' ? 'active' : ''}`;
-        document.getElementById('tabBtnInbox').className = `tab ${tab === 'inbox' ? 'active' : ''}`;
-        document.getElementById('tabBtnDatos').className = `tab ${tab === 'datos' ? 'active' : ''}`;
+        document.getElementById('tabBtnIframe').className = `admin-tab-btn ${tab === 'iframe' ? 'active' : ''}`;
+        document.getElementById('tabBtnInbox').className = `admin-tab-btn ${tab === 'inbox' ? 'active' : ''}`;
+        document.getElementById('tabBtnDatos').className = `admin-tab-btn ${tab === 'datos' ? 'active' : ''}`;
     }
 
     static copiarDni(dni) {
@@ -463,7 +487,6 @@ class AdminCuentasPage {
         navigator.clipboard.writeText(dni).then(() => {
             Toast.success(`DNI ${dni} copiado al portapapeles. Listo para pegar.`);
         }).catch(() => {
-            // Fallback manual
             const el = document.createElement('textarea');
             el.value = dni;
             document.body.appendChild(el);
@@ -488,12 +511,18 @@ class AdminCuentasPage {
     }
 
     /**
-     * Aprueba la cuenta directamente
+     * Aprueba la cuenta con modal de confirmación estético
      */
     static async aprobarCuenta(userId) {
-        if (!confirm('¿Confirmás que el usuario NO registra multas impagas y querés APROBAR la cuenta?')) {
-            return;
-        }
+        const ok = await ConfirmModal.show({
+            title: 'Aprobar cuenta ciudadana',
+            description: '¿Confirmás que el titular no registra multas de tránsito impagas y querés aprobar su cuenta para iniciar trámites?',
+            confirmText: 'Aprobar Cuenta',
+            cancelText: 'Cancelar',
+            variant: 'success',
+            icon: Icons.userCheck
+        });
+        if (!ok) return;
 
         try {
             const res = await ApiService.adminAprobarCuenta(userId);
@@ -515,24 +544,26 @@ class AdminCuentasPage {
         const subModal = document.createElement('div');
         subModal.id = 'subModalRechazo';
         subModal.innerHTML = `
-        <div class="modal-backdrop" style="position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:10000;display:flex;align-items:center;justify-content:center;padding:16px">
-            <div class="modal-content glass-card p-6 animate-slideUp" style="max-width:560px;width:100%;border:2px solid var(--danger,#ef4444)">
+        <div class="modal-backdrop" style="position:fixed;inset:0;background:rgba(15,23,42,0.75);z-index:10000;display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(3px)">
+            <div class="modal-content animate-slideUp" style="max-width:540px;width:100%;background:#ffffff;border:1px solid #cbd5e1;border-top:4px solid #d95360;border-radius:12px;padding:24px;box-shadow:0 20px 40px rgba(15,23,42,0.3)">
                 
                 <div class="flex-between mb-4">
-                    <div style="display:flex;align-items:center;gap:10px">
-                        <div style="width:40px;height:40px;border-radius:50%;background:#fee2e2;color:#dc2626;display:flex;align-items:center;justify-content:center;font-size:1.2rem">
-                            ${Icons.alert}
+                    <div style="display:flex;align-items:center;gap:12px">
+                        <div style="width:40px;height:40px;border-radius:10px;background:#fff5f5;color:#b84a54;display:flex;align-items:center;justify-content:center">
+                            ${Icons.alertTriangle}
                         </div>
                         <div>
-                            <h3 class="font-bold text-lg mb-0" style="color:var(--danger,#ef4444)">Rechazar por Infracciones</h3>
+                            <h3 style="font-size:1.05rem;font-weight:800;color:#0f172a;margin:0">Rechazar por Infracciones</h3>
                             <p class="text-xs text-muted mb-0">${nombreCompleto} · DNI: ${dni}</p>
                         </div>
                     </div>
-                    <button class="btn btn-ghost btn-sm" onclick="document.getElementById('subModalRechazo').remove()">×</button>
+                    <button class="btn btn-ghost btn-sm" onclick="document.getElementById('subModalRechazo').remove()" style="padding:4px;color:#64748b">
+                        ${Icons.x}
+                    </button>
                 </div>
 
                 <p class="text-xs text-muted mb-4">
-                    Completá la plantilla. Al enviar, el usuario no podrá avanzar con trámites y verá el cartel de <strong>Multas Pendientes</strong> con estos valores:
+                    Completá la plantilla. Al enviar, el usuario no podrá avanzar con trámites y verá el aviso de <strong>Multas Pendientes</strong> con estos valores:
                 </p>
 
                 <div class="stack">
@@ -542,7 +573,7 @@ class AdminCuentasPage {
                             <input type="number" id="inputCantidadMultas" class="form-input" value="1" min="1" max="99" required>
                         </div>
                         <div class="form-group">
-                            <label class="form-label">Costo / Monto Total a Pagar ($) *</label>
+                            <label class="form-label">Monto Total a Pagar ($) *</label>
                             <input type="number" id="inputMontoMultas" class="form-input" placeholder="Ej: 45000" step="50" required>
                         </div>
                     </div>
@@ -553,8 +584,8 @@ class AdminCuentasPage {
                     </div>
 
                     <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:14px">
-                        <button type="button" class="btn btn-ghost" onclick="document.getElementById('subModalRechazo').remove()">Cancelar</button>
-                        <button type="button" class="btn btn-danger" onclick="AdminCuentasPage.confirmarRechazo(${userId})" style="background:var(--danger,#ef4444);font-weight:700">
+                        <button type="button" class="btn btn-outline btn-sm" onclick="document.getElementById('subModalRechazo').remove()" style="background:#fff;border-radius:8px">Cancelar</button>
+                        <button type="button" class="btn btn-danger btn-sm" onclick="AdminCuentasPage.confirmarRechazo(${userId})" style="background:#d95360;color:#fff;border:none;border-radius:8px;font-weight:700;padding:8px 16px">
                             Confirmar y Notificar al Ciudadano
                         </button>
                     </div>
@@ -590,9 +621,16 @@ class AdminCuentasPage {
     }
 
     static async moverPapelera(userId) {
-        if (!confirm('¿Mover usuario a la papelera? (Los datos no se eliminarán y podrás darlo de alta en cualquier momento)')) {
-            return;
-        }
+        const ok = await ConfirmModal.show({
+            title: 'Mover solicitud a la papelera',
+            description: 'Los datos del ciudadano no se eliminarán de forma definitiva y podrás volver a darlo de alta desde la pestaña Papelera en cualquier momento.',
+            confirmText: 'Mover a Papelera',
+            cancelText: 'Cancelar',
+            variant: 'danger',
+            icon: Icons.trash
+        });
+        if (!ok) return;
+
         try {
             const res = await ApiService.adminMoverPapeleraCuenta(userId);
             Toast.success(res.message || 'Movido a papelera');
@@ -604,6 +642,16 @@ class AdminCuentasPage {
     }
 
     static async darAlta(userId) {
+        const ok = await ConfirmModal.show({
+            title: 'Restaurar cuenta ciudadana',
+            description: 'La cuenta saldrá de la papelera y volverá a estar activa en el padrón de solicitudes.',
+            confirmText: 'Restaurar y Dar de Alta',
+            cancelText: 'Cancelar',
+            variant: 'primary',
+            icon: Icons.rotateCcw
+        });
+        if (!ok) return;
+
         try {
             const res = await ApiService.adminDarAltaCuenta(userId);
             Toast.success(res.message || 'Cuenta reactivada y dada de alta');
@@ -624,8 +672,10 @@ class AdminCuentasPage {
             AdminCuentasPage.selectedFileName = file.name;
             const lbl = document.getElementById('adminFileAttachedLabel');
             if (lbl) {
-                lbl.innerText = `📎 ${file.name}`;
-                lbl.style.display = 'inline';
+                lbl.innerHTML = `${Icons.paperclip} ${file.name}`;
+                lbl.style.display = 'inline-flex';
+                lbl.style.alignItems = 'center';
+                lbl.style.gap = '4px';
             }
             Toast.info(`Archivo ${file.name} listo para enviar.`);
         };
@@ -660,7 +710,6 @@ class AdminCuentasPage {
             if (lbl) lbl.style.display = 'none';
 
             Toast.success('Mensaje enviado al ciudadano');
-            // Recargar modal
             this.abrirModalVerificacion(userId);
         } catch (err) {
             Toast.error(err.message || 'Error al enviar mensaje');

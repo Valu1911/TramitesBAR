@@ -23,21 +23,26 @@ class AdminProfesoresPage {
                         <div class="admin-badge-pill">
                             ${Icons.teacher} Dirección de Educación Vial · Claustro Docente
                         </div>
-                        <h1 style="font-size:1.6rem;font-weight:800;color:#ffffff;margin-bottom:6px;font-family:var(--font-title);letter-spacing:-0.02em">
+                        <h1 style="color:#ffffff;font-size:1.6rem;font-weight:800;margin-bottom:6px;letter-spacing:-0.02em">
                             Gestión de Exámenes Teóricos de Conducir
                         </h1>
-                        <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;max-width:680px;margin:0">
+                        <p style="color:rgba(255,255,255,0.92);font-size:0.88rem;max-width:680px;margin:0">
                             Configuración del banco de reactivos, supervisión biométrica en tiempo real por streaming y dictamen oficial con justificación pedagógica.
                         </p>
+                    </div>
+                    <div>
+                        <button class="admin-hero__refresh-btn" onclick="AdminProfesoresPage.loadTabData()">
+                            ${Icons.refresh} Sincronizar Panel
+                        </button>
                     </div>
                 </div>
             </div>
 
-            <!-- TABS DE NAVEGACIÓN SUBI -->
+            <!-- TABS DE NAVEGACIÓN -->
             <div class="admin-filter-bar" style="margin-bottom:20px">
                 <div class="admin-tabs-list">
                     <button class="admin-tab-btn ${this.activeTab === 'config' ? 'active' : ''}" onclick="AdminProfesoresPage.switchTab('config')">
-                        ${Icons.settings} Configuración & Vista Previa
+                        ${Icons.settings} Configuración y Vista Previa
                     </button>
                     <button class="admin-tab-btn ${this.activeTab === 'preguntas' ? 'active' : ''}" onclick="AdminProfesoresPage.switchTab('preguntas')">
                         ${Icons.doc} Banco de Preguntas
@@ -46,7 +51,7 @@ class AdminProfesoresPage {
                         ${Icons.camera} Monitoreo en Tiempo Real
                     </button>
                     <button class="admin-tab-btn ${this.activeTab === 'revision' ? 'active' : ''}" onclick="AdminProfesoresPage.switchTab('revision')">
-                        ${Icons.check} Exámenes a Revisar & Dictamen
+                        ${Icons.fileCheck} Exámenes a Revisar y Dictamen
                     </button>
                 </div>
             </div>
@@ -108,6 +113,7 @@ class AdminProfesoresPage {
             const previewRes = await ApiService.adminGetPreguntasPreview();
             this.previewPreguntas = previewRes.preguntas || [];
         } catch (err) {
+            if (err.status === 403 || err.status === 401) { adminLogout(true, true); return; }
             Toast.error('Error al cargar configuración del examen');
         }
 
@@ -116,48 +122,48 @@ class AdminProfesoresPage {
             <!-- COLUMNA 1: SELECCIÓN DE MODO DE EXAMEN -->
             <div class="dash-card">
                 <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-                    <span style="color:#0284c7;display:flex;align-items:center">${Icons.settings}</span>
-                    <h2 style="font-size:1.15rem;font-weight:800;color:var(--text-primary);margin:0">Modalidad de Evaluación</h2>
+                    <span style="color:#0284c7;display:flex;align-items:center">${Icons.sliders}</span>
+                    <h2 style="font-size:1.1rem;font-weight:800;color:#0f172a;margin:0">Modalidad de Evaluación</h2>
                 </div>
-                <p style="font-size:0.84rem;color:var(--text-secondary);margin-bottom:18px">Elegí la modalidad con la que el sistema compilará las preguntas para los aspirantes:</p>
+                <p style="font-size:0.84rem;color:#64748b;margin-bottom:18px">Elegí la modalidad con la que el sistema compilará las preguntas para los aspirantes:</p>
 
                 <form onsubmit="AdminProfesoresPage.guardarConfig(event)">
                     <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:18px">
                         <!-- OPCIÓN 1: PLANTILLA -->
-                        <label style="border:1.5px solid ${this.config.modo === 'plantilla' ? '#0284c7' : '#e2e8f0'};border-radius:12px;padding:14px;display:block;cursor:pointer;background:${this.config.modo === 'plantilla' ? '#eff6ff' : '#ffffff'};transition:all 0.15s ease">
+                        <label style="border:1.5px solid ${this.config.modo === 'plantilla' ? '#0284c7' : '#e2e8f0'};border-radius:10px;padding:14px;display:block;cursor:pointer;background:${this.config.modo === 'plantilla' ? '#f0f9ff' : '#ffffff'};transition:all 0.15s ease">
                             <div style="display:flex;align-items:center;gap:12px">
-                                <input type="radio" name="modoExamen" value="plantilla" ${this.config.modo === 'plantilla' ? 'checked' : ''} onchange="AdminProfesoresPage.onModoChange(this.value)" style="width:18px;height:18px">
+                                <input type="radio" name="modoExamen" value="plantilla" ${this.config.modo === 'plantilla' ? 'checked' : ''} onchange="AdminProfesoresPage.onModoChange(this.value)" style="width:17px;height:17px;accent-color:#0284c7">
                                 <div>
-                                    <strong style="font-size:0.92rem;color:#0f172a;display:block">1. Modo Plantilla Estándar</strong>
+                                    <strong style="font-size:0.9rem;color:#0f172a;display:block">1. Modo Plantilla Estándar</strong>
                                     <span style="font-size:0.8rem;color:#64748b">Preguntas oficiales base estandarizadas por la Agencia Provincial de Seguridad Vial.</span>
                                 </div>
                             </div>
                         </label>
 
                         <!-- OPCIÓN 2: PERSONALIZADO -->
-                        <label style="border:1.5px solid ${this.config.modo === 'personalizado' ? '#0284c7' : '#e2e8f0'};border-radius:12px;padding:14px;display:block;cursor:pointer;background:${this.config.modo === 'personalizado' ? '#eff6ff' : '#ffffff'};transition:all 0.15s ease">
+                        <label style="border:1.5px solid ${this.config.modo === 'personalizado' ? '#0284c7' : '#e2e8f0'};border-radius:10px;padding:14px;display:block;cursor:pointer;background:${this.config.modo === 'personalizado' ? '#f0f9ff' : '#ffffff'};transition:all 0.15s ease">
                             <div style="display:flex;align-items:center;gap:12px">
-                                <input type="radio" name="modoExamen" value="personalizado" ${this.config.modo === 'personalizado' ? 'checked' : ''} onchange="AdminProfesoresPage.onModoChange(this.value)" style="width:18px;height:18px">
+                                <input type="radio" name="modoExamen" value="personalizado" ${this.config.modo === 'personalizado' ? 'checked' : ''} onchange="AdminProfesoresPage.onModoChange(this.value)" style="width:17px;height:17px;accent-color:#0284c7">
                                 <div>
-                                    <strong style="font-size:0.92rem;color:#0f172a;display:block">2. Modo Personalizado (Profesor)</strong>
+                                    <strong style="font-size:0.9rem;color:#0f172a;display:block">2. Modo Personalizado (Profesor)</strong>
                                     <span style="font-size:0.8rem;color:#64748b">Utiliza exclusivamente preguntas elaboradas y cargadas por el equipo docente local.</span>
                                 </div>
                             </div>
                         </label>
 
                         <!-- OPCIÓN 3: HÍBRIDO -->
-                        <label style="border:1.5px solid ${this.config.modo === 'hibrido' ? '#0284c7' : '#e2e8f0'};border-radius:12px;padding:14px;display:block;cursor:pointer;background:${this.config.modo === 'hibrido' ? '#eff6ff' : '#ffffff'};transition:all 0.15s ease">
+                        <label style="border:1.5px solid ${this.config.modo === 'hibrido' ? '#0284c7' : '#e2e8f0'};border-radius:10px;padding:14px;display:block;cursor:pointer;background:${this.config.modo === 'hibrido' ? '#f0f9ff' : '#ffffff'};transition:all 0.15s ease">
                             <div style="display:flex;align-items:center;gap:12px">
-                                <input type="radio" name="modoExamen" value="hibrido" ${this.config.modo === 'hibrido' ? 'checked' : ''} onchange="AdminProfesoresPage.onModoChange(this.value)" style="width:18px;height:18px">
+                                <input type="radio" name="modoExamen" value="hibrido" ${this.config.modo === 'hibrido' ? 'checked' : ''} onchange="AdminProfesoresPage.onModoChange(this.value)" style="width:17px;height:17px;accent-color:#0284c7">
                                 <div>
-                                    <strong style="font-size:0.92rem;color:#0f172a;display:block">3. Modo Híbrido (Combinado sin duplicados)</strong>
+                                    <strong style="font-size:0.9rem;color:#0f172a;display:block">3. Modo Híbrido (Combinado sin duplicados)</strong>
                                     <span style="font-size:0.8rem;color:#64748b">Combina reactivos de plantilla estándar con preguntas locales del profesor.</span>
                                 </div>
                             </div>
                         </label>
                     </div>
 
-                    <div id="hibridoConfigInputs" style="display:${this.config.modo === 'hibrido' ? 'block' : 'none'};background:#f8fafc;padding:14px;border-radius:12px;margin-bottom:18px;border:1px solid #e2e8f0">
+                    <div id="hibridoConfigInputs" style="display:${this.config.modo === 'hibrido' ? 'block' : 'none'};background:#f8fafc;padding:14px;border-radius:10px;margin-bottom:18px;border:1px solid #e2e8f0">
                         <div class="grid-2" style="gap:12px">
                             <div>
                                 <label class="form-label text-xs">Preguntas de Plantilla</label>
@@ -170,8 +176,8 @@ class AdminProfesoresPage {
                         </div>
                     </div>
 
-                    <button type="submit" class="btn btn-primary btn-block" style="font-weight:700;padding:12px">
-                        Guardar Modalidad de Examen
+                    <button type="submit" class="btn btn-primary btn-block" style="font-weight:700;padding:11px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;gap:6px">
+                        ${Icons.check} Guardar Modalidad de Examen
                     </button>
                 </form>
             </div>
@@ -180,21 +186,21 @@ class AdminProfesoresPage {
             <div class="dash-card">
                 <div class="flex-between mb-3" style="flex-wrap:wrap;gap:8px">
                     <div>
-                        <h2 style="font-size:1.15rem;font-weight:800;color:var(--text-primary);margin:0;display:flex;align-items:center;gap:6px">
-                            <span style="color:#0284c7;display:flex;align-items:center">${Icons.doc}</span> Vista Previa (${this.previewPreguntas.length})
+                        <h2 style="font-size:1.1rem;font-weight:800;color:#0f172a;margin:0;display:flex;align-items:center;gap:6px">
+                            <span style="color:#0284c7;display:flex;align-items:center">${Icons.eye}</span> Vista Previa (${this.previewPreguntas.length})
                         </h2>
-                        <span style="font-size:0.75rem;color:#64748b">Modalidad: <strong style="color:#0284c7">${this.config.modo.toUpperCase()}</strong></span>
+                        <span style="font-size:0.75rem;color:#64748b">Modalidad activa: <strong style="color:#0284c7">${this.config.modo.toUpperCase()}</strong></span>
                     </div>
 
                     <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
-                        <button type="button" class="btn btn-ghost btn-sm text-xs" style="color:#ef4444;border:1px solid #fca5a5;padding:4px 8px;display:inline-flex;align-items:center;gap:4px;font-weight:700" onclick="AdminProfesoresPage.vaciarPreguntasPlantilla()">
-                            ${Icons.x} Vaciar base
+                        <button type="button" class="btn btn-ghost btn-sm text-xs" style="color:#b84a54;border:1px solid #fed7d7;background:#fff;padding:5px 10px;border-radius:7px;display:inline-flex;align-items:center;gap:4px;font-weight:600" onclick="AdminProfesoresPage.vaciarPreguntasPlantilla()">
+                            ${Icons.trash} Vaciar base
                         </button>
-                        <button type="button" class="btn btn-ghost btn-sm text-xs" style="color:#0284c7;border:1px solid #bae6fd;padding:4px 8px;display:inline-flex;align-items:center;gap:4px;font-weight:700" onclick="AdminProfesoresPage.restaurarPreguntasPlantilla()">
-                            ${Icons.check} Restaurar base
+                        <button type="button" class="btn btn-ghost btn-sm text-xs" style="color:#0284c7;border:1px solid #bae6fd;background:#fff;padding:5px 10px;border-radius:7px;display:inline-flex;align-items:center;gap:4px;font-weight:600" onclick="AdminProfesoresPage.restaurarPreguntasPlantilla()">
+                            ${Icons.rotateCcw} Restaurar base
                         </button>
-                        <button type="button" class="btn btn-ghost btn-sm text-xs" style="color:#dc2626;border:1px solid #fca5a5;padding:4px 8px;display:inline-flex;align-items:center;gap:4px;font-weight:700" onclick="AdminProfesoresPage.vaciarPreguntasProfesor()">
-                            ${Icons.x} Vaciar profesor
+                        <button type="button" class="btn btn-ghost btn-sm text-xs" style="color:#b84a54;border:1px solid #fed7d7;background:#fff;padding:5px 10px;border-radius:7px;display:inline-flex;align-items:center;gap:4px;font-weight:600" onclick="AdminProfesoresPage.vaciarPreguntasProfesor()">
+                            ${Icons.trash} Vaciar profesor
                         </button>
                     </div>
                 </div>
@@ -204,14 +210,14 @@ class AdminProfesoresPage {
                     <div class="dash-card text-center" style="padding:32px 14px;background:#f8fafc">
                         <p style="font-size:0.85rem;color:#64748b;margin:0">No hay preguntas disponibles para el modo seleccionado. Podés cargar nuevas preguntas o restaurar la plantilla base.</p>
                     </div>` : this.previewPreguntas.map((q, i) => `
-                    <div style="background:#ffffff;padding:16px;border-radius:12px;border-left:4px solid ${q.es_plantilla ? '#0284c7' : '#9333ea'};border-top:1px solid #e2e8f0;border-right:1px solid #e2e8f0;border-bottom:1px solid #e2e8f0;box-shadow:var(--shadow-sm)">
+                    <div style="background:#ffffff;padding:16px;border-radius:10px;border-left:4px solid ${q.es_plantilla ? '#0284c7' : '#6366f1'};border-top:1px solid #e2e8f0;border-right:1px solid #e2e8f0;border-bottom:1px solid #e2e8f0">
                         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-                            <span style="font-weight:800;font-size:0.85rem;color:#0f172a">Pregunta ${i + 1}</span>
+                            <span style="font-weight:800;font-size:0.84rem;color:#0f172a">Pregunta ${i + 1}</span>
                             ${q.es_plantilla ? `
                             <span class="badge badge-info" style="font-size:0.68rem;padding:3px 8px">
                                 Plantilla Base
                             </span>` : `
-                            <span class="badge" style="background:#f3e8ff;color:#7e22ce;font-size:0.68rem;padding:3px 8px">
+                            <span class="badge" style="background:#eef2ff;color:#4f46e5;font-size:0.68rem;padding:3px 8px">
                                 Docente Local
                             </span>`}
                         </div>
@@ -223,7 +229,7 @@ class AdminProfesoresPage {
                             <div style="background:#f8fafc;color:#334155;padding:8px 10px;border-radius:8px;border:1px solid #e2e8f0"><strong>D)</strong> ${q.opcion_d}</div>
                         </div>
                         <div style="margin-top:10px;font-size:0.8rem;font-weight:700;color:#059669;display:flex;align-items:center;gap:4px">
-                            ${Icons.check} Correcta: Opción ${q.respuesta_correcta?.toUpperCase()}
+                            ${Icons.check} Respuesta correcta: Opción ${q.respuesta_correcta?.toUpperCase()}
                         </div>
                     </div>`).join('')}
                 </div>
@@ -264,7 +270,7 @@ class AdminProfesoresPage {
 
         try {
             await ApiService.adminUpdateConfigExamen({ modo, cant_plantilla, cant_profesor });
-            Toast.success('¡Configuración del examen guardada exitosamente!');
+            Toast.success('Configuración del examen guardada exitosamente');
             const container = document.getElementById('profesoresTabContent');
             if (container) this.renderTabConfig(container);
         } catch (err) {
@@ -272,10 +278,10 @@ class AdminProfesoresPage {
         }
     }
 
-
     // ============================================================
     // TAB 2: BANCO DE PREGUNTAS
-    // =========================    static async renderTabPreguntas(container) {
+    // ============================================================
+    static async renderTabPreguntas(container) {
         try {
             const data = await ApiService.adminGetPreguntas();
             this.preguntas = data.preguntas || [];
@@ -288,10 +294,10 @@ class AdminProfesoresPage {
             <!-- COLUMNA 1: FORMULARIO CREAR PREGUNTA -->
             <div class="dash-card">
                 <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-                    <span style="color:#0284c7;display:flex;align-items:center">${Icons.doc}</span>
-                    <h2 style="font-size:1.15rem;font-weight:800;color:var(--text-primary);margin:0">Nueva Pregunta Docente</h2>
+                    <span style="color:#0284c7;display:flex;align-items:center">${Icons.plus}</span>
+                    <h2 style="font-size:1.1rem;font-weight:800;color:#0f172a;margin:0">Nueva Pregunta Docente</h2>
                 </div>
-                <p style="font-size:0.84rem;color:var(--text-secondary);margin-bottom:18px">Agregá preguntas personalizadas con 4 alternativas y consigna oficial:</p>
+                <p style="font-size:0.84rem;color:#64748b;margin-bottom:18px">Agregá preguntas personalizadas con 4 alternativas y consigna oficial:</p>
 
                 <form onsubmit="AdminProfesoresPage.crearPregunta(event)">
                     <div class="stack">
@@ -337,8 +343,8 @@ class AdminProfesoresPage {
                             </div>
                         </div>
 
-                        <button type="submit" class="btn btn-primary btn-block mt-2" style="font-weight:700;padding:12px">
-                            Guardar Pregunta en el Banco
+                        <button type="submit" class="btn btn-primary btn-block mt-2" style="font-weight:700;padding:11px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;gap:6px">
+                            ${Icons.plus} Guardar Pregunta en el Banco
                         </button>
                     </div>
                 </form>
@@ -347,16 +353,18 @@ class AdminProfesoresPage {
             <!-- COLUMNA 2: LISTA DE PREGUNTAS CON BOTÓN DE VACIADO -->
             <div class="dash-card">
                 <div class="flex-between mb-3" style="flex-wrap:wrap;gap:8px">
-                    <h2 style="font-size:1.15rem;font-weight:800;color:var(--text-primary);margin:0">Banco de Reactivos (${this.preguntas.length})</h2>
+                    <h2 style="font-size:1.1rem;font-weight:800;color:#0f172a;margin:0;display:flex;align-items:center;gap:6px">
+                        <span style="color:#0284c7;display:inline-flex">${Icons.database}</span> Banco de Reactivos (${this.preguntas.length})
+                    </h2>
                     <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
-                        <button type="button" class="btn btn-ghost btn-sm text-xs" style="color:#ef4444;border:1px solid #fca5a5;padding:4px 8px;display:inline-flex;align-items:center;gap:4px;font-weight:700" onclick="AdminProfesoresPage.vaciarPreguntasPlantilla()">
-                            ${Icons.x} Vaciar base
+                        <button type="button" class="btn btn-ghost btn-sm text-xs" style="color:#b84a54;border:1px solid #fed7d7;background:#fff;padding:5px 10px;border-radius:7px;display:inline-flex;align-items:center;gap:4px;font-weight:600" onclick="AdminProfesoresPage.vaciarPreguntasPlantilla()">
+                            ${Icons.trash} Vaciar base
                         </button>
-                        <button type="button" class="btn btn-ghost btn-sm text-xs" style="color:#0284c7;border:1px solid #bae6fd;padding:4px 8px;display:inline-flex;align-items:center;gap:4px;font-weight:700" onclick="AdminProfesoresPage.restaurarPreguntasPlantilla()">
-                            ${Icons.check} Restaurar base
+                        <button type="button" class="btn btn-ghost btn-sm text-xs" style="color:#0284c7;border:1px solid #bae6fd;background:#fff;padding:5px 10px;border-radius:7px;display:inline-flex;align-items:center;gap:4px;font-weight:600" onclick="AdminProfesoresPage.restaurarPreguntasPlantilla()">
+                            ${Icons.rotateCcw} Restaurar base
                         </button>
-                        <button type="button" class="btn btn-ghost btn-sm text-xs" style="color:#dc2626;border:1px solid #fca5a5;padding:4px 8px;display:inline-flex;align-items:center;gap:4px;font-weight:700" onclick="AdminProfesoresPage.vaciarPreguntasProfesor()">
-                            ${Icons.x} Vaciar profesor
+                        <button type="button" class="btn btn-ghost btn-sm text-xs" style="color:#b84a54;border:1px solid #fed7d7;background:#fff;padding:5px 10px;border-radius:7px;display:inline-flex;align-items:center;gap:4px;font-weight:600" onclick="AdminProfesoresPage.vaciarPreguntasProfesor()">
+                            ${Icons.trash} Vaciar profesor
                         </button>
                     </div>
                 </div>
@@ -365,18 +373,18 @@ class AdminProfesoresPage {
                     ${this.preguntas.length === 0 ? `
                     <div class="dash-card text-center" style="padding:32px 14px;background:#f8fafc">
                         <p style="font-size:0.85rem;color:#64748b;margin:0">No hay preguntas registradas actualmente en el banco.</p>
-                    </div>` : this.preguntas.map((q, i) => `
-                    <div style="background:#ffffff;padding:16px;border-radius:12px;border-left:4px solid ${q.es_plantilla ? '#0284c7' : '#9333ea'};border-top:1px solid #e2e8f0;border-right:1px solid #e2e8f0;border-bottom:1px solid #e2e8f0;box-shadow:var(--shadow-sm)">
+                    </div>` : this.preguntas.map((q) => `
+                    <div style="background:#ffffff;padding:16px;border-radius:10px;border-left:4px solid ${q.es_plantilla ? '#0284c7' : '#6366f1'};border-top:1px solid #e2e8f0;border-right:1px solid #e2e8f0;border-bottom:1px solid #e2e8f0">
                         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
                             ${q.es_plantilla ? `
                             <span class="badge badge-info" style="font-size:0.68rem;padding:3px 8px">
                                 Plantilla Base
                             </span>` : `
-                            <span class="badge" style="background:#f3e8ff;color:#7e22ce;font-size:0.68rem;padding:3px 8px">
+                            <span class="badge" style="background:#eef2ff;color:#4f46e5;font-size:0.68rem;padding:3px 8px">
                                 Docente Local
                             </span>`}
-                            <button class="btn btn-ghost btn-sm" onclick="AdminProfesoresPage.eliminarPregunta(${q.id})" style="color:#ef4444;font-size:0.75rem;padding:2px 8px;display:inline-flex;align-items:center;gap:2px">
-                                ${Icons.x} Eliminar
+                            <button class="btn btn-ghost btn-sm" onclick="AdminProfesoresPage.eliminarPregunta(${q.id})" style="color:#b84a54;font-size:0.75rem;padding:3px 8px;display:inline-flex;align-items:center;gap:4px;font-weight:600">
+                                ${Icons.trash} Eliminar
                             </button>
                         </div>
                         <p style="font-weight:700;color:#1e293b;font-size:0.88rem;margin-bottom:10px">${q.pregunta}</p>
@@ -387,7 +395,7 @@ class AdminProfesoresPage {
                             <div style="background:#f8fafc;color:#334155;padding:8px 10px;border-radius:8px;border:1px solid #e2e8f0"><strong>D)</strong> ${q.opcion_d}</div>
                         </div>
                         <div style="margin-top:10px;font-size:0.8rem;font-weight:700;color:#059669;display:flex;align-items:center;gap:4px">
-                            ${Icons.check} Correcta: Opción ${q.respuesta_correcta?.toUpperCase()}
+                            ${Icons.check} Respuesta correcta: Opción ${q.respuesta_correcta?.toUpperCase()}
                         </div>
                     </div>`).join('')}
                 </div>
@@ -409,7 +417,7 @@ class AdminProfesoresPage {
 
         try {
             await ApiService.adminCreatePregunta(payload);
-            Toast.success('¡Pregunta guardada en el banco correctamente!');
+            Toast.success('Pregunta guardada en el banco correctamente');
             this.renderTabPreguntas(document.getElementById('profesoresTabContent'));
         } catch (err) {
             Toast.error(err.message || 'Error al guardar la pregunta');
@@ -417,7 +425,16 @@ class AdminProfesoresPage {
     }
 
     static async eliminarPregunta(id) {
-        if (!confirm('¿Eliminar esta pregunta del banco de examen?')) return;
+        const ok = await ConfirmModal.show({
+            title: 'Eliminar pregunta del banco',
+            description: '¿Estás seguro de que querés eliminar esta pregunta del banco de evaluación teórica?',
+            confirmText: 'Eliminar pregunta',
+            cancelText: 'Cancelar',
+            variant: 'danger',
+            icon: Icons.trash
+        });
+        if (!ok) return;
+
         try {
             await ApiService.adminDeletePregunta(id);
             Toast.success('Pregunta eliminada');
@@ -428,7 +445,16 @@ class AdminProfesoresPage {
     }
 
     static async vaciarPreguntasProfesor() {
-        if (!confirm('¿Estás seguro/a de eliminar TODAS las preguntas creadas por profesores? Esta acción dejará el banco limpio para crear nuevas preguntas personalizadas.')) return;
+        const ok = await ConfirmModal.show({
+            title: 'Vaciar banco de preguntas docentes',
+            description: '¿Estás seguro de eliminar todas las preguntas creadas por profesores? Esta acción dejará el banco limpio para cargar nuevos reactivos personalizados.',
+            confirmText: 'Vaciar preguntas de profesor',
+            cancelText: 'Cancelar',
+            variant: 'danger',
+            icon: Icons.trash
+        });
+        if (!ok) return;
+
         try {
             const res = await ApiService.adminVaciarPreguntas(true);
             Toast.success(res.message || 'Preguntas del profesor vaciadas correctamente');
@@ -439,7 +465,16 @@ class AdminProfesoresPage {
     }
 
     static async vaciarPreguntasPlantilla() {
-        if (!confirm('¿Estás seguro/a de eliminar TODAS las preguntas de la plantilla base?')) return;
+        const ok = await ConfirmModal.show({
+            title: 'Vaciar preguntas de plantilla base',
+            description: '¿Estás seguro de eliminar todas las preguntas de la plantilla oficial base? Podrás restaurarlas más adelante.',
+            confirmText: 'Vaciar plantilla base',
+            cancelText: 'Cancelar',
+            variant: 'danger',
+            icon: Icons.trash
+        });
+        if (!ok) return;
+
         try {
             const res = await ApiService.adminVaciarPlantilla();
             Toast.success(res.message || 'Preguntas de plantilla base eliminadas');
@@ -450,7 +485,16 @@ class AdminProfesoresPage {
     }
 
     static async restaurarPreguntasPlantilla() {
-        if (!confirm('¿Restaurar las preguntas predeterminadas de la plantilla base?')) return;
+        const ok = await ConfirmModal.show({
+            title: 'Restaurar plantilla oficial base',
+            description: 'Se volverán a cargar las preguntas predeterminadas oficiales de la plantilla base sin afectar las preguntas creadas por docentes.',
+            confirmText: 'Restaurar plantilla',
+            cancelText: 'Cancelar',
+            variant: 'primary',
+            icon: Icons.rotateCcw
+        });
+        if (!ok) return;
+
         try {
             const res = await ApiService.adminRestaurarPlantilla();
             Toast.success(res.message || 'Preguntas de plantilla base restauradas exitosamente');
@@ -459,7 +503,6 @@ class AdminProfesoresPage {
             Toast.error(err.message || 'Error al restaurar plantilla base');
         }
     }
-
 
     // ============================================================
     // TAB 3: MONITOREO EN TIEMPO REAL (LIVE PROCTORING & EXPULSIÓN)
@@ -475,65 +518,65 @@ class AdminProfesoresPage {
             <div>
                 <div class="flex-between mb-4" style="flex-wrap:wrap;gap:12px">
                     <div>
-                        <h2 style="font-size:1.15rem;font-weight:800;color:var(--text-primary);margin:0;display:flex;align-items:center;gap:8px">
-                            <span style="color:#ef4444;display:flex;align-items:center">${Icons.camera}</span> Centro de Supervisión Remota en Vivo
+                        <h2 style="font-size:1.1rem;font-weight:800;color:#0f172a;margin:0;display:flex;align-items:center;gap:8px">
+                            <span style="color:#0284c7;display:flex;align-items:center">${Icons.camera}</span> Centro de Supervisión Remota en Vivo
                         </h2>
-                        <p style="font-size:0.82rem;color:var(--text-secondary);margin-top:2px">
+                        <p style="font-size:0.82rem;color:#64748b;margin-top:2px">
                             Monitoreo en tiempo real de video del aspirante, captura de escritorio y detección anti-trampa con expulsión inmediata.
                         </p>
                     </div>
-                    <span style="padding:6px 14px;font-size:0.75rem;border-radius:20px;background:#dcfce7;color:#15803d;border:1px solid #86efac;font-weight:800;display:inline-flex;align-items:center;gap:6px">
+                    <span style="padding:6px 14px;font-size:0.75rem;border-radius:20px;background:#dcfce7;color:#15803d;border:1px solid #86efac;font-weight:700;display:inline-flex;align-items:center;gap:6px">
                         <span style="width:8px;height:8px;border-radius:50%;background:#22c55e;animation:pulse 1.5s infinite"></span>
-                        Transmisión en Vivo
+                        Transmisión Activa
                     </span>
                 </div>
 
                 <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(320px, 1fr));gap:18px">
                     ${this.estudiantes.length === 0 ? `
                     <div class="dash-card text-center" style="grid-column:1/-1;padding:48px 20px">
-                        <div style="width:64px;height:64px;border-radius:50%;background:#eff6ff;color:#0284c7;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:2rem">
+                        <div style="width:56px;height:56px;border-radius:12px;background:#f8fafc;border:1px solid #e2e8f0;color:#64748b;display:flex;align-items:center;justify-content:center;margin:0 auto 16px">
                             ${Icons.camera}
                         </div>
-                        <h3 style="font-size:1.1rem;font-weight:700;color:var(--text-primary);margin-bottom:6px">No hay alumnos rindiendo en este momento</h3>
-                        <p style="font-size:0.85rem;color:var(--text-muted);max-width:440px;margin:0 auto">Las sesiones activas de examen teórico con cámara web y pantalla compartida se sincronizarán aquí automáticamente.</p>
+                        <h3 style="font-size:1.05rem;font-weight:700;color:#0f172a;margin-bottom:6px">No hay alumnos rindiendo en este momento</h3>
+                        <p style="font-size:0.85rem;color:#64748b;max-width:440px;margin:0 auto">Las sesiones activas de examen teórico con cámara web y pantalla compartida se sincronizarán aquí automáticamente.</p>
                     </div>` : this.estudiantes.map(st => `
-                    <div class="dash-card" style="border-top:4px solid ${st.warnings_count > 0 ? '#ef4444' : '#10b981'}">
+                    <div class="dash-card" style="border-top:3px solid ${st.warnings_count > 0 ? '#e57373' : '#10b981'}">
                         <div class="flex-between mb-3">
                             <div>
                                 <strong style="font-size:0.95rem;color:#0f172a">${st.nombre}</strong>
                                 <div style="font-size:0.78rem;color:#64748b">DNI ${st.dni}</div>
                             </div>
-                            <span class="badge ${st.warnings_count > 0 ? 'badge-danger' : 'badge-success'}" style="font-size:0.75rem;padding:4px 10px">
-                                ${st.warnings_count > 0 ? `⚠️ Alt-Tab: ${st.warnings_count}` : '✓ Sin Alertas'}
+                            <span class="badge ${st.warnings_count > 0 ? 'badge-danger' : 'badge-success'}" style="font-size:0.74rem;padding:4px 10px;display:inline-flex;align-items:center;gap:4px">
+                                ${st.warnings_count > 0 ? `${Icons.alertTriangle} Alertas: ${st.warnings_count}` : `${Icons.check} Sin Alertas`}
                             </span>
                         </div>
 
                         <!-- STREAMING CAM Y SCREEN -->
                         <div class="grid-2" style="gap:10px;margin-bottom:12px">
-                            <div style="position:relative;height:120px;background:#0f172a;border-radius:10px;overflow:hidden;border:1px solid #334155">
+                            <div style="position:relative;height:120px;background:#0f172a;border-radius:8px;overflow:hidden;border:1px solid #334155">
                                 ${st.cam_frame ? `
                                 <img src="${st.cam_frame}" style="width:100%;height:100%;object-fit:cover">` : `
-                                <div style="display:flex;align-items:center;justify-content:center;height:100%;color:#94a3b8;font-size:0.75rem">Sin video cam</div>`}
-                                <span style="position:absolute;bottom:4px;left:4px;background:rgba(0,0,0,0.7);color:#fff;font-size:0.65rem;padding:2px 6px;border-radius:4px">Cámara Web</span>
+                                <div style="display:flex;align-items:center;justify-content:center;height:100%;color:#94a3b8;font-size:0.75rem">Sin video cámara</div>`}
+                                <span style="position:absolute;bottom:4px;left:4px;background:rgba(15,23,42,0.8);color:#fff;font-size:0.65rem;padding:2px 6px;border-radius:4px">Cámara Web</span>
                             </div>
 
-                            <div style="position:relative;height:120px;background:#0f172a;border-radius:10px;overflow:hidden;border:1px solid #334155">
+                            <div style="position:relative;height:120px;background:#0f172a;border-radius:8px;overflow:hidden;border:1px solid #334155">
                                 ${st.screen_frame ? `
                                 <img src="${st.screen_frame}" style="width:100%;height:100%;object-fit:cover">` : `
                                 <div style="display:flex;align-items:center;justify-content:center;height:100%;color:#94a3b8;font-size:0.75rem">Sin pantalla</div>`}
-                                <span style="position:absolute;bottom:4px;left:4px;background:rgba(0,0,0,0.7);color:#fff;font-size:0.65rem;padding:2px 6px;border-radius:4px">Pantalla Entera</span>
+                                <span style="position:absolute;bottom:4px;left:4px;background:rgba(15,23,42,0.8);color:#fff;font-size:0.65rem;padding:2px 6px;border-radius:4px">Escritorio</span>
                             </div>
                         </div>
 
-                        <div class="flex-between text-xs mb-3" style="background:#f8fafc;padding:10px 12px;border-radius:10px;color:#334155;border:1px solid #e2e8f0">
+                        <div class="flex-between text-xs mb-3" style="background:#f8fafc;padding:10px 12px;border-radius:8px;color:#334155;border:1px solid #e2e8f0">
                             <span>Pregunta activa: <strong style="color:#0284c7">${st.current_question}/5</strong></span>
-                            <span>Tiempo transcurrido: <strong>${st.elapsed_seconds || 0} seg</strong></span>
+                            <span>Tiempo: <strong>${st.elapsed_seconds || 0} s</strong></span>
                             ${st.tiene_cud ? `<span class="badge badge-success" style="font-size:0.65rem;padding:2px 6px">${Icons.wheelchair} CUD</span>` : ''}
                         </div>
 
                         <!-- BOTÓN DE EXPULSIÓN INMEDIATA EN VIVO -->
-                        <button class="btn btn-primary btn-block btn-sm" style="background:#ef4444;color:#fff;border:none;font-weight:700;display:inline-flex;align-items:center;justify-content:center;gap:6px;border-radius:8px" onclick="AdminProfesoresPage.expulsarEstudiante(${st.tramite_id}, '${st.nombre}')">
-                            ${Icons.x} Expulsar por Falta Grave
+                        <button class="btn btn-primary btn-block btn-sm" style="background:#d95360;color:#fff;border:none;font-weight:700;display:inline-flex;align-items:center;justify-content:center;gap:6px;border-radius:8px" onclick="AdminProfesoresPage.expulsarEstudiante(${st.tramite_id}, '${st.nombre}')">
+                            ${Icons.ban} Expulsar por Falta Grave
                         </button>
                     </div>`).join('')}
                 </div>
@@ -545,18 +588,27 @@ class AdminProfesoresPage {
     }
 
     static async expulsarEstudiante(tramiteId, nombre) {
-        const motivo = prompt(`¿Motivo de la expulsión en tiempo real para ${nombre}?`, 'Detectadas alertas reiteradas de cambio de pestaña / Alt-Tab');
+        const motivo = await ConfirmModal.prompt({
+            title: `Expulsar a ${nombre} del examen`,
+            description: 'La sesión del aspirante se cerrará de inmediato por falta reglamentaria y el examen quedará anulado.',
+            placeholder: 'Motivo de la expulsión...',
+            defaultValue: 'Detectadas alertas reiteradas de cambio de pestaña / desvío de cámara',
+            confirmText: 'Expulsar Alumno',
+            cancelText: 'Cancelar',
+            variant: 'danger',
+            icon: Icons.ban,
+            required: true
+        });
         if (!motivo) return;
 
         try {
             await ApiService.adminExpulsarExamen(tramiteId, motivo);
-            Toast.success(`¡El alumno ${nombre} ha sido expulsado del examen!`);
+            Toast.success(`El alumno ${nombre} ha sido expulsado del examen.`);
             this.loadTabData();
         } catch (err) {
             Toast.error(err.message || 'Error al expulsar alumno');
         }
     }
-
 
     // ============================================================
     // TAB 4: EXÁMENES A REVISAR & DICTAMEN CON JUSTIFICACIÓN OBLIGATORIA
@@ -573,39 +625,51 @@ class AdminProfesoresPage {
         <div>
             <div class="flex-between mb-4">
                 <div>
-                    <h2 style="font-size:1.15rem;font-weight:800;color:var(--text-primary);margin:0;display:flex;align-items:center;gap:8px">
-                        <span style="color:#0284c7;display:flex;align-items:center">${Icons.check}</span> Evaluaciones Entregadas & Dictamen Docente
+                    <h2 style="font-size:1.1rem;font-weight:800;color:#0f172a;margin:0;display:flex;align-items:center;gap:8px">
+                        <span style="color:#0284c7;display:flex;align-items:center">${Icons.fileCheck}</span> Evaluaciones Entregadas y Dictamen Docente
                     </h2>
-                    <p style="font-size:0.82rem;color:var(--text-secondary);margin-top:2px">
+                    <p style="font-size:0.82rem;color:#64748b;margin-top:2px">
                         Revisá las respuestas de los aspirantes, porcentaje de aprobación, incidentes reportados y emití el dictamen fundado.
                     </p>
                 </div>
             </div>
 
-            <div class="stack" style="gap:16px">
+            <div class="stack" style="gap:14px">
                 ${this.revisionExamenes.length === 0 ? `
                 <div class="dash-card text-center" style="padding:48px 20px">
-                    <div style="width:64px;height:64px;border-radius:50%;background:#eff6ff;color:#0284c7;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:2rem">
+                    <div style="width:56px;height:56px;border-radius:12px;background:#f8fafc;border:1px solid #e2e8f0;color:#64748b;display:flex;align-items:center;justify-content:center;margin:0 auto 16px">
                         ${Icons.doc}
                     </div>
-                    <h3 style="font-size:1.1rem;font-weight:700;color:var(--text-primary);margin-bottom:6px">No hay exámenes entregados pendientes</h3>
-                    <p style="font-size:0.85rem;color:var(--text-muted);max-width:440px;margin:0 auto">Los exámenes finalizados por los ciudadanos aparecerán aquí para dictamen oficial.</p>
-                </div>` : this.revisionExamenes.map(ex => `
-                <div class="dash-card" style="border-left:4px solid ${ex.estado_revision === 'aprobado' ? '#10b981' : (ex.estado_revision === 'desaprobado' ? '#ef4444' : '#0284c7')}">
+                    <h3 style="font-size:1.05rem;font-weight:700;color:#0f172a;margin-bottom:6px">No hay exámenes entregados pendientes</h3>
+                    <p style="font-size:0.85rem;color:#64748b;max-width:440px;margin:0 auto">Los exámenes finalizados por los ciudadanos aparecerán aquí para dictamen oficial.</p>
+                </div>` : this.revisionExamenes.map(ex => {
+                    let statusBadge = `<span class="badge badge-pending" style="font-size:0.76rem;padding:5px 10px;display:inline-flex;align-items:center;gap:4px">${Icons.clock} PENDIENTE DE REVISIÓN</span>`;
+                    if (ex.expulsado) {
+                        statusBadge = `<span class="badge badge-danger" style="font-size:0.76rem;padding:5px 10px;display:inline-flex;align-items:center;gap:4px">${Icons.ban} EXPULSADO</span>`;
+                    } else if (ex.estado_revision === 'aprobado') {
+                        statusBadge = `<span class="badge badge-success" style="font-size:0.76rem;padding:5px 10px;display:inline-flex;align-items:center;gap:4px">${Icons.checkCircle} APROBADO</span>`;
+                    } else if (ex.estado_revision === 'desaprobado') {
+                        statusBadge = `<span class="badge badge-danger" style="font-size:0.76rem;padding:5px 10px;display:inline-flex;align-items:center;gap:4px">${Icons.xCircle} DESAPROBADO</span>`;
+                    }
+
+                    return `
+                <div class="dash-card" style="border-left:4px solid ${ex.estado_revision === 'aprobado' ? '#10b981' : (ex.estado_revision === 'desaprobado' ? '#e57373' : '#0284c7')}">
                     <div class="flex-between mb-3" style="flex-wrap:wrap;gap:10px">
-                        <div>
-                            <h3 style="font-size:1.05rem;font-weight:800;color:#0f172a;margin:0">${ex.nombre} ${ex.apellido}</h3>
-                            <div style="font-size:0.8rem;color:#64748b;margin-top:2px"><strong>DNI:</strong> ${ex.dni} · <strong>Trámite:</strong> #${ex.tramite_id} · <strong>Fecha:</strong> ${ex.created_at || ''}</div>
+                        <div style="display:flex;align-items:center;gap:12px">
+                            <div class="admin-item__avatar">
+                                ${ex.nombre ? ex.nombre.charAt(0).toUpperCase() : 'A'}
+                            </div>
+                            <div>
+                                <h3 style="font-size:1rem;font-weight:800;color:#0f172a;margin:0">${ex.nombre} ${ex.apellido}</h3>
+                                <div style="font-size:0.8rem;color:#64748b;margin-top:2px"><strong>DNI:</strong> ${ex.dni} · <strong>Trámite:</strong> #${ex.tramite_id} · <strong>Fecha:</strong> ${ex.created_at || ''}</div>
+                            </div>
                         </div>
 
                         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-                            <span class="badge badge-info" style="font-size:0.8rem;padding:5px 12px">
+                            <span class="badge badge-info" style="font-size:0.78rem;padding:5px 12px;font-variant-numeric:tabular-nums">
                                 Acierto: ${ex.porcentaje_acierto || Math.round(((ex.puntaje || 0) / (ex.total_preguntas || 1)) * 100)}% (${ex.puntaje || 0}/${ex.total_preguntas || 0})
                             </span>
-
-                            <span class="badge ${ex.estado_revision === 'aprobado' ? 'badge-success' : (ex.estado_revision === 'desaprobado' || ex.expulsado ? 'badge-danger' : 'badge-pending')}" style="font-size:0.8rem;padding:5px 12px">
-                                ${ex.expulsado ? '🚫 EXPULSADO' : (ex.estado_revision === 'aprobado' ? '✅ APROBADO' : (ex.estado_revision === 'desaprobado' ? '❌ DESAPROBADO' : '⏳ PENDIENTE DE REVISIÓN'))}
-                            </span>
+                            ${statusBadge}
                         </div>
                     </div>
 
@@ -616,23 +680,24 @@ class AdminProfesoresPage {
                     </div>` : ''}
 
                     <!-- ACCIONES DE DICTAMEN DE REVISIÓN -->
-                    <div style="background:#f8fafc;padding:16px;border-radius:12px;border:1px solid #e2e8f0">
+                    <div style="background:#f8fafc;padding:16px;border-radius:10px;border:1px solid #e2e8f0">
                         <label class="form-label text-xs font-bold mb-1">Dictamen / Justificación Pedagógica Oficial *</label>
                         <input type="text" id="motivo_${ex.tramite_id}" class="form-input text-xs mb-3" placeholder="Ej: Cumple con el porcentaje reglamentario (mínimo 70%) sin incidencias en proctoring." value="${ex.motivo_justificacion || ''}">
 
                         <div style="display:flex;gap:10px;flex-wrap:wrap">
-                            <button type="button" class="btn btn-sm" style="background:#10b981;color:#fff;font-weight:700;display:inline-flex;align-items:center;gap:6px;border-radius:8px" onclick="AdminProfesoresPage.dictaminarExamen(${ex.tramite_id}, 'aprobar')">
+                            <button type="button" class="btn btn-sm" style="background:#059669;color:#fff;border:none;font-weight:700;display:inline-flex;align-items:center;gap:6px;border-radius:8px" onclick="AdminProfesoresPage.dictaminarExamen(${ex.tramite_id}, 'aprobar')">
                                 ${Icons.check} Dictaminar Aprobado
                             </button>
-                            <button type="button" class="btn btn-sm" style="background:#ef4444;color:#fff;font-weight:700;display:inline-flex;align-items:center;gap:6px;border-radius:8px" onclick="AdminProfesoresPage.dictaminarExamen(${ex.tramite_id}, 'desaprobar')">
+                            <button type="button" class="btn btn-sm" style="background:#d95360;color:#fff;border:none;font-weight:700;display:inline-flex;align-items:center;gap:6px;border-radius:8px" onclick="AdminProfesoresPage.dictaminarExamen(${ex.tramite_id}, 'desaprobar')">
                                 ${Icons.x} Dictaminar Reprobado
                             </button>
-                            <button type="button" class="btn btn-outline btn-sm text-xs" style="border-radius:8px" onclick="AdminProfesoresPage.enviarChatDirecto(${ex.tramite_id}, '${ex.nombre}')">
-                                ✉️ Enviar Notificación Directa al Alumno
+                            <button type="button" class="btn btn-outline btn-sm text-xs" style="border-radius:8px;background:#fff;display:inline-flex;align-items:center;gap:6px;font-weight:600" onclick="AdminProfesoresPage.enviarChatDirecto(${ex.tramite_id}, '${ex.nombre}')">
+                                ${Icons.mail} Enviar Notificación Directa al Alumno
                             </button>
                         </div>
                     </div>
-                </div>`).join('')}
+                </div>`;
+                }).join('')}
             </div>
         </div>`;
     }
@@ -640,6 +705,16 @@ class AdminProfesoresPage {
     static async dictaminarExamen(tramiteId, decision) {
         const input = document.getElementById(`motivo_${tramiteId}`);
         const motivo = input?.value || (decision === 'aprobar' ? 'Aprobado según criterios y porcentaje exigido' : 'No alcanza los criterios mínimos de evaluación');
+
+        const ok = await ConfirmModal.show({
+            title: decision === 'aprobar' ? 'Confirmar aprobación de examen teórico' : 'Confirmar reprobación de examen teórico',
+            description: `Se emitirá el dictamen oficial con la justificación: "${motivo}".`,
+            confirmText: decision === 'aprobar' ? 'Dictaminar Aprobado' : 'Dictaminar Reprobado',
+            cancelText: 'Cancelar',
+            variant: decision === 'aprobar' ? 'success' : 'danger',
+            icon: decision === 'aprobar' ? Icons.checkCircle : Icons.xCircle
+        });
+        if (!ok) return;
 
         try {
             await ApiService.adminRevisarExamen(tramiteId, decision, motivo);
@@ -651,7 +726,16 @@ class AdminProfesoresPage {
     }
 
     static async enviarChatDirecto(tramiteId, nombre) {
-        const mensaje = prompt(`Enviar justificación u observación oficial directamente a ${nombre}:`);
+        const mensaje = await ConfirmModal.prompt({
+            title: `Enviar notificación oficial a ${nombre}`,
+            description: 'El mensaje se registrará en la bandeja del ciudadano como comunicación directa del equipo docente.',
+            placeholder: 'Escribí la observación o justificación académica...',
+            confirmText: 'Enviar Notificación',
+            cancelText: 'Cancelar',
+            variant: 'primary',
+            icon: Icons.mail,
+            required: true
+        });
         if (!mensaje) return;
 
         try {
@@ -662,4 +746,3 @@ class AdminProfesoresPage {
         }
     }
 }
-

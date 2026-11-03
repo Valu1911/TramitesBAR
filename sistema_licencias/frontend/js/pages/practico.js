@@ -38,12 +38,15 @@ class PracticoPage {
             const r = data.reserva;
             const huella = r.huella_tomada ? '✓ Registrada' : '⏳ Pendiente presencial';
             const foto = r.foto_tomada ? '✓ Registrada' : '⏳ Pendiente presencial';
-            const examen = r.resultado_examen === 'aprobado' ? '✓ Aprobado' : (r.resultado_examen === 'rechazado' ? '❌ No Aprobado' : '⏳ Pendiente');
+            const esReprobado = ['rechazado', 'reprobado', 'desaprobado'].includes(r.resultado_examen) || r.estado === 'rechazado';
+            const examen = r.resultado_examen === 'aprobado' ? '✓ Aprobado' : (esReprobado ? '❌ No Aprobado' : '⏳ Pendiente');
 
             const statusMap = {
                 'reservado': { icon: Icons.calendar, bg: '#fef3c7', color: '#b45309', title: '¡Turno Agendado con Éxito!', desc: 'Presentate con tu vehículo en el Circuito Municipal de Baradero para la evaluación y biometría.', badge: 'badge-warning', badgeText: 'Turno Confirmado' },
                 'aprobado': { icon: Icons.check, bg: '#dcfce7', color: '#15803d', title: '¡Evaluación en Pista Aprobada!', desc: 'Tu examen práctico y datos biométricos fueron registrados por el evaluador oficial.', badge: 'badge-success', badgeText: 'Aprobado' },
-                'completado': { 
+                'completado': esReprobado ? {
+                    icon: Icons.x, bg: '#fee2e2', color: '#b91c1c', title: 'Examen Práctico No Aprobado', desc: 'Motivo: ' + (r.observaciones_admin || 'Deberás coordinar una nueva fecha de evaluación práctica.'), badge: 'badge-danger', badgeText: 'Reprobado'
+                } : { 
                     icon: (r.resultado_examen === 'aprobado' && r.huella_tomada && r.foto_tomada) ? Icons.party : Icons.clock, 
                     bg: '#ecfdf5', color: '#059669',
                     title: (r.resultado_examen === 'aprobado' && r.huella_tomada && r.foto_tomada) ? '¡Trámite Práctico y Biometría Completados!' : 'Examen y Biometría en Verificación',

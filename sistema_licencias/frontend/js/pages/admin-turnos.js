@@ -21,8 +21,7 @@ class AdminTurnosPage {
             this.renderContent(app, data, admin);
         } catch (err) {
             if (err.status === 403 || err.status === 401) {
-                Toast.error('Acceso denegado. Iniciá sesión como admin de turnos.');
-                adminLogout();
+                adminLogout(true, true);
                 return;
             }
             Toast.error(err.message);
@@ -45,17 +44,16 @@ class AdminTurnosPage {
                         <div class="admin-badge-pill">
                             ${Icons.calendar} Centro de Emisión · Circuito y Biometría
                         </div>
-                        <h1 style="font-size:1.6rem;font-weight:800;color:#ffffff;margin-bottom:6px;font-family:var(--font-title);letter-spacing:-0.02em">
+                        <h1 style="color:#ffffff;font-size:1.6rem;font-weight:800;margin-bottom:6px;letter-spacing:-0.02em">
                             Gestión de Turnos y Evaluación Práctica
                         </h1>
-                        <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;max-width:680px;margin:0">
+                        <p style="color:rgba(255,255,255,0.92);font-size:0.88rem;max-width:680px;margin:0">
                             Confirmá citas presenciales, coordiná la pista de manejo y validá los registros biométricos (huella dactilar y captura fotográfica).
                         </p>
                     </div>
                     <div>
-                        <button class="btn btn-sm" onclick="AdminTurnosPage.render(document.getElementById('app'))" 
-                                style="background:rgba(255,255,255,0.18);color:#ffffff;border:1px solid rgba(255,255,255,0.3);backdrop-filter:blur(6px);font-weight:700;display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:10px">
-                            ${Icons.refresh} Refrescar
+                        <button class="admin-hero__refresh-btn" onclick="AdminTurnosPage.render(document.getElementById('app'))">
+                            ${Icons.refresh} Refrescar Datos
                         </button>
                     </div>
                 </div>
@@ -95,7 +93,7 @@ class AdminTurnosPage {
 
                 <div class="admin-kpi-card" style="border-left:3px solid #10b981">
                     <div class="admin-kpi-icon" style="background:#d1fae5;color:#059669">
-                        ${Icons.party}
+                        ${Icons.award}
                     </div>
                     <div>
                         <div class="admin-kpi-val" style="color:#047857">${completados}</div>
@@ -108,16 +106,16 @@ class AdminTurnosPage {
             <div class="admin-filter-bar">
                 <div class="admin-tabs-list">
                     <button class="admin-tab-btn ${this.filtro === 'todos' ? 'active' : ''}" onclick="AdminTurnosPage.setFiltro('todos')">
-                        Todos (${reservas.length})
+                        ${Icons.filter} Todos (${reservas.length})
                     </button>
                     <button class="admin-tab-btn ${this.filtro === 'reservado' ? 'active' : ''}" onclick="AdminTurnosPage.setFiltro('reservado')">
-                        ⏳ Por Confirmar (${pendientes})
+                        ${Icons.clock} Por Confirmar (${pendientes})
                     </button>
                     <button class="admin-tab-btn ${this.filtro === 'aprobado' ? 'active' : ''}" onclick="AdminTurnosPage.setFiltro('aprobado')">
-                        ✓ Confirmados (${confirmados})
+                        ${Icons.check} Confirmados (${confirmados})
                     </button>
                     <button class="admin-tab-btn ${this.filtro === 'completado' ? 'active' : ''}" onclick="AdminTurnosPage.setFiltro('completado')">
-                        🎉 Completados (${completados})
+                        ${Icons.award} Completados (${completados})
                     </button>
                 </div>
             </div>
@@ -126,18 +124,18 @@ class AdminTurnosPage {
             <div>
                 ${reservas.length === 0 ? `
                 <div class="dash-card text-center" style="padding:48px 20px">
-                    <div style="width:60px;height:60px;background:#f1f5f9;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;color:#94a3b8">
+                    <div style="width:56px;height:56px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;color:#64748b">
                         ${Icons.calendar}
                     </div>
-                    <h3 style="font-size:1.1rem;font-weight:700;color:var(--text-primary);margin-bottom:6px">Sin citas de turno</h3>
-                    <p style="font-size:0.85rem;color:var(--text-muted);max-width:400px;margin:0 auto">No hay turnos presenciales agendados para este filtro (${this.filtro}).</p>
+                    <h3 style="font-size:1.05rem;font-weight:700;color:#0f172a;margin-bottom:6px">Sin citas de turno</h3>
+                    <p style="font-size:0.85rem;color:#64748b;max-width:400px;margin:0 auto">No hay turnos presenciales agendados para este filtro (${this.filtro}).</p>
                 </div>` : reservas.map(r => {
                     const estadoMap = {
-                        'reservado': { badge: 'badge-pending', text: '<span style="display:flex;align-items:center;gap:4px">' + Icons.clock + ' Pendiente de Confirmación</span>' },
-                        'aprobado': { badge: 'badge-info', text: '<span style="display:flex;align-items:center;gap:4px">' + Icons.check + ' Turno Confirmado</span>' },
-                        'completado': { badge: r.resultado_examen === 'aprobado' ? 'badge-success' : 'badge-danger', 
-                                       text: r.resultado_examen === 'aprobado' ? '<span style="display:flex;align-items:center;gap:4px">' + Icons.party + ' Aprobado & Biometría OK</span>' : '<span style="display:flex;align-items:center;gap:4px">' + Icons.x + ' No Aprobado</span>' },
-                        'rechazado': { badge: 'badge-danger', text: '<span style="display:flex;align-items:center;gap:4px">' + Icons.x + ' Rechazado</span>' }
+                        'reservado': { badge: 'badge-pending', text: '<span style="display:inline-flex;align-items:center;gap:5px">' + Icons.clock + ' Pendiente de Confirmación</span>' },
+                        'aprobado': { badge: 'badge-info', text: '<span style="display:inline-flex;align-items:center;gap:5px">' + Icons.check + ' Turno Confirmado</span>' },
+                        'completado': { badge: r.resultado_examen === 'aprobado' ? 'badge-success' : 'badge-danger',
+                                       text: r.resultado_examen === 'aprobado' ? '<span style="display:inline-flex;align-items:center;gap:5px">' + Icons.award + ' Aprobado y Biometría OK</span>' : '<span style="display:inline-flex;align-items:center;gap:5px">' + Icons.x + ' No Aprobado</span>' },
+                        'rechazado': { badge: 'badge-danger', text: '<span style="display:inline-flex;align-items:center;gap:5px">' + Icons.x + ' Rechazado</span>' }
                     };
                     const st = estadoMap[r.estado] || estadoMap['reservado'];
 
@@ -145,38 +143,40 @@ class AdminTurnosPage {
                     <div class="admin-item animate-slideUp">
                         <div class="admin-item__header">
                             <div style="display:flex;align-items:center;gap:14px">
-                                <div style="width:44px;height:44px;border-radius:12px;background:#eff6ff;border:1.5px solid #0284c7;display:flex;align-items:center;justify-content:center;color:#0284c7;font-size:1.2rem">
-                                    🚗
+                                <div class="admin-item__avatar">
+                                    ${Icons.car}
                                 </div>
                                 <div>
                                     <div class="admin-item__user">${r.nombre} ${r.apellido}</div>
                                     <div class="admin-item__meta"><strong>DNI:</strong> ${r.dni} · <strong>Solicitado:</strong> ${r.fecha_reserva}</div>
                                 </div>
                             </div>
-                            <span class="badge ${st.badge}" style="font-size:0.8rem;padding:5px 12px">
+                            <span class="badge ${st.badge}" style="font-size:0.78rem;padding:5px 12px">
                                 ${st.text}
                             </span>
                         </div>
 
                         <!-- Detalle de Fecha y Lugar -->
-                        <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:16px;margin-bottom:14px">
+                        <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:16px;margin-bottom:14px">
                             <div class="flex-between" style="flex-wrap:wrap;gap:12px">
                                 <div style="display:flex;align-items:center;gap:12px">
-                                    <span style="font-size:1.4rem;display:flex;align-items:center;color:#0284c7">${Icons.calendar}</span>
+                                    <div style="width:38px;height:38px;border-radius:8px;background:#e0f2fe;color:#0284c7;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                                        ${Icons.calendar}
+                                    </div>
                                     <div>
-                                        <div style="font-weight:800;font-size:1.05rem;color:#0f172a">${r.fecha} · Horario: ${r.horario}</div>
-                                        <div style="font-size:0.8rem;color:#64748b;display:flex;align-items:center;gap:4px;margin-top:2px">
+                                        <div style="font-weight:800;font-size:0.98rem;color:#0f172a;font-variant-numeric:tabular-nums">${r.fecha} · Horario: ${r.horario}</div>
+                                        <div style="font-size:0.8rem;color:#64748b;display:flex;align-items:center;gap:5px;margin-top:3px">
                                             ${Icons.mapPin} ${r.ubicacion || 'Pista de Examen Municipal · Baradero'}
                                         </div>
                                     </div>
                                 </div>
 
-                                <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-                                    <span class="badge ${r.huella_tomada ? 'badge-success' : 'badge-pending'}" style="font-size:0.75rem;padding:4px 10px">
-                                        ☝️ Huella: ${r.huella_tomada ? 'Registrada' : 'Pendiente'}
+                                <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+                                    <span class="badge ${r.huella_tomada ? 'badge-success' : 'badge-pending'}" style="font-size:0.74rem;padding:4px 10px;display:inline-flex;align-items:center;gap:5px">
+                                        ${Icons.fingerprint} Huella: ${r.huella_tomada ? 'Registrada' : 'Pendiente'}
                                     </span>
-                                    <span class="badge ${r.foto_tomada ? 'badge-success' : 'badge-pending'}" style="font-size:0.75rem;padding:4px 10px">
-                                        📸 Foto: ${r.foto_tomada ? 'Registrada' : 'Pendiente'}
+                                    <span class="badge ${r.foto_tomada ? 'badge-success' : 'badge-pending'}" style="font-size:0.74rem;padding:4px 10px;display:inline-flex;align-items:center;gap:5px">
+                                        ${Icons.camera} Foto: ${r.foto_tomada ? 'Registrada' : 'Pendiente'}
                                     </span>
                                 </div>
                             </div>
@@ -184,49 +184,52 @@ class AdminTurnosPage {
 
                         ${r.estado === 'reservado' ? `
                         <div class="admin-item__actions">
-                            <button class="btn btn-outline btn-sm" style="color:var(--danger);border-color:#fca5a5" 
+                            <button class="btn btn-outline btn-sm" style="color:#b84a54;border-color:#fed7d7;background:#fff;border-radius:8px;font-weight:600" 
                                     onclick="AdminTurnosPage.revisar(${r.id}, 'rechazado')">
-                                <span style="display:flex;align-items:center;gap:5px">${Icons.x} Rechazar Cita</span>
+                                <span style="display:inline-flex;align-items:center;gap:5px">${Icons.x} Rechazar Cita</span>
                             </button>
-                            <button class="btn btn-success btn-sm" onclick="AdminTurnosPage.revisar(${r.id}, 'aprobado')"
-                                    style="background:#0284c7;color:#fff;font-weight:700;border-radius:8px">
-                                <span style="display:flex;align-items:center;gap:5px">${Icons.check} Confirmar Turno Presencial</span>
+                            <button class="btn btn-primary btn-sm" onclick="AdminTurnosPage.revisar(${r.id}, 'aprobado')"
+                                    style="background:#0284c7;color:#fff;font-weight:700;border-radius:8px;border:none">
+                                <span style="display:inline-flex;align-items:center;gap:5px">${Icons.check} Confirmar Turno Presencial</span>
                             </button>
                         </div>` : ''}
 
                         ${(r.estado === 'aprobado' || r.estado === 'completado') ? `
-                        <div style="background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:12px;padding:16px;margin-top:10px">
-                            <div style="font-size:0.85rem;font-weight:800;color:#1e40af;margin-bottom:10px;display:flex;align-items:center;gap:6px">
-                                📋 Toma de Datos Biométricos & Evaluación de Conducción en Pista:
+                        <div style="background:#f8fafc;border:1px solid #cbd5e1;border-radius:10px;padding:16px;margin-top:10px">
+                            <div style="font-size:0.84rem;font-weight:700;color:#0f172a;margin-bottom:12px;display:flex;align-items:center;gap:6px">
+                                <span style="color:#0284c7;display:inline-flex">${Icons.fileCheck}</span>
+                                Toma de Datos Biométricos y Evaluación de Conducción en Pista
                             </div>
                             
-                            <div style="display:flex;flex-wrap:wrap;gap:20px;margin-bottom:14px;font-size:0.85rem">
-                                <label style="display:flex;align-items:center;gap:8px;cursor:pointer;background:#fff;padding:8px 14px;border-radius:8px;border:1px solid #cbd5e1">
-                                    <input type="checkbox" id="checkHuella_${r.id}" ${r.huella_tomada ? 'checked' : ''} style="width:18px;height:18px">
-                                    <span style="font-weight:700;color:#1e293b">☝️ Huella Dactilar Tomada</span>
+                            <div style="display:flex;flex-wrap:wrap;gap:14px;margin-bottom:14px;font-size:0.84rem">
+                                <label style="display:flex;align-items:center;gap:10px;cursor:pointer;background:#fff;padding:10px 14px;border-radius:8px;border:1px solid #cbd5e1;transition:border-color 0.15s ease">
+                                    <input type="checkbox" id="checkHuella_${r.id}" ${r.huella_tomada ? 'checked' : ''} style="width:16px;height:16px;accent-color:#0284c7">
+                                    <span style="color:#0284c7;display:inline-flex">${Icons.fingerprint}</span>
+                                    <span style="font-weight:600;color:#1e293b">Huella Dactilar Tomada</span>
                                 </label>
-                                <label style="display:flex;align-items:center;gap:8px;cursor:pointer;background:#fff;padding:8px 14px;border-radius:8px;border:1px solid #cbd5e1">
-                                    <input type="checkbox" id="checkFoto_${r.id}" ${r.foto_tomada ? 'checked' : ''} style="width:18px;height:18px">
-                                    <span style="font-weight:700;color:#1e293b">📸 Fotografía Oficial Registrada</span>
+                                <label style="display:flex;align-items:center;gap:10px;cursor:pointer;background:#fff;padding:10px 14px;border-radius:8px;border:1px solid #cbd5e1;transition:border-color 0.15s ease">
+                                    <input type="checkbox" id="checkFoto_${r.id}" ${r.foto_tomada ? 'checked' : ''} style="width:16px;height:16px;accent-color:#0284c7">
+                                    <span style="color:#0284c7;display:inline-flex">${Icons.camera}</span>
+                                    <span style="font-weight:600;color:#1e293b">Fotografía Oficial Registrada</span>
                                 </label>
                             </div>
 
-                            <div class="admin-item__actions">
-                                <button class="btn btn-outline btn-sm" style="color:var(--danger);border-color:#fca5a5" 
+                            <div class="admin-item__actions" style="border-top:none;padding-top:4px;margin-top:0">
+                                <button class="btn btn-outline btn-sm" style="color:#b84a54;border-color:#fed7d7;background:#fff;border-radius:8px;font-weight:600" 
                                         onclick="AdminTurnosPage.completarConBiometria(${r.id}, 'reprobado')">
-                                    <span style="display:flex;align-items:center;gap:5px">${Icons.x} No Aprobó Práctico</span>
+                                    <span style="display:inline-flex;align-items:center;gap:5px">${Icons.x} No Aprobó Práctico</span>
                                 </button>
                                 <button class="btn btn-success btn-sm" 
                                         onclick="AdminTurnosPage.completarConBiometria(${r.id}, 'aprobado')"
-                                        style="background:#10b981;color:#fff;font-weight:700;border-radius:8px">
-                                    <span style="display:flex;align-items:center;gap:5px">${Icons.party} Aprobar Examen y Habilitar Emisión</span>
+                                        style="background:#059669;color:#fff;font-weight:700;border-radius:8px;border:none">
+                                    <span style="display:inline-flex;align-items:center;gap:5px">${Icons.check} Aprobar Examen y Habilitar Emisión</span>
                                 </button>
                             </div>
                         </div>` : ''}
 
                         ${r.observaciones_admin ? `
-                        <div style="font-size:0.8rem;color:#64748b;padding:8px 12px;background:#f1f5f9;border-radius:8px;margin-top:10px">
-                            <strong>Observaciones:</strong> ${r.observaciones_admin}
+                        <div style="font-size:0.8rem;color:#475569;padding:10px 12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;margin-top:10px">
+                            <strong style="color:#0f172a">Observaciones:</strong> ${r.observaciones_admin}
                         </div>` : ''}
                     </div>`;
                 }).join('')}
@@ -244,7 +247,30 @@ class AdminTurnosPage {
     }
 
     static async revisar(reservaId, estado) {
-        const obs = estado === 'rechazado' ? prompt('Motivo del rechazo (opcional):') || '' : '';
+        let obs = '';
+        if (estado === 'rechazado') {
+            const motivo = await ConfirmModal.prompt({
+                title: 'Rechazar cita de turno',
+                description: '¿Estás seguro de que querés rechazar este turno presencial? Podés indicar el motivo para notificar al ciudadano.',
+                placeholder: 'Motivo del rechazo (opcional)...',
+                confirmText: 'Rechazar Turno',
+                cancelText: 'Cancelar',
+                variant: 'danger',
+                icon: Icons.xCircle
+            });
+            if (motivo === null) return;
+            obs = motivo;
+        } else {
+            const ok = await ConfirmModal.show({
+                title: 'Confirmar turno presencial',
+                description: 'Se confirmará el horario agendado y se habilitará la etapa de evaluación práctica y captura biométrica.',
+                confirmText: 'Confirmar Turno',
+                cancelText: 'Cancelar',
+                variant: 'primary',
+                icon: Icons.calendar
+            });
+            if (!ok) return;
+        }
         
         try {
             await ApiService.adminRevisarTurno(reservaId, estado, 'pendiente', 0, 0, obs);
@@ -260,16 +286,45 @@ class AdminTurnosPage {
         const fotoChecked = document.getElementById(`checkFoto_${reservaId}`)?.checked ? 1 : 0;
 
         if (resultado === 'aprobado' && (!huellaChecked || !fotoChecked)) {
-            if (!confirm('⚠️ Advertencia: No se han marcado ambas verificaciones biométricas (Huella y Foto). ¿Deseás continuar de todos modos?')) {
-                return;
-            }
+            const proceed = await ConfirmModal.show({
+                title: 'Verificación biométrica incompleta',
+                description: 'No se han marcado ambas verificaciones biométricas (Huella Dactilar y Fotografía Oficial). ¿Deseás aprobar y continuar de todos modos?',
+                confirmText: 'Continuar de todos modos',
+                cancelText: 'Revisar casillas',
+                variant: 'warning',
+                icon: Icons.alertTriangle
+            });
+            if (!proceed) return;
         }
 
-        const obs = resultado === 'reprobado' ? prompt('Observaciones (opcional):') || '' : '';
+        let obs = '';
+        if (resultado === 'reprobado') {
+            const motivo = await ConfirmModal.prompt({
+                title: 'Registrar examen práctico no aprobado',
+                description: 'Ingresá las observaciones técnicas sobre la evaluación en pista para el legajo del solicitante.',
+                placeholder: 'Observaciones técnicas (opcional)...',
+                confirmText: 'Registrar No Aprobado',
+                cancelText: 'Cancelar',
+                variant: 'danger',
+                icon: Icons.xCircle
+            });
+            if (motivo === null) return;
+            obs = motivo;
+        } else if (huellaChecked && fotoChecked) {
+            const ok = await ConfirmModal.show({
+                title: 'Aprobar examen práctico y habilitar emisión',
+                description: 'Se registrará la aprobación del examen práctico en pista junto con los datos biométricos para habilitar la emisión de la licencia.',
+                confirmText: 'Aprobar y Habilitar',
+                cancelText: 'Cancelar',
+                variant: 'success',
+                icon: Icons.award
+            });
+            if (!ok) return;
+        }
         
         try {
             await ApiService.adminRevisarTurno(reservaId, 'completado', resultado, huellaChecked, fotoChecked, obs);
-            Toast.success(resultado === 'aprobado' ? '¡Examen práctico y registro biométrico finalizados! Licencia lista para entrega.' : 'Registro finalizado como no aprobado.');
+            Toast.success(resultado === 'aprobado' ? 'Examen práctico y registro biométrico finalizados. Licencia lista para entrega.' : 'Registro finalizado como no aprobado.');
             this.render(document.getElementById('app'));
         } catch (err) {
             Toast.error(err.message);

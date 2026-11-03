@@ -1,40 +1,13 @@
 # -*- coding: utf-8 -*-
 """
-Módulo de conexión a MySQL (WampServer).
+Módulo de conexión a SQLite.
 """
 
-import pymysql
+import sqlite3
 import os
-from config import MYSQL_HOST, MYSQL_PORT, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DB
 
-from pymysql.constants import CLIENT
+DB_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'database', 'licencias.db')
 
-<<<<<<< HEAD
-def get_connection(include_db=True):
-    """Obtiene una conexión a la base de datos MySQL."""
-    try:
-        if include_db:
-            return pymysql.connect(
-                host=MYSQL_HOST,
-                port=MYSQL_PORT,
-                user=MYSQL_USER,
-                password=MYSQL_PASSWORD,
-                database=MYSQL_DB,
-                client_flag=CLIENT.MULTI_STATEMENTS,
-                cursorclass=pymysql.cursors.DictCursor
-            )
-        else:
-            return pymysql.connect(
-                host=MYSQL_HOST,
-                port=MYSQL_PORT,
-                user=MYSQL_USER,
-                password=MYSQL_PASSWORD,
-                cursorclass=pymysql.cursors.DictCursor
-            )
-    except pymysql.MySQLError as e:
-        print(f"[ERROR DB] {e}")
-        raise e
-=======
 def dict_factory(cursor, row):
     d = {}
     for idx, col in enumerate(cursor.description):
@@ -51,77 +24,49 @@ def get_connection():
     except Exception:
         pass
     return conn
->>>>>>> 6f76f9f210706d776aadebe1ca9ea1a0132ab0c2
 
 def execute_query(query, params=None, fetch_one=False, fetch_all=False):
     """
     Ejecuta una query y retorna resultados.
     """
-    query = query.replace('?', '%s')
     conn = get_connection()
+    cursor = conn.cursor()
     try:
-        with conn.cursor() as cursor:
-            cursor.execute(query, params or ())
-            if fetch_one:
-                result = cursor.fetchone()
-            elif fetch_all:
-                result = cursor.fetchall()
-            else:
-                conn.commit()
-                result = cursor.lastrowid
-            return result
+        cursor.execute(query, params or ())
+        if fetch_one:
+            result = cursor.fetchone()
+        elif fetch_all:
+            result = cursor.fetchall()
+        else:
+            conn.commit()
+            result = cursor.lastrowid
+        return result
     except Exception as e:
         conn.rollback()
-        print(f"[ERROR SQL] {e} en query: {query}")
         raise e
     finally:
+        cursor.close()
         conn.close()
 
 def execute_many(query, data_list):
     """Ejecuta una query con múltiples sets de parámetros."""
-    query = query.replace('?', '%s')
     conn = get_connection()
+    cursor = conn.cursor()
     try:
-        with conn.cursor() as cursor:
-            cursor.executemany(query, data_list)
-            conn.commit()
-            return cursor.rowcount
+        cursor.executemany(query, data_list)
+        conn.commit()
+        return cursor.rowcount
     except Exception as e:
         conn.rollback()
-        print(f"[ERROR SQL] {e} en query: {query}")
         raise e
     finally:
+        cursor.close()
         conn.close()
 
 def init_db():
-    """Inicializa la base de datos MySQL con el schema.sql."""
-    # 1. Crear base de datos si no existe
-    try:
-        conn_no_db = get_connection(include_db=False)
-        with conn_no_db.cursor() as cursor:
-            cursor.execute(f"CREATE DATABASE IF NOT EXISTS `{MYSQL_DB}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;")
-        conn_no_db.commit()
-    except Exception as e:
-        print(f"[ERROR] Falló creación de base de datos {MYSQL_DB}: {e}")
-        return
-    finally:
-        conn_no_db.close()
-
-    # 2. Inicializar tablas
+    """Inicializa la base de datos con el schema si no existe o actualiza las tablas faltantes."""
     conn = get_connection()
     try:
-<<<<<<< HEAD
-        schema_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'database', 'schema.sql')
-        if os.path.exists(schema_path):
-            with open(schema_path, 'r', encoding='utf-8') as f:
-                schema = f.read()
-            
-            with conn.cursor() as cursor:
-                try:
-                    cursor.execute(schema)
-                except Exception as e:
-                    print(f"[ERROR SQL IMPORT] {e}")
-=======
         if not os.path.exists(DB_PATH):
             schema_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'database', 'schema.sql')
             if os.path.exists(schema_path):
@@ -274,9 +219,6 @@ def init_db():
             except sqlite3.OperationalError:
                 pass
 
-<<<<<<< HEAD
->>>>>>> 68c55a60f7d0f4cd25d39b182726459d7a1587b2
-=======
             try:
                 conn.execute("ALTER TABLE examenes_teoricos ADD COLUMN created_at TEXT")
             except sqlite3.OperationalError:
@@ -287,9 +229,6 @@ def init_db():
             except sqlite3.OperationalError:
                 pass
 
-<<<<<<< HEAD
->>>>>>> 6f76f9f210706d776aadebe1ca9ea1a0132ab0c2
-=======
             # Tablas del sistema de memoria (Gentle AI)
             conn.execute("""
                 CREATE TABLE IF NOT EXISTS user_activity_log (
@@ -314,10 +253,9 @@ def init_db():
                 );
             """)
 
->>>>>>> 77df27a69d2213054565b4a2b6cb460e7bb8308e
             conn.commit()
-            print(f"[OK] Base de datos {MYSQL_DB} inicializada/verificada con schema.sql")
     except Exception as e:
-        print(f"[ERROR] Falló inicialización de tablas: {e}")
+        print(f"[ERROR] Falló inicialización de base de datos: {e}")
     finally:
         conn.close()
+
