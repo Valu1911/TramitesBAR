@@ -15,7 +15,7 @@ import hashlib
 import hmac
 import io
 import secrets
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 import pyotp
@@ -49,7 +49,7 @@ _COMMON_PASSWORDS = {
 
 def utcnow() -> datetime:
     """Devuelve la hora actual en UTC sin zona, para columnas MySQL DateTime."""
-    return datetime.now(timezone.utc).replace(tzinfo=None)
+    return datetime.now(UTC).replace(tzinfo=None)
 
 
 def hash_password(password: str) -> str:

@@ -15,7 +15,7 @@ from sqlalchemy.orm import Session, selectinload
 
 from app.core.config import get_settings
 from app.core.errors import api_error
-from app.core.security import mask_dni, utcnow
+from app.core.security import blind_index, mask_dni, utcnow
 from app.domain.enums import (
     AppointmentResult,
     AppointmentStatus,
@@ -38,10 +38,10 @@ from app.models.procedure import (
     ProcedureType,
 )
 from app.models.user import CitizenProfile, GuardianConsent, User
-from app.core.security import blind_index
 from app.services.audit import record_audit
 from app.services.notifications import notify_user
 from app.services.policies import pending_policies as _pending_policies
+from app.services.storage import StoredFile
 
 
 def age_at(birth_date: date, on_date: date | None = None) -> int:
@@ -474,7 +474,7 @@ def upload_document(
     db: Session,
     procedure: Procedure,
     *,
-    stored,  # type: ignore[no-untyped-def]
+    stored: StoredFile,
     kind: str,
     actor: User,
     ip: str | None,

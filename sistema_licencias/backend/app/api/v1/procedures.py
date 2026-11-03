@@ -11,11 +11,11 @@ from app.api.deps import RequestMeta, current_user, rate_limit, request_meta
 from app.core.config import get_settings
 from app.core.db import get_db
 from app.core.errors import api_error
-from app.core.security import safe_filename, utcnow
+from app.core.security import safe_filename
 from app.domain.enums import DocumentKind, ExamStatus, StepCode
 from app.models.exam import ExamAttempt
 from app.models.payment import Payment
-from app.models.procedure import Procedure
+from app.models.user import User
 from app.schemas.common import MessageOut
 from app.schemas.exam import (
     AttemptResultOut,
@@ -65,7 +65,7 @@ _DOCUMENT_STEP = {
 )
 def create_procedure(
     data: ProcedureCreateIn,
-    user=Depends(current_user),
+    user: User = Depends(current_user),
     db: Session = Depends(get_db),
     meta: RequestMeta = Depends(request_meta),
 ) -> ProcedureOut:
@@ -84,7 +84,7 @@ def create_procedure(
 
 @router.get("/procedures/mine", response_model=list[ProcedureListItem])
 def list_my_procedures(
-    user=Depends(current_user),
+    user: User = Depends(current_user),
     db: Session = Depends(get_db),
 ) -> list[ProcedureListItem]:
     """Lista los trámites del ciudadano autenticado."""
@@ -97,7 +97,7 @@ def list_my_procedures(
 @router.get("/procedures/{procedure_id}", response_model=ProcedureOut)
 def get_procedure(
     procedure_id: int,
-    user=Depends(current_user),
+    user: User = Depends(current_user),
     db: Session = Depends(get_db),
 ) -> ProcedureOut:
     """Devuelve el expediente completo del ciudadano."""
@@ -109,7 +109,7 @@ def get_procedure(
 def complete_learning(
     procedure_id: int,
     data: LearningCompleteIn,
-    user=Depends(current_user),
+    user: User = Depends(current_user),
     db: Session = Depends(get_db),
     meta: RequestMeta = Depends(request_meta),
 ) -> ProcedureOut:
@@ -130,7 +130,7 @@ def complete_learning(
 def submit_health(
     procedure_id: int,
     data: HealthFormIn,
-    user=Depends(current_user),
+    user: User = Depends(current_user),
     db: Session = Depends(get_db),
     meta: RequestMeta = Depends(request_meta),
 ) -> ProcedureOut:
@@ -157,7 +157,7 @@ def upload_document(
     procedure_id: int,
     kind: str = Form(...),
     file: UploadFile = File(...),
-    user=Depends(current_user),
+    user: User = Depends(current_user),
     db: Session = Depends(get_db),
     meta: RequestMeta = Depends(request_meta),
 ) -> DocumentOut:
@@ -205,7 +205,7 @@ def upload_document(
 def download_document(
     procedure_id: int,
     document_id: int,
-    user=Depends(current_user),
+    user: User = Depends(current_user),
     db: Session = Depends(get_db),
     meta: RequestMeta = Depends(request_meta),
 ) -> Response:
@@ -245,7 +245,7 @@ def download_document(
 )
 def payment_instructions(
     procedure_id: int,
-    user=Depends(current_user),
+    user: User = Depends(current_user),
     db: Session = Depends(get_db),
 ) -> PaymentInstructionsOut:
     """Devuelve referencia, monto y datos de transferencia configurados."""
@@ -286,7 +286,7 @@ def payment_instructions(
 def claim_payment(
     procedure_id: int,
     data: PaymentClaimIn,
-    user=Depends(current_user),
+    user: User = Depends(current_user),
     db: Session = Depends(get_db),
     meta: RequestMeta = Depends(request_meta),
 ) -> PaymentOut:
@@ -313,7 +313,7 @@ def claim_payment(
 )
 def list_attempts(
     procedure_id: int,
-    user=Depends(current_user),
+    user: User = Depends(current_user),
     db: Session = Depends(get_db),
 ) -> list[AttemptSummaryOut]:
     """Lista los intentos de examen teórico del expediente."""
@@ -348,7 +348,7 @@ def list_attempts(
 )
 def start_exam(
     procedure_id: int,
-    user=Depends(current_user),
+    user: User = Depends(current_user),
     db: Session = Depends(get_db),
     meta: RequestMeta = Depends(request_meta),
 ) -> AttemptStartOut:
@@ -373,7 +373,7 @@ def submit_exam(
     procedure_id: int,
     attempt_id: int,
     data: ExamSubmitIn,
-    user=Depends(current_user),
+    user: User = Depends(current_user),
     db: Session = Depends(get_db),
     meta: RequestMeta = Depends(request_meta),
 ) -> AttemptResultOut:
@@ -396,12 +396,13 @@ def submit_exam(
 
 @router.get("/appointments/available", response_model=list[AppointmentOut])
 def available_appointments(
-    user=Depends(current_user),
+    user: User = Depends(current_user),
     db: Session = Depends(get_db),
 ) -> list[AppointmentOut]:
     """Lista cupos disponibles para el examen práctico."""
+    # Los cupos públicos no exponen las notas internas que carga el municipio.
     return [
-        appointment_out(item)
+        appointment_out(item).model_copy(update={"notes": None})
         for item in procedure_service.available_appointments(db)
     ]
 
@@ -414,7 +415,7 @@ def available_appointments(
 def book_appointment(
     procedure_id: int,
     data: BookAppointmentIn,
-    user=Depends(current_user),
+    user: User = Depends(current_user),
     db: Session = Depends(get_db),
     meta: RequestMeta = Depends(request_meta),
 ) -> AppointmentOut:
@@ -435,7 +436,7 @@ def book_appointment(
 def submit_delivery(
     procedure_id: int,
     data: DeliveryIn,
-    user=Depends(current_user),
+    user: User = Depends(current_user),
     db: Session = Depends(get_db),
     meta: RequestMeta = Depends(request_meta),
 ) -> ProcedureOut:
@@ -457,7 +458,7 @@ def submit_delivery(
 @router.post("/procedures/{procedure_id}/cancel", response_model=MessageOut)
 def cancel_procedure(
     procedure_id: int,
-    user=Depends(current_user),
+    user: User = Depends(current_user),
     db: Session = Depends(get_db),
     meta: RequestMeta = Depends(request_meta),
 ) -> MessageOut:

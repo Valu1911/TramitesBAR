@@ -11,6 +11,7 @@ from app.core.db import get_db
 from app.core.errors import api_error
 from app.core.security import utcnow
 from app.models.notification import Notification
+from app.models.user import User
 from app.schemas.common import MessageOut
 from app.schemas.notification import NotificationListOut, NotificationOut
 from app.services.serializers import notification_out
@@ -23,7 +24,7 @@ def list_notifications(
     unread_only: bool = Query(default=False),
     limit: int = Query(default=30, ge=1, le=100),
     offset: int = Query(default=0, ge=0),
-    user=Depends(current_user),
+    user: User = Depends(current_user),
     db: Session = Depends(get_db),
 ) -> NotificationListOut:
     """Lista las notificaciones del usuario y cuántas quedan sin leer."""
@@ -55,7 +56,7 @@ def list_notifications(
 @router.post("/{notification_id}/read", response_model=NotificationOut)
 def mark_read(
     notification_id: int,
-    user=Depends(current_user),
+    user: User = Depends(current_user),
     db: Session = Depends(get_db),
 ) -> NotificationOut:
     """Marca una notificación propia como leída."""
@@ -75,7 +76,7 @@ def mark_read(
 
 @router.post("/read-all", response_model=MessageOut)
 def mark_all_read(
-    user=Depends(current_user),
+    user: User = Depends(current_user),
     db: Session = Depends(get_db),
 ) -> MessageOut:
     """Marca todas las notificaciones del usuario como leídas."""

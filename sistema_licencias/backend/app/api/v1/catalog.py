@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.api.deps import RequestMeta, current_user, request_meta
 from app.core.db import get_db
+from app.models.user import User
 from app.schemas.catalog import (
     LearningMaterialOut,
     PolicyOut,
@@ -65,7 +66,7 @@ def list_policies(
 
 @router.get("/policies/pending", response_model=list[str])
 def list_pending_policies(
-    user=Depends(current_user),
+    user: User = Depends(current_user),
     db: Session = Depends(get_db),
 ) -> list[str]:
     """Lista los slugs de políticas obligatorias que el usuario no aceptó."""
@@ -84,7 +85,7 @@ def get_policy(
 @router.post("/policies/{slug}/accept", response_model=MessageOut)
 def accept_policy(
     slug: str,
-    user=Depends(current_user),
+    user: User = Depends(current_user),
     db: Session = Depends(get_db),
     meta: RequestMeta = Depends(request_meta),
 ) -> MessageOut:

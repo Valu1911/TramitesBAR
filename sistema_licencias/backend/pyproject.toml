@@ -1,0 +1,44 @@
+[project]
+name = "tramitesbar-backend"
+version = "1.0.0"
+description = "Sistema municipal de licencias de conducir de Baradero"
+requires-python = ">=3.12"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["app", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "S", "C4", "SIM"]
+ignore = [
+    "S101",  # assert se usa en tests
+    "S603",  # subprocess controlado en scripts operativos
+    "B008",  # FastAPI usa Depends/File en defaults por diseño
+    "UP042",  # los enums str son parte del contrato JSON existente
+    "S105",  # TokenPurpose.RESET_PASSWORD es un nombre, no una credencial
+    "E501",  # las cadenas largas se revisan a mano; el formateador no las parte
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S105", "S106", "S311"]
+"app/services/notifications.py" = ["T20"]  # consola de desarrollo, no producción
+"app/cli.py" = ["T20"]  # la CLI habla con el operador
+
+[tool.ruff.lint.isort]
+known-first-party = ["app"]
+
+[tool.mypy]
+python_version = "3.12"
+plugins = []
+warn_unused_configs = true
+warn_redundant_casts = true
+disallow_untyped_defs = true
+check_untyped_defs = true
+ignore_missing_imports = true
+exclude = ["alembic/versions/"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+filterwarnings = ["error::DeprecationWarning"]

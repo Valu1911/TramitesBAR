@@ -62,9 +62,8 @@ def _answer(
 def _match_intent(message: str, context: str | None) -> str | None:
     """Detecta la intención por palabras clave. No usa IA para esto."""
     text = _normalize(message)
-    if context and context in LINKS:
-        if context in {"nueva", "renovacion", "vencida", "categoria", "profesional", "extravio"}:
-            return context
+    if context in {"nueva", "renovacion", "vencida", "categoria", "profesional", "extravio"}:
+        return context
 
     rules: list[tuple[str, tuple[str, ...]]] = [
         ("saludo", ("hola", "buen dia", "buenas", "que tal")),

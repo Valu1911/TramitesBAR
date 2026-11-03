@@ -9,7 +9,7 @@ Reglas que concentra este módulo:
 
 from __future__ import annotations
 
-from datetime import date, timedelta
+from datetime import timedelta
 from functools import lru_cache
 
 from sqlalchemy import select, update
@@ -24,7 +24,6 @@ from app.core.security import (
     hash_password,
     hash_recovery_code,
     hash_token,
-    hash_token as _hash_token,
     mask_email,
     new_token,
     password_needs_rehash,
@@ -638,7 +637,7 @@ def enable_mfa(
     if not user.mfa_pending_secret_enc:
         raise api_error(409, "mfa_setup_required", "Primero generá el secreto del segundo factor")
     secret = get_cipher().decrypt(user.mfa_pending_secret_enc)
-    if not verify_totp(secret, code.strip()):
+    if secret is None or not verify_totp(secret, code.strip()):
         raise api_error(422, "mfa_code_invalid", "El código no es válido")
 
     recovery = generate_recovery_codes(10)

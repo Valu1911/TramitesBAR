@@ -4,8 +4,9 @@ from __future__ import annotations
 
 from datetime import date, datetime
 
-from sqlalchemy import Boolean, Date, DateTime, ForeignKey, Index, Integer, JSON, String, Text
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import JSON, Boolean, Date, DateTime, ForeignKey, Index, Integer, String, Text
+from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import relationship as orm_relationship
 
 from app.domain.enums import GuardianStatus, Role, TokenPurpose, UserStatus
 from app.models.base import Base, BigIntPK, TimestampMixin
@@ -30,10 +31,10 @@ class User(Base, TimestampMixin):
     locked_until: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     last_login_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
-    profile: Mapped[CitizenProfile | None] = relationship(
+    profile: Mapped[CitizenProfile | None] = orm_relationship(
         back_populates="user", uselist=False, cascade="all, delete-orphan"
     )
-    guardian_consents: Mapped[list[GuardianConsent]] = relationship(
+    guardian_consents: Mapped[list[GuardianConsent]] = orm_relationship(
         back_populates="user", cascade="all, delete-orphan"
     )
 
@@ -60,7 +61,7 @@ class CitizenProfile(Base, TimestampMixin):
     address: Mapped[str | None] = mapped_column(String(255), nullable=True)
     locality: Mapped[str] = mapped_column(String(100), default="Baradero", nullable=False)
 
-    user: Mapped[User] = relationship(back_populates="profile")
+    user: Mapped[User] = orm_relationship(back_populates="profile")
 
 
 class UserSession(Base):
@@ -85,7 +86,7 @@ class UserSession(Base):
     expires_at: Mapped[datetime] = mapped_column(DateTime, index=True, nullable=False)
     revoked_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
-    user: Mapped[User] = relationship()
+    user: Mapped[User] = orm_relationship()
 
 
 class AuthToken(Base):
@@ -103,7 +104,7 @@ class AuthToken(Base):
     used_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
 
-    user: Mapped[User] = relationship()
+    user: Mapped[User] = orm_relationship()
 
 
 class GuardianConsent(Base):
@@ -135,7 +136,7 @@ class GuardianConsent(Base):
     review_notes: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
 
-    user: Mapped[User] = relationship(back_populates="guardian_consents")
+    user: Mapped[User] = orm_relationship(back_populates="guardian_consents")
 
 
 Index("ix_sessions_user_revoked", UserSession.user_id, UserSession.revoked_at)

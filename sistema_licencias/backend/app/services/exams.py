@@ -9,10 +9,9 @@ from __future__ import annotations
 import math
 from datetime import timedelta
 
-from sqlalchemy import func, or_, select
+from sqlalchemy import ColumnElement, func, or_, select
 from sqlalchemy.orm import Session, selectinload
 
-from app.core.config import get_settings
 from app.core.errors import api_error
 from app.core.security import utcnow
 from app.domain.enums import ExamStatus, StepCode, StepStatus
@@ -30,7 +29,6 @@ from app.services.notifications import notify_user
 from app.services.procedures import (
     _advance_after_completed,
     get_procedure_or_404,
-    require_current_step,
 )
 
 
@@ -339,7 +337,7 @@ def list_questions(
 ) -> tuple[list[Question], int]:
     """Lista preguntas con filtros para administración."""
     stmt = select(Question)
-    conditions = []
+    conditions: list[ColumnElement[bool]] = []
     if reviewed is not None:
         conditions.append(Question.reviewed.is_(reviewed))
     if active is not None:

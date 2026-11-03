@@ -33,7 +33,7 @@ router = APIRouter(tags=["licenses"])
 
 @router.get("/licenses/mine", response_model=list[LicenseOut])
 def my_licenses(
-    user=Depends(current_user),
+    user: User = Depends(current_user),
     db: Session = Depends(get_db),
 ) -> list[LicenseOut]:
     """Lista las credenciales del ciudadano autenticado."""
@@ -43,7 +43,7 @@ def my_licenses(
 @router.get("/licenses/{license_id}", response_model=LicenseOut)
 def get_license(
     license_id: int,
-    user=Depends(current_user),
+    user: User = Depends(current_user),
     db: Session = Depends(get_db),
 ) -> LicenseOut:
     """Devuelve una credencial propia."""
@@ -54,7 +54,7 @@ def get_license(
 @router.get("/licenses/{license_id}/qr.svg")
 def get_license_qr(
     license_id: int,
-    user=Depends(current_user),
+    user: User = Depends(current_user),
     db: Session = Depends(get_db),
 ) -> Response:
     """Genera el QR de una credencial propia en SVG."""

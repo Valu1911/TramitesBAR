@@ -4,14 +4,15 @@ from __future__ import annotations
 
 from datetime import datetime
 from decimal import Decimal
+from typing import TYPE_CHECKING
 
 from sqlalchemy import (
+    JSON,
     Boolean,
-    Date,
     DateTime,
     ForeignKey,
+    Index,
     Integer,
-    JSON,
     Numeric,
     String,
     Text,
@@ -19,8 +20,15 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from app.core.db import MYSQL_TABLE_OPTIONS
 from app.domain.enums import DocumentStatus, ProcedureStatus, StepStatus
 from app.models.base import Base, BigIntPK, TimestampMixin
+
+if TYPE_CHECKING:
+    from app.models.exam import ExamAttempt
+    from app.models.license import License
+    from app.models.payment import Payment
+    from app.models.user import User
 
 
 class ProcedureType(Base, TimestampMixin):
@@ -55,6 +63,7 @@ class ProcedureMatrix(Base):
         UniqueConstraint(
             "procedure_type_id", "license_category", name="uq_matrix_type_category"
         ),
+        MYSQL_TABLE_OPTIONS,
     )
 
     id: Mapped[int] = mapped_column(BigIntPK, primary_key=True, autoincrement=True)
@@ -123,7 +132,7 @@ class Procedure(Base, TimestampMixin):
     submitted_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     completed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
-    user: Mapped["User"] = relationship()  # noqa: F821
+    user: Mapped[User] = relationship()  # noqa: F821
     procedure_type: Mapped[ProcedureType] = relationship(back_populates="procedures")
     matrix: Mapped[ProcedureMatrix] = relationship(back_populates="procedures")
     steps: Mapped[list[ProcedureStep]] = relationship(
@@ -132,16 +141,16 @@ class Procedure(Base, TimestampMixin):
     documents: Mapped[list[Document]] = relationship(
         back_populates="procedure", cascade="all, delete-orphan", order_by="Document.id.desc()"
     )
-    payment: Mapped["Payment | None"] = relationship(  # noqa: F821
+    payment: Mapped[Payment | None] = relationship(  # noqa: F821
         back_populates="procedure", uselist=False, cascade="all, delete-orphan"
     )
-    exam_attempts: Mapped[list["ExamAttempt"]] = relationship(  # noqa: F821
+    exam_attempts: Mapped[list[ExamAttempt]] = relationship(  # noqa: F821
         back_populates="procedure", cascade="all, delete-orphan", order_by="ExamAttempt.id.desc()"
     )
-    appointments: Mapped[list["Appointment"]] = relationship(  # noqa: F821
+    appointments: Mapped[list[Appointment]] = relationship(  # noqa: F821
         back_populates="procedure", order_by="Appointment.scheduled_at"
     )
-    license: Mapped["License | None"] = relationship(  # noqa: F821
+    license: Mapped[License | None] = relationship(  # noqa: F821
         back_populates="procedure", uselist=False, cascade="all, delete-orphan"
     )
 
@@ -150,7 +159,10 @@ class ProcedureStep(Base, TimestampMixin):
     """Paso secuencial del expediente."""
 
     __tablename__ = "procedure_steps"
-    __table_args__ = (UniqueConstraint("procedure_id", "code", name="uq_step_procedure_code"),)
+    __table_args__ = (
+        UniqueConstraint("procedure_id", "code", name="uq_step_procedure_code"),
+        MYSQL_TABLE_OPTIONS,
+    )
 
     id: Mapped[int] = mapped_column(BigIntPK, primary_key=True, autoincrement=True)
     procedure_id: Mapped[int] = mapped_column(
@@ -197,7 +209,7 @@ class Document(Base, TimestampMixin):
     expires_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
     procedure: Mapped[Procedure | None] = relationship(back_populates="documents")
-    user: Mapped["User"] = relationship()  # noqa: F821
+    user: Mapped[User] = relationship()  # noqa: F821
 
 
 class Appointment(Base, TimestampMixin):

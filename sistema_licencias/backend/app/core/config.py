@@ -12,6 +12,7 @@ import binascii
 from decimal import Decimal
 from functools import lru_cache
 from pathlib import Path
+from typing import Literal
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -54,7 +55,7 @@ class Settings(BaseSettings):
     session_ttl_hours: int = 12
     session_idle_minutes: int = 60
     cookie_secure: bool = False
-    cookie_samesite: str = "lax"
+    cookie_samesite: Literal["lax", "strict", "none"] = "lax"
 
     # Red.
     trusted_hosts: str = "127.0.0.1,localhost"
@@ -80,6 +81,8 @@ class Settings(BaseSettings):
     smtp_password: str = ""
     smtp_from: str = "TramitesBAR <no-reply@baradero.gob.ar>"
     smtp_tls: bool = True
+    outbox_poll_seconds: int = 5
+    maintenance_interval_minutes: int = 60
 
     # Reglas de negocio configurables.
     payment_second_approval_threshold: Decimal = Decimal("100000.00")

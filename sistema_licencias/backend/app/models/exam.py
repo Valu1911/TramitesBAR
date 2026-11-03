@@ -3,12 +3,16 @@
 from __future__ import annotations
 
 from datetime import datetime
+from typing import TYPE_CHECKING
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, JSON, String, Text
+from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.domain.enums import ExamStatus
 from app.models.base import Base, BigIntPK, TimestampMixin
+
+if TYPE_CHECKING:
+    from app.models.procedure import Procedure
 
 
 class Question(Base, TimestampMixin):
@@ -54,7 +58,7 @@ class ExamAttempt(Base, TimestampMixin):
     expires_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
     submitted_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
-    procedure: Mapped["Procedure"] = relationship(back_populates="exam_attempts")  # noqa: F821
+    procedure: Mapped[Procedure] = relationship(back_populates="exam_attempts")  # noqa: F821
     answers: Mapped[list[ExamAnswer]] = relationship(
         back_populates="attempt", cascade="all, delete-orphan"
     )

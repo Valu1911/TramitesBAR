@@ -4,12 +4,16 @@ from __future__ import annotations
 
 from datetime import datetime
 from decimal import Decimal
+from typing import TYPE_CHECKING
 
-from sqlalchemy import DateTime, ForeignKey, Integer, JSON, Numeric, String, Text
+from sqlalchemy import JSON, DateTime, ForeignKey, Integer, Numeric, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.domain.enums import PaymentStatus
 from app.models.base import Base, BigIntPK, TimestampMixin
+
+if TYPE_CHECKING:
+    from app.models.procedure import Document, Procedure
 
 
 class Payment(Base, TimestampMixin):
@@ -46,8 +50,8 @@ class Payment(Base, TimestampMixin):
     reviewed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     review_notes: Mapped[str | None] = mapped_column(Text, nullable=True)
 
-    procedure: Mapped["Procedure"] = relationship(back_populates="payment")  # noqa: F821
-    receipt_document: Mapped["Document | None"] = relationship()  # noqa: F821
+    procedure: Mapped[Procedure] = relationship(back_populates="payment")  # noqa: F821
+    receipt_document: Mapped[Document | None] = relationship()  # noqa: F821
 
 
 class PaymentImport(Base):

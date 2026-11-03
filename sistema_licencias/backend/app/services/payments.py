@@ -20,8 +20,8 @@ from app.core.errors import api_error
 from app.core.security import utcnow
 from app.domain.enums import PaymentStatus, StepCode, StepStatus
 from app.models.payment import Payment, PaymentImport
-from app.models.procedure import Procedure, ProcedureStep
-from app.models.user import CitizenProfile, User
+from app.models.procedure import Procedure
+from app.models.user import User
 from app.services.audit import record_audit
 from app.services.notifications import notify_user
 from app.services.procedures import _advance_after_completed, get_procedure_or_404

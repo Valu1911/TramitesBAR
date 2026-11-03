@@ -19,6 +19,7 @@ from app.core.db import get_db
 from app.core.errors import api_error
 from app.core.rate_limit import enforce_rate_limit
 from app.core.security import hash_token, new_token
+from app.models.user import User, UserSession
 from app.schemas.auth import (
     ChangePasswordIn,
     ForgotPasswordIn,
@@ -27,15 +28,15 @@ from app.schemas.auth import (
     MfaEnableIn,
     MfaRecoveryOut,
     MfaSetupOut,
+    ProfileUpdateIn,
     RegisterIn,
     ResetPasswordIn,
     SessionInfoOut,
     SessionOut,
+    UserOut,
     VerifyEmailIn,
 )
-from app.schemas.auth import ProfileUpdateIn
 from app.schemas.common import MessageOut
-from app.schemas.auth import UserOut
 from app.services import auth as auth_service
 from app.services.crypto import get_cipher
 from app.services.serializers import user_out
@@ -124,7 +125,7 @@ def verify_email(
 )
 def resend_verification(
     db: Session = Depends(get_db),
-    user=Depends(current_user),
+    user: User = Depends(current_user),
     meta: RequestMeta = Depends(request_meta),
 ) -> MessageOut:
     """Reenvía el correo de verificación a una cuenta que todavía no lo confirmó."""
@@ -162,8 +163,8 @@ def login(
 @router.post("/logout", response_model=MessageOut)
 def logout(
     response: Response,
-    session=Depends(current_session),
-    user=Depends(current_user),
+    session: UserSession = Depends(current_session),
+    user: User = Depends(current_user),
     db: Session = Depends(get_db),
     meta: RequestMeta = Depends(request_meta),
 ) -> MessageOut:
@@ -177,8 +178,8 @@ def logout(
 def me(
     request: Request,
     response: Response,
-    session=Depends(current_session),
-    user=Depends(current_user),
+    session: UserSession = Depends(current_session),
+    user: User = Depends(current_user),
     db: Session = Depends(get_db),
 ) -> SessionOut:
     """Devuelve el usuario autenticado y garantiza una cookie CSRF válida."""
@@ -203,7 +204,7 @@ def me(
 @router.patch("/me", response_model=UserOut)
 def update_profile(
     data: ProfileUpdateIn,
-    user=Depends(current_user),
+    user: User = Depends(current_user),
     db: Session = Depends(get_db),
 ) -> UserOut:
     """Actualiza los datos de contacto del ciudadano."""
@@ -223,7 +224,7 @@ def update_profile(
 def change_password(
     data: ChangePasswordIn,
     response: Response,
-    user=Depends(current_user),
+    user: User = Depends(current_user),
     db: Session = Depends(get_db),
     meta: RequestMeta = Depends(request_meta),
 ) -> MessageOut:
@@ -285,8 +286,8 @@ def reset_password(
 
 @router.get("/sessions", response_model=list[SessionInfoOut])
 def list_sessions(
-    session=Depends(current_session),
-    user=Depends(current_user),
+    session: UserSession = Depends(current_session),
+    user: User = Depends(current_user),
     db: Session = Depends(get_db),
 ) -> list[SessionInfoOut]:
     """Lista las sesiones activas del usuario."""
@@ -299,8 +300,8 @@ def list_sessions(
 @router.delete("/sessions/{session_id}", response_model=MessageOut)
 def revoke_session(
     session_id: int,
-    session=Depends(current_session),
-    user=Depends(current_user),
+    session: UserSession = Depends(current_session),
+    user: User = Depends(current_user),
     db: Session = Depends(get_db),
     meta: RequestMeta = Depends(request_meta),
 ) -> MessageOut:
@@ -318,7 +319,7 @@ def revoke_session(
 
 @router.post("/mfa/setup", response_model=MfaSetupOut)
 def mfa_setup(
-    user=Depends(current_user),
+    user: User = Depends(current_user),
     db: Session = Depends(get_db),
 ) -> MfaSetupOut:
     """Genera el secreto TOTP para cargar en la aplicación autenticadora."""
@@ -329,7 +330,7 @@ def mfa_setup(
 @router.post("/mfa/enable", response_model=MfaRecoveryOut)
 def mfa_enable(
     data: MfaEnableIn,
-    user=Depends(current_user),
+    user: User = Depends(current_user),
     db: Session = Depends(get_db),
     meta: RequestMeta = Depends(request_meta),
 ) -> MfaRecoveryOut:
@@ -347,7 +348,7 @@ def mfa_enable(
 @router.post("/mfa/disable", response_model=MessageOut)
 def mfa_disable(
     data: MfaDisableIn,
-    user=Depends(current_user),
+    user: User = Depends(current_user),
     db: Session = Depends(get_db),
     meta: RequestMeta = Depends(request_meta),
 ) -> MessageOut:

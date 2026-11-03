@@ -7,6 +7,7 @@ a mano debe devolver un DNI completo.
 from __future__ import annotations
 
 from app.core.security import mask_dni, mask_name
+from app.domain.enums import STEP_LABELS
 from app.models.exam import Question
 from app.models.license import License
 from app.models.notification import Notification
@@ -36,7 +37,6 @@ from app.schemas.procedure import (
     StepOut,
     UserSummaryOut,
 )
-from app.domain.enums import STEP_LABELS
 from app.services.crypto import get_cipher
 
 
@@ -229,7 +229,6 @@ def license_summary(license: License) -> LicenseSummaryOut:
 
 def license_out(license: License) -> LicenseOut:
     """Serializa una credencial completa."""
-    from app.core.config import get_settings
 
     return LicenseOut(
         id=license.id,

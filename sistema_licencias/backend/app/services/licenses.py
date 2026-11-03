@@ -3,15 +3,17 @@
 from __future__ import annotations
 
 import secrets
-from datetime import date, datetime
+from datetime import datetime
+from typing import cast
 
 from sqlalchemy import select, text, update
+from sqlalchemy.engine import CursorResult
 from sqlalchemy.orm import Session, selectinload
 
 from app.core.config import get_settings
 from app.core.errors import api_error
 from app.core.security import utcnow
-from app.domain.enums import LicenseStatus, ProcedureStatus, StepCode, StepStatus
+from app.domain.enums import LicenseStatus, ProcedureStatus, StepStatus
 from app.models.license import License
 from app.models.procedure import LicenseCounter, Procedure
 from app.models.user import User
@@ -222,7 +224,7 @@ def mark_expired(db: Session) -> int:
         .values(status=LicenseStatus.EXPIRED.value)
     )
     db.commit()
-    return int(result.rowcount or 0)
+    return int(cast(CursorResult, result).rowcount or 0)
 
 
 def qr_payload(license_obj: License) -> str:

@@ -7,6 +7,7 @@ from datetime import datetime
 from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from app.core.db import MYSQL_TABLE_OPTIONS
 from app.models.base import Base, BigIntPK, TimestampMixin
 
 
@@ -14,7 +15,10 @@ class Policy(Base, TimestampMixin):
     """Documento legal versionado. Cambiar el texto exige una versión nueva."""
 
     __tablename__ = "policies"
-    __table_args__ = (UniqueConstraint("slug", "version", name="uq_policies_slug_version"),)
+    __table_args__ = (
+        UniqueConstraint("slug", "version", name="uq_policies_slug_version"),
+        MYSQL_TABLE_OPTIONS,
+    )
 
     id: Mapped[int] = mapped_column(BigIntPK, primary_key=True, autoincrement=True)
     slug: Mapped[str] = mapped_column(String(60), index=True, nullable=False)
@@ -34,6 +38,7 @@ class PolicyAcceptance(Base):
     __tablename__ = "policy_acceptances"
     __table_args__ = (
         UniqueConstraint("user_id", "policy_id", name="uq_policy_acceptance_user_policy"),
+        MYSQL_TABLE_OPTIONS,
     )
 
     id: Mapped[int] = mapped_column(BigIntPK, primary_key=True, autoincrement=True)

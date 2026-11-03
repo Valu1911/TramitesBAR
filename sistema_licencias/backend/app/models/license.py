@@ -3,12 +3,17 @@
 from __future__ import annotations
 
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy import DateTime, ForeignKey, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.domain.enums import LicenseStatus
 from app.models.base import Base, BigIntPK, TimestampMixin
+
+if TYPE_CHECKING:
+    from app.models.procedure import Procedure
+    from app.models.user import User
 
 
 class License(Base, TimestampMixin):
@@ -38,8 +43,8 @@ class License(Base, TimestampMixin):
     revoked_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     revocation_reason: Mapped[str | None] = mapped_column(Text, nullable=True)
 
-    procedure: Mapped["Procedure"] = relationship(back_populates="license")  # noqa: F821
-    user: Mapped["User"] = relationship()  # noqa: F821
+    procedure: Mapped[Procedure] = relationship(back_populates="license")  # noqa: F821
+    user: Mapped[User] = relationship()  # noqa: F821
 
 
 __all__ = ["License"]

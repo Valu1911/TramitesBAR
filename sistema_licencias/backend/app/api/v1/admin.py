@@ -9,8 +9,6 @@ from sqlalchemy.orm import Session, selectinload
 
 from app.api.deps import (
     RequestMeta,
-    current_user,
-    rate_limit,
     request_meta,
     require_permission,
     require_staff,
@@ -32,22 +30,26 @@ from app.models.exam import Question
 from app.models.license import License
 from app.models.payment import Payment
 from app.models.policy import Policy
-from app.models.procedure import Appointment, Document, Procedure, ProcedureType
+from app.models.procedure import Appointment, Document, Procedure
 from app.models.user import CitizenProfile, User, UserSession
 from app.schemas.admin import (
     AdminAppointmentOut,
     AppointmentCreateIn,
     AppointmentUpdateIn,
-    AuditOut,
     AuditVerifyOut,
     DashboardOut,
     PolicyCreateIn,
     UserAdminOut,
     UserAdminUpdate,
 )
-from app.schemas.common import MessageOut, PageOut
-from app.schemas.policy import PolicyOut if False else None  # noqa: F401 - placeholder removed
-from app.schemas.procedure import AdminProcedureOut, DocumentOut
+from app.schemas.common import PageOut
+from app.schemas.procedure import (
+    AdminProcedureOut,
+    DeliveryCompleteIn,
+    DocumentOut,
+    DocumentReviewIn,
+    ProcedureRejectIn,
+)
 from app.services import procedures as procedure_service
 from app.services.audit import record_audit, verify_audit_chain
 from app.services.notifications import notify_user, queue_email
@@ -166,17 +168,12 @@ def get_procedure(
 def review_document(
     procedure_id: int,
     document_id: int,
-    data,  # type: ignore[no-untyped-def]
+    data: DocumentReviewIn,
     user: User = Depends(require_staff),
     db: Session = Depends(get_db),
     meta: RequestMeta = Depends(request_meta),
 ) -> DocumentOut:
     """Aprueba o rechaza un documento del expediente."""
-    from app.schemas.procedure import DocumentReviewIn
-
-    if not isinstance(data, DocumentReviewIn):
-        data = DocumentReviewIn.model_validate(data)
-
     procedure = procedure_service.get_procedure_or_404(db, procedure_id, staff=True)
     document = next((item for item in procedure.documents if item.id == document_id), None)
     if document is None:
@@ -204,19 +201,18 @@ def review_document(
 @router.post("/procedures/{procedure_id}/delivery/complete", response_model=AdminProcedureOut)
 def complete_delivery(
     procedure_id: int,
+    data: DeliveryCompleteIn,
     user: User = Depends(require_permission("licenses.issue")),
     db: Session = Depends(get_db),
     meta: RequestMeta = Depends(request_meta),
 ) -> AdminProcedureOut:
     """Confirma la entrega, cierra el trámite y emite la credencial."""
-    from app.schemas.procedure import DeliveryCompleteIn
-
     procedure = procedure_service.get_procedure_or_404(db, procedure_id, staff=True)
     procedure = procedure_service.complete_delivery(
         db,
         procedure,
         actor=user,
-        notes=None,
+        notes=data.notes,
         ip=meta.ip,
         user_agent=meta.user_agent,
     )
@@ -226,16 +222,12 @@ def complete_delivery(
 @router.post("/procedures/{procedure_id}/reject", response_model=AdminProcedureOut)
 def reject_procedure(
     procedure_id: int,
+    data: ProcedureRejectIn,
     user: User = Depends(require_permission("procedures.manage")),
     db: Session = Depends(get_db),
     meta: RequestMeta = Depends(request_meta),
 ) -> AdminProcedureOut:
     """Rechaza un expediente con motivo y libera los turnos reservados."""
-    from app.schemas.procedure import ProcedureRejectIn
-
-    reason = ProcedureRejectIn.model_validate(
-        getattr(reject_procedure, "_pending", None) or {"reason": "Sin motivo"}
-    )
     procedure = procedure_service.get_procedure_or_404(db, procedure_id, staff=True)
     if procedure.status not in {
         ProcedureStatus.IN_PROGRESS.value,
@@ -245,7 +237,7 @@ def reject_procedure(
 
     procedure.status = ProcedureStatus.REJECTED.value
     procedure.current_step = None
-    procedure.rejection_reason = reason.reason
+    procedure.rejection_reason = data.reason
     for appointment in procedure.appointments:
         if appointment.status == "booked":
             appointment.status = "cancelled"
@@ -256,7 +248,7 @@ def reject_procedure(
         entity_id=procedure.id,
         actor_user_id=user.id,
         actor_role=user.role,
-        after={"reason": reason.reason},
+        after={"reason": data.reason},
         ip=meta.ip,
         user_agent=meta.user_agent,
     )
@@ -264,7 +256,7 @@ def reject_procedure(
         db,
         user=procedure.user,
         title="Trámite rechazado",
-        body=f"El trámite {procedure.public_code} fue rechazado. Motivo: {reason.reason}",
+        body=f"El trámite {procedure.public_code} fue rechazado. Motivo: {data.reason}",
         link=f"/panel/tramites/{procedure.id}",
         idempotency_key=f"procedure-rejected-{procedure.id}",
     )

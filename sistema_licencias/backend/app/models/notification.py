@@ -3,11 +3,15 @@
 from __future__ import annotations
 
 from datetime import datetime
+from typing import TYPE_CHECKING
 
-from sqlalchemy import DateTime, ForeignKey, Integer, JSON, String, Text
+from sqlalchemy import JSON, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base, BigIntPK, TimestampMixin
+
+if TYPE_CHECKING:
+    from app.models.user import User
 
 
 class Notification(Base, TimestampMixin):
@@ -24,7 +28,7 @@ class Notification(Base, TimestampMixin):
     link: Mapped[str | None] = mapped_column(String(255), nullable=True)
     read_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
-    user: Mapped["User"] = relationship()  # noqa: F821
+    user: Mapped[User] = relationship()  # noqa: F821
 
 
 class EmailOutbox(Base):

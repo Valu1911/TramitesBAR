@@ -13,12 +13,26 @@ from typing import Any
 from sqlalchemy import create_engine, event
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
+from sqlalchemy.pool import StaticPool
 
 from app.core.config import get_settings
+
+# MySQL 8.4 puede venir con MyISAM como motor por defecto en instalaciones de
+# escritorio. TramitesBAR exige InnoDB por transacciones, claves foráneas y
+# límites de índice más amplios, así que lo fija tabla por tabla. El charset y
+# la colación también se fijan para no depender de la configuración del host.
+MYSQL_TABLE_OPTIONS: dict[str, str] = {
+    "mysql_engine": "InnoDB",
+    "mysql_default_charset": "utf8mb4",
+    "mysql_collate": "utf8mb4_unicode_ci",
+}
 
 
 class Base(DeclarativeBase):
     """Base declarativa de todos los modelos."""
+
+    # SQLAlchemy hereda este diccionario a las tablas que no definen el suyo.
+    __table_args__: Any = MYSQL_TABLE_OPTIONS
 
 
 _engine: Engine | None = None
@@ -38,6 +52,10 @@ def _build_engine() -> Engine:
     kwargs: dict[str, Any] = {"pool_pre_ping": True, "future": True}
     if settings.database_url.startswith("sqlite"):
         kwargs["connect_args"] = {"check_same_thread": False}
+        # La base en memoria vive mientras exista la conexión: StaticPool la
+        # reutiliza para que la API y los tests vean las mismas tablas.
+        if settings.database_url in {"sqlite://", "sqlite:///:memory:"}:
+            kwargs["poolclass"] = StaticPool
     else:
         kwargs.update({"pool_recycle": 1800, "pool_size": 10, "max_overflow": 20})
 
