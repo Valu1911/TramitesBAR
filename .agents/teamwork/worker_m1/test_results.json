@@ -1,0 +1,1169 @@
+{
+  "timestamp": "2026-11-03T09:46:44.132804",
+  "total_tests": 67,
+  "passed": 67,
+  "failed": 0,
+  "modules": {
+    "Diagnóstico de Defectos Críticos Nativos": {
+      "passed": 1,
+      "failed": 0,
+      "tests": [
+        {
+          "module": "Diagnóstico de Defectos Críticos Nativos",
+          "name": "Verificación de Remediación: emitir_licencia_digital funciona nativamente sin NameError (app.py:176)",
+          "status": "PASS",
+          "details": {
+            "qr_code_data": "{\"licencia\": \"91000101\", \"titular\": \"CiudadanoTest BaraderoAuditoria\", \"categoria\": \"B1\", \"vencimiento\": \"2031-11-03\", \"municipio\": \"Baradero\"}",
+            "error": ""
+          }
+        }
+      ]
+    },
+    "Panel Admin Cuentas": {
+      "passed": 15,
+      "failed": 0,
+      "tests": [
+        {
+          "module": "Panel Admin Cuentas",
+          "name": "Login Admin Cuentas (admin_cuentas / admin123)",
+          "status": "PASS",
+          "details": {}
+        },
+        {
+          "module": "Panel Admin Cuentas",
+          "name": "Admin Cuentas: Listar cuentas y métricas (filtro=todos)",
+          "status": "PASS",
+          "details": {
+            "status": 200,
+            "total_usuarios": 193,
+            "pendientes_count": 188,
+            "con_multas_count": 2
+          }
+        },
+        {
+          "module": "Panel Admin Cuentas",
+          "name": "Admin Cuentas: Filtro de listado 'pendiente'",
+          "status": "PASS",
+          "details": {}
+        },
+        {
+          "module": "Panel Admin Cuentas",
+          "name": "Admin Cuentas: Filtro de listado 'aprobada'",
+          "status": "PASS",
+          "details": {}
+        },
+        {
+          "module": "Panel Admin Cuentas",
+          "name": "Admin Cuentas: Filtro de listado 'rechazada_multas'",
+          "status": "PASS",
+          "details": {}
+        },
+        {
+          "module": "Panel Admin Cuentas",
+          "name": "Admin Cuentas: Filtro de listado 'papelera'",
+          "status": "PASS",
+          "details": {}
+        },
+        {
+          "module": "Panel Admin Cuentas",
+          "name": "Admin Cuentas: Registro previo de usuario para auditoría",
+          "status": "PASS",
+          "details": {
+            "user_id": 321,
+            "dni": "91000102"
+          }
+        },
+        {
+          "module": "Panel Admin Cuentas",
+          "name": "Admin Cuentas: Consulta de expediente y ficha de ciudadano",
+          "status": "PASS",
+          "details": {
+            "status": 200,
+            "estado_cuenta": "pendiente"
+          }
+        },
+        {
+          "module": "Panel Admin Cuentas",
+          "name": "Admin Cuentas: Asignación de multas y cambio a 'rechazada_multas'",
+          "status": "PASS",
+          "details": {
+            "response": {
+              "message": "Cuenta de CiudadanoTest actualizada con 2 infracción(es). Notificación enviada."
+            },
+            "db_state": {
+              "estado_cuenta": "rechazada_multas",
+              "multas_cantidad": 2,
+              "multas_monto": 34500.5,
+              "multas_motivo": "Exceso de velocidad en RP41 y cruce con semáforo en rojo"
+            }
+          }
+        },
+        {
+          "module": "Panel Admin Cuentas",
+          "name": "Admin Cuentas: Notificación oficial generada en inbox del ciudadano",
+          "status": "PASS",
+          "details": {
+            "mensaje_inbox": "Estimado/a CiudadanoTest BaraderoAuditoria: Tras consultar las bases de datos de seguridad vial se detectaron 2 infracción(es) pendiente(s) por un monto total de $34,500.50. Motivo: Exceso de velocidad en RP41 y cruce con semáforo en rojo. Por favor, regularice su situación y presione 'Ya pagué' adjuntando su comprobante."
+          }
+        },
+        {
+          "module": "Panel Admin Cuentas",
+          "name": "Admin Cuentas: Recepción de notificación 'Ya Pagué' y comprobante",
+          "status": "PASS",
+          "details": {
+            "status": 200,
+            "db_flag": {
+              "infracciones_pagadas_solicitadas": 1
+            }
+          }
+        },
+        {
+          "module": "Panel Admin Cuentas",
+          "name": "Admin Cuentas: Mensajería bidireccional en tiempo real",
+          "status": "PASS",
+          "details": {}
+        },
+        {
+          "module": "Panel Admin Cuentas",
+          "name": "Admin Cuentas: Aprobación definitiva de cuenta y reseteo de infracciones",
+          "status": "PASS",
+          "details": {
+            "response": {
+              "message": "Cuenta de CiudadanoTest BaraderoAuditoria (DNI: 91000102) aprobada con éxito."
+            },
+            "db_state": {
+              "estado_cuenta": "aprobada",
+              "multas_cantidad": 0,
+              "multas_monto": 0.0
+            }
+          }
+        },
+        {
+          "module": "Panel Admin Cuentas",
+          "name": "Admin Cuentas: Envío de ciudadano a Papelera de reciclaje",
+          "status": "PASS",
+          "details": {}
+        },
+        {
+          "module": "Panel Admin Cuentas",
+          "name": "Admin Cuentas: Restauración / Dar de alta desde papelera",
+          "status": "PASS",
+          "details": {}
+        }
+      ]
+    },
+    "Panel Admin Salud": {
+      "passed": 5,
+      "failed": 0,
+      "tests": [
+        {
+          "module": "Panel Admin Salud",
+          "name": "Login Admin Salud (admin_salud / admin123)",
+          "status": "PASS",
+          "details": {}
+        },
+        {
+          "module": "Panel Admin Salud",
+          "name": "Admin Salud: Listar DDJJ y certificados de aptitud física",
+          "status": "PASS",
+          "details": {
+            "status": 200,
+            "pendientes": 0
+          }
+        },
+        {
+          "module": "Panel Admin Salud",
+          "name": "Admin Salud: Rechazo de DDJJ de salud con observaciones clínicas",
+          "status": "PASS",
+          "details": {
+            "observaciones": "Certificado médico borroso o sin firma del profesional actuante"
+          }
+        },
+        {
+          "module": "Panel Admin Salud",
+          "name": "Admin Salud: Aprobación de Apto Médico y avance automático a Examen",
+          "status": "PASS",
+          "details": {
+            "form_estado": "aprobado",
+            "tramite_nuevo_paso": "examen"
+          }
+        },
+        {
+          "module": "Panel Admin Salud",
+          "name": "Admin Salud: Aprobación en Renovación avanza directamente a 'pago' (bypasea examen)",
+          "status": "PASS",
+          "details": {
+            "paso_actual_renovacion": "pago"
+          }
+        }
+      ]
+    },
+    "Panel Admin Pagos": {
+      "passed": 5,
+      "failed": 0,
+      "tests": [
+        {
+          "module": "Panel Admin Pagos",
+          "name": "Login Admin Pagos (admin_pagos / admin123)",
+          "status": "PASS",
+          "details": {}
+        },
+        {
+          "module": "Panel Admin Pagos",
+          "name": "Admin Pagos: Listar pagos y comprobantes arancelarios",
+          "status": "PASS",
+          "details": {
+            "status": 200,
+            "pendientes": 0
+          }
+        },
+        {
+          "module": "Panel Admin Pagos",
+          "name": "Admin Pagos: Rechazo de pago con motivo fundado",
+          "status": "PASS",
+          "details": {
+            "observaciones": "Importe transferido no coincide con el arancel municipal oficial de $12.500"
+          }
+        },
+        {
+          "module": "Panel Admin Pagos",
+          "name": "Admin Pagos: Aprobación de arancel y avance a Examen Práctico (Licencia Nueva)",
+          "status": "PASS",
+          "details": {
+            "estado_pago": "aprobado",
+            "nuevo_paso": "practico"
+          }
+        },
+        {
+          "module": "Panel Admin Pagos",
+          "name": "Admin Pagos: Aprobación en Renovación emite licencia digital y completa trámite",
+          "status": "PASS",
+          "details": {
+            "tramite_paso": "entrega",
+            "tramite_estado": "completado",
+            "licencia_emitida": true
+          }
+        }
+      ]
+    },
+    "Panel Admin Turnos": {
+      "passed": 4,
+      "failed": 0,
+      "tests": [
+        {
+          "module": "Panel Admin Turnos",
+          "name": "Login Admin Turnos (admin_turnos / admin123)",
+          "status": "PASS",
+          "details": {}
+        },
+        {
+          "module": "Panel Admin Turnos",
+          "name": "Admin Turnos: Listar agenda de turnos prácticos y reservas",
+          "status": "PASS",
+          "details": {
+            "status": 200,
+            "pendientes": 0
+          }
+        },
+        {
+          "module": "Panel Admin Turnos",
+          "name": "Admin Turnos: Calificación práctica desaprobada",
+          "status": "PASS",
+          "details": {
+            "db_reserva": {
+              "estado": "rechazado",
+              "resultado_examen": "desaprobado"
+            }
+          }
+        },
+        {
+          "module": "Panel Admin Turnos",
+          "name": "Admin Turnos: Validación biométrica (huella + foto) y aprobación práctica con emisión",
+          "status": "PASS",
+          "details": {
+            "reserva": {
+              "estado": "completado",
+              "resultado_examen": "aprobado",
+              "huella_tomada": 1,
+              "foto_tomada": 1
+            },
+            "tramite": {
+              "paso_actual": "entrega",
+              "estado": "completado"
+            },
+            "licencia_emitida": true
+          }
+        }
+      ]
+    },
+    "Panel Admin Profesores": {
+      "passed": 10,
+      "failed": 0,
+      "tests": [
+        {
+          "module": "Panel Admin Profesores",
+          "name": "Login Admin Profesores (admin_profesores / admin123)",
+          "status": "PASS",
+          "details": {}
+        },
+        {
+          "module": "Panel Admin Profesores",
+          "name": "Admin Profesores: Obtener configuración de examen teórico",
+          "status": "PASS",
+          "details": {}
+        },
+        {
+          "module": "Panel Admin Profesores",
+          "name": "Admin Profesores: Modificar modo a examen híbrido (plantilla + profesor)",
+          "status": "PASS",
+          "details": {
+            "db_config": {
+              "modo": "hibrido",
+              "cant_plantilla": 3,
+              "cant_profesor": 2
+            }
+          }
+        },
+        {
+          "module": "Panel Admin Profesores",
+          "name": "Admin Profesores: Crear nueva pregunta evaluativa personalizada",
+          "status": "PASS",
+          "details": {
+            "new_qid": 85
+          }
+        },
+        {
+          "module": "Panel Admin Profesores",
+          "name": "Admin Profesores: Editar contenido de pregunta evaluativa",
+          "status": "PASS",
+          "details": {}
+        },
+        {
+          "module": "Panel Admin Profesores",
+          "name": "Admin Profesores: Vista previa (preview) del simulador de examen",
+          "status": "PASS",
+          "details": {
+            "total_preview": 5
+          }
+        },
+        {
+          "module": "Panel Admin Profesores",
+          "name": "Admin Profesores: Monitoreo en vivo (telemetría de cámara, foco y tiempos)",
+          "status": "PASS",
+          "details": {}
+        },
+        {
+          "module": "Panel Admin Profesores",
+          "name": "Admin Profesores: Expulsión disciplinaria de examen y notificación formal",
+          "status": "PASS",
+          "details": {
+            "db_expulsion": {
+              "expulsado": 1,
+              "motivo_expulsion": "Detección de múltiples pestañas abiertas y uso de IA no autorizada"
+            },
+            "mensaje_registrado": true
+          }
+        },
+        {
+          "module": "Panel Admin Profesores",
+          "name": "Admin Profesores: Canal de chat directo profesor-alumno",
+          "status": "PASS",
+          "details": {}
+        },
+        {
+          "module": "Panel Admin Profesores",
+          "name": "Admin Profesores: Restauración de banco de preguntas base de Baradero",
+          "status": "PASS",
+          "details": {}
+        }
+      ]
+    },
+    "Flujo Completo Trámite: Licencia Nueva (Pasos 1 a 7)": {
+      "passed": 18,
+      "failed": 0,
+      "tests": [
+        {
+          "module": "Flujo Completo Trámite: Licencia Nueva (Pasos 1 a 7)",
+          "name": "Paso 0: Alta y Registro de Ciudadano (Licencia Nueva)",
+          "status": "PASS",
+          "details": {}
+        },
+        {
+          "module": "Flujo Completo Trámite: Licencia Nueva (Pasos 1 a 7)",
+          "name": "Paso 0: Aprobación de Cuenta y habilitación para trámites",
+          "status": "PASS",
+          "details": {}
+        },
+        {
+          "module": "Flujo Completo Trámite: Licencia Nueva (Pasos 1 a 7)",
+          "name": "Paso 1: Obtener catálogo de charlas de seguridad vial",
+          "status": "PASS",
+          "details": {
+            "cantidad_videos": 4
+          }
+        },
+        {
+          "module": "Flujo Completo Trámite: Licencia Nueva (Pasos 1 a 7)",
+          "name": "Paso 1: Bloqueo de avance en videos fuera de orden secuencial",
+          "status": "PASS",
+          "details": {
+            "status": 400,
+            "resp": {
+              "error": "Debés ver los videos anteriores primero"
+            }
+          }
+        },
+        {
+          "module": "Flujo Completo Trámite: Licencia Nueva (Pasos 1 a 7)",
+          "name": "Paso 1: Charlas completadas y transición automática a 'formularios'",
+          "status": "PASS",
+          "details": {
+            "paso_actual": "formularios"
+          }
+        },
+        {
+          "module": "Flujo Completo Trámite: Licencia Nueva (Pasos 1 a 7)",
+          "name": "Paso 2: Presentación de Declaración Jurada Médica y Certificado",
+          "status": "PASS",
+          "details": {}
+        },
+        {
+          "module": "Flujo Completo Trámite: Licencia Nueva (Pasos 1 a 7)",
+          "name": "Paso 2: Dictamen de Apto Médico y transición a 'examen'",
+          "status": "PASS",
+          "details": {
+            "paso_actual": "examen"
+          }
+        },
+        {
+          "module": "Flujo Completo Trámite: Licencia Nueva (Pasos 1 a 7)",
+          "name": "Paso 3: Obtención de preguntas aleatorias para el examen teórico",
+          "status": "PASS",
+          "details": {
+            "total_preguntas": 5
+          }
+        },
+        {
+          "module": "Flujo Completo Trámite: Licencia Nueva (Pasos 1 a 7)",
+          "name": "Paso 3: Rendición y aprobación de examen teórico con transición a 'pago'",
+          "status": "PASS",
+          "details": {
+            "puntaje": 5,
+            "paso_actual": "pago"
+          }
+        },
+        {
+          "module": "Flujo Completo Trámite: Licencia Nueva (Pasos 1 a 7)",
+          "name": "Paso 4: Consulta de arancel oficial ($12.500) y datos bancarios CEPAT",
+          "status": "PASS",
+          "details": {}
+        },
+        {
+          "module": "Flujo Completo Trámite: Licencia Nueva (Pasos 1 a 7)",
+          "name": "Paso 4: Envío de comprobante de transferencia bancaria",
+          "status": "PASS",
+          "details": {}
+        },
+        {
+          "module": "Flujo Completo Trámite: Licencia Nueva (Pasos 1 a 7)",
+          "name": "Paso 4: Aprobación contable del arancel y transición a 'practico'",
+          "status": "PASS",
+          "details": {
+            "paso_actual": "practico"
+          }
+        },
+        {
+          "module": "Flujo Completo Trámite: Licencia Nueva (Pasos 1 a 7)",
+          "name": "Paso 5: Consulta de turnos y cupos disponibles en circuito municipal",
+          "status": "PASS",
+          "details": {}
+        },
+        {
+          "module": "Flujo Completo Trámite: Licencia Nueva (Pasos 1 a 7)",
+          "name": "Paso 5: Reserva de fecha y horario para examen de manejo",
+          "status": "PASS",
+          "details": {}
+        },
+        {
+          "module": "Flujo Completo Trámite: Licencia Nueva (Pasos 1 a 7)",
+          "name": "Paso 5: Toma biométrica y calificación práctica aprobada (avance a entrega/completado)",
+          "status": "PASS",
+          "details": {
+            "paso_actual": "entrega",
+            "estado": "completado"
+          }
+        },
+        {
+          "module": "Flujo Completo Trámite: Licencia Nueva (Pasos 1 a 7)",
+          "name": "Paso 6: Validación estricta de dirección para envío a domicilio",
+          "status": "PASS",
+          "details": {}
+        },
+        {
+          "module": "Flujo Completo Trámite: Licencia Nueva (Pasos 1 a 7)",
+          "name": "Paso 6: Registro de solicitud de entrega y finalización del trámite",
+          "status": "PASS",
+          "details": {}
+        },
+        {
+          "module": "Flujo Completo Trámite: Licencia Nueva (Pasos 1 a 7)",
+          "name": "Paso 7: Credencial digital emitida con QR, categoría B1 y vigencia PBA exacta (5 años)",
+          "status": "PASS",
+          "details": {
+            "numero_licencia": "91000109",
+            "fecha_emision": "2026-11-03",
+            "fecha_vencimiento": "2031-11-03",
+            "dias_vigencia_anios": 5
+          }
+        }
+      ]
+    },
+    "Flujo Completo Trámite: Renovación Abreviada": {
+      "passed": 5,
+      "failed": 0,
+      "tests": [
+        {
+          "module": "Flujo Completo Trámite: Renovación Abreviada",
+          "name": "Renovación: Alta con tipo 'renovacion' (adulto mayor PBA, 71 años)",
+          "status": "PASS",
+          "details": {}
+        },
+        {
+          "module": "Flujo Completo Trámite: Renovación Abreviada",
+          "name": "Renovación: Inicio directo en 'formularios' omitiendo charlas obligatorias",
+          "status": "PASS",
+          "details": {}
+        },
+        {
+          "module": "Flujo Completo Trámite: Renovación Abreviada",
+          "name": "Renovación: Aprobación médica avanza directamente a 'pago' omitiendo examen teórico",
+          "status": "PASS",
+          "details": {}
+        },
+        {
+          "module": "Flujo Completo Trámite: Renovación Abreviada",
+          "name": "Renovación: Aprobación de pago emite credencial digital directamente (omite práctico)",
+          "status": "PASS",
+          "details": {}
+        },
+        {
+          "module": "Flujo Completo Trámite: Renovación Abreviada",
+          "name": "Renovación: Vigencia PBA para mayores de 70 años calculada exactamente a 1 año",
+          "status": "PASS",
+          "details": {
+            "fecha_emision": "2026-11-03",
+            "fecha_vencimiento": "2027-11-03"
+          }
+        }
+      ]
+    },
+    "Secuenciamiento de Pasos, Stub y Boundaries": {
+      "passed": 4,
+      "failed": 0,
+      "tests": [
+        {
+          "module": "Secuenciamiento de Pasos, Stub y Boundaries",
+          "name": "Control de Secuencialidad 'puede_acceder_paso': Bloquea invocar examen (HTTP 403) sin cursar charlas ni salud",
+          "status": "PASS",
+          "details": {
+            "status": 403,
+            "resp": {
+              "error": "No podés acceder a este paso"
+            }
+          }
+        },
+        {
+          "module": "Secuenciamiento de Pasos, Stub y Boundaries",
+          "name": "Análisis de Endpoint 'saltar-paso': Permite completar trámite de forma arbitraria",
+          "status": "PASS",
+          "details": {
+            "status": 200,
+            "tramite_estado": {
+              "paso_actual": "finalizado",
+              "estado": "completado"
+            }
+          },
+          "observation": "CUELLO DE BOTELLA/BYPASS: El endpoint `/api/tramite/saltar-paso` (diseñado para demos de desarrollo) se encuentra accesible a usuarios normales sin privilegios de administrador ni verificación de entorno."
+        },
+        {
+          "module": "Secuenciamiento de Pasos, Stub y Boundaries",
+          "name": "Control de Multas en Endpoints: Permite ver progreso en Dashboard (200) pero bloquea avance de trámite (403)",
+          "status": "PASS",
+          "details": {
+            "progreso_status": 200,
+            "avance_status": 403
+          }
+        },
+        {
+          "module": "Secuenciamiento de Pasos, Stub y Boundaries",
+          "name": "Correlación Frontend-Backend: Endpoints /api/user/preferences y /api/user/activity operativos (HTTP 200/201)",
+          "status": "PASS",
+          "details": {
+            "get_prefs": 200,
+            "put_prefs": 200,
+            "post_act": 201
+          }
+        }
+      ]
+    }
+  },
+  "critical_defects": [],
+  "architectural_observations": [
+    {
+      "module": "Secuenciamiento de Pasos, Stub y Boundaries",
+      "test": "Análisis de Endpoint 'saltar-paso': Permite completar trámite de forma arbitraria",
+      "observation": "CUELLO DE BOTELLA/BYPASS: El endpoint `/api/tramite/saltar-paso` (diseñado para demos de desarrollo) se encuentra accesible a usuarios normales sin privilegios de administrador ni verificación de entorno."
+    }
+  ],
+  "details": [
+    {
+      "module": "Diagnóstico de Defectos Críticos Nativos",
+      "name": "Verificación de Remediación: emitir_licencia_digital funciona nativamente sin NameError (app.py:176)",
+      "status": "PASS",
+      "details": {
+        "qr_code_data": "{\"licencia\": \"91000101\", \"titular\": \"CiudadanoTest BaraderoAuditoria\", \"categoria\": \"B1\", \"vencimiento\": \"2031-11-03\", \"municipio\": \"Baradero\"}",
+        "error": ""
+      }
+    },
+    {
+      "module": "Panel Admin Cuentas",
+      "name": "Login Admin Cuentas (admin_cuentas / admin123)",
+      "status": "PASS",
+      "details": {}
+    },
+    {
+      "module": "Panel Admin Cuentas",
+      "name": "Admin Cuentas: Listar cuentas y métricas (filtro=todos)",
+      "status": "PASS",
+      "details": {
+        "status": 200,
+        "total_usuarios": 193,
+        "pendientes_count": 188,
+        "con_multas_count": 2
+      }
+    },
+    {
+      "module": "Panel Admin Cuentas",
+      "name": "Admin Cuentas: Filtro de listado 'pendiente'",
+      "status": "PASS",
+      "details": {}
+    },
+    {
+      "module": "Panel Admin Cuentas",
+      "name": "Admin Cuentas: Filtro de listado 'aprobada'",
+      "status": "PASS",
+      "details": {}
+    },
+    {
+      "module": "Panel Admin Cuentas",
+      "name": "Admin Cuentas: Filtro de listado 'rechazada_multas'",
+      "status": "PASS",
+      "details": {}
+    },
+    {
+      "module": "Panel Admin Cuentas",
+      "name": "Admin Cuentas: Filtro de listado 'papelera'",
+      "status": "PASS",
+      "details": {}
+    },
+    {
+      "module": "Panel Admin Cuentas",
+      "name": "Admin Cuentas: Registro previo de usuario para auditoría",
+      "status": "PASS",
+      "details": {
+        "user_id": 321,
+        "dni": "91000102"
+      }
+    },
+    {
+      "module": "Panel Admin Cuentas",
+      "name": "Admin Cuentas: Consulta de expediente y ficha de ciudadano",
+      "status": "PASS",
+      "details": {
+        "status": 200,
+        "estado_cuenta": "pendiente"
+      }
+    },
+    {
+      "module": "Panel Admin Cuentas",
+      "name": "Admin Cuentas: Asignación de multas y cambio a 'rechazada_multas'",
+      "status": "PASS",
+      "details": {
+        "response": {
+          "message": "Cuenta de CiudadanoTest actualizada con 2 infracción(es). Notificación enviada."
+        },
+        "db_state": {
+          "estado_cuenta": "rechazada_multas",
+          "multas_cantidad": 2,
+          "multas_monto": 34500.5,
+          "multas_motivo": "Exceso de velocidad en RP41 y cruce con semáforo en rojo"
+        }
+      }
+    },
+    {
+      "module": "Panel Admin Cuentas",
+      "name": "Admin Cuentas: Notificación oficial generada en inbox del ciudadano",
+      "status": "PASS",
+      "details": {
+        "mensaje_inbox": "Estimado/a CiudadanoTest BaraderoAuditoria: Tras consultar las bases de datos de seguridad vial se detectaron 2 infracción(es) pendiente(s) por un monto total de $34,500.50. Motivo: Exceso de velocidad en RP41 y cruce con semáforo en rojo. Por favor, regularice su situación y presione 'Ya pagué' adjuntando su comprobante."
+      }
+    },
+    {
+      "module": "Panel Admin Cuentas",
+      "name": "Admin Cuentas: Recepción de notificación 'Ya Pagué' y comprobante",
+      "status": "PASS",
+      "details": {
+        "status": 200,
+        "db_flag": {
+          "infracciones_pagadas_solicitadas": 1
+        }
+      }
+    },
+    {
+      "module": "Panel Admin Cuentas",
+      "name": "Admin Cuentas: Mensajería bidireccional en tiempo real",
+      "status": "PASS",
+      "details": {}
+    },
+    {
+      "module": "Panel Admin Cuentas",
+      "name": "Admin Cuentas: Aprobación definitiva de cuenta y reseteo de infracciones",
+      "status": "PASS",
+      "details": {
+        "response": {
+          "message": "Cuenta de CiudadanoTest BaraderoAuditoria (DNI: 91000102) aprobada con éxito."
+        },
+        "db_state": {
+          "estado_cuenta": "aprobada",
+          "multas_cantidad": 0,
+          "multas_monto": 0.0
+        }
+      }
+    },
+    {
+      "module": "Panel Admin Cuentas",
+      "name": "Admin Cuentas: Envío de ciudadano a Papelera de reciclaje",
+      "status": "PASS",
+      "details": {}
+    },
+    {
+      "module": "Panel Admin Cuentas",
+      "name": "Admin Cuentas: Restauración / Dar de alta desde papelera",
+      "status": "PASS",
+      "details": {}
+    },
+    {
+      "module": "Panel Admin Salud",
+      "name": "Login Admin Salud (admin_salud / admin123)",
+      "status": "PASS",
+      "details": {}
+    },
+    {
+      "module": "Panel Admin Salud",
+      "name": "Admin Salud: Listar DDJJ y certificados de aptitud física",
+      "status": "PASS",
+      "details": {
+        "status": 200,
+        "pendientes": 0
+      }
+    },
+    {
+      "module": "Panel Admin Salud",
+      "name": "Admin Salud: Rechazo de DDJJ de salud con observaciones clínicas",
+      "status": "PASS",
+      "details": {
+        "observaciones": "Certificado médico borroso o sin firma del profesional actuante"
+      }
+    },
+    {
+      "module": "Panel Admin Salud",
+      "name": "Admin Salud: Aprobación de Apto Médico y avance automático a Examen",
+      "status": "PASS",
+      "details": {
+        "form_estado": "aprobado",
+        "tramite_nuevo_paso": "examen"
+      }
+    },
+    {
+      "module": "Panel Admin Salud",
+      "name": "Admin Salud: Aprobación en Renovación avanza directamente a 'pago' (bypasea examen)",
+      "status": "PASS",
+      "details": {
+        "paso_actual_renovacion": "pago"
+      }
+    },
+    {
+      "module": "Panel Admin Pagos",
+      "name": "Login Admin Pagos (admin_pagos / admin123)",
+      "status": "PASS",
+      "details": {}
+    },
+    {
+      "module": "Panel Admin Pagos",
+      "name": "Admin Pagos: Listar pagos y comprobantes arancelarios",
+      "status": "PASS",
+      "details": {
+        "status": 200,
+        "pendientes": 0
+      }
+    },
+    {
+      "module": "Panel Admin Pagos",
+      "name": "Admin Pagos: Rechazo de pago con motivo fundado",
+      "status": "PASS",
+      "details": {
+        "observaciones": "Importe transferido no coincide con el arancel municipal oficial de $12.500"
+      }
+    },
+    {
+      "module": "Panel Admin Pagos",
+      "name": "Admin Pagos: Aprobación de arancel y avance a Examen Práctico (Licencia Nueva)",
+      "status": "PASS",
+      "details": {
+        "estado_pago": "aprobado",
+        "nuevo_paso": "practico"
+      }
+    },
+    {
+      "module": "Panel Admin Pagos",
+      "name": "Admin Pagos: Aprobación en Renovación emite licencia digital y completa trámite",
+      "status": "PASS",
+      "details": {
+        "tramite_paso": "entrega",
+        "tramite_estado": "completado",
+        "licencia_emitida": true
+      }
+    },
+    {
+      "module": "Panel Admin Turnos",
+      "name": "Login Admin Turnos (admin_turnos / admin123)",
+      "status": "PASS",
+      "details": {}
+    },
+    {
+      "module": "Panel Admin Turnos",
+      "name": "Admin Turnos: Listar agenda de turnos prácticos y reservas",
+      "status": "PASS",
+      "details": {
+        "status": 200,
+        "pendientes": 0
+      }
+    },
+    {
+      "module": "Panel Admin Turnos",
+      "name": "Admin Turnos: Calificación práctica desaprobada",
+      "status": "PASS",
+      "details": {
+        "db_reserva": {
+          "estado": "rechazado",
+          "resultado_examen": "desaprobado"
+        }
+      }
+    },
+    {
+      "module": "Panel Admin Turnos",
+      "name": "Admin Turnos: Validación biométrica (huella + foto) y aprobación práctica con emisión",
+      "status": "PASS",
+      "details": {
+        "reserva": {
+          "estado": "completado",
+          "resultado_examen": "aprobado",
+          "huella_tomada": 1,
+          "foto_tomada": 1
+        },
+        "tramite": {
+          "paso_actual": "entrega",
+          "estado": "completado"
+        },
+        "licencia_emitida": true
+      }
+    },
+    {
+      "module": "Panel Admin Profesores",
+      "name": "Login Admin Profesores (admin_profesores / admin123)",
+      "status": "PASS",
+      "details": {}
+    },
+    {
+      "module": "Panel Admin Profesores",
+      "name": "Admin Profesores: Obtener configuración de examen teórico",
+      "status": "PASS",
+      "details": {}
+    },
+    {
+      "module": "Panel Admin Profesores",
+      "name": "Admin Profesores: Modificar modo a examen híbrido (plantilla + profesor)",
+      "status": "PASS",
+      "details": {
+        "db_config": {
+          "modo": "hibrido",
+          "cant_plantilla": 3,
+          "cant_profesor": 2
+        }
+      }
+    },
+    {
+      "module": "Panel Admin Profesores",
+      "name": "Admin Profesores: Crear nueva pregunta evaluativa personalizada",
+      "status": "PASS",
+      "details": {
+        "new_qid": 85
+      }
+    },
+    {
+      "module": "Panel Admin Profesores",
+      "name": "Admin Profesores: Editar contenido de pregunta evaluativa",
+      "status": "PASS",
+      "details": {}
+    },
+    {
+      "module": "Panel Admin Profesores",
+      "name": "Admin Profesores: Vista previa (preview) del simulador de examen",
+      "status": "PASS",
+      "details": {
+        "total_preview": 5
+      }
+    },
+    {
+      "module": "Panel Admin Profesores",
+      "name": "Admin Profesores: Monitoreo en vivo (telemetría de cámara, foco y tiempos)",
+      "status": "PASS",
+      "details": {}
+    },
+    {
+      "module": "Panel Admin Profesores",
+      "name": "Admin Profesores: Expulsión disciplinaria de examen y notificación formal",
+      "status": "PASS",
+      "details": {
+        "db_expulsion": {
+          "expulsado": 1,
+          "motivo_expulsion": "Detección de múltiples pestañas abiertas y uso de IA no autorizada"
+        },
+        "mensaje_registrado": true
+      }
+    },
+    {
+      "module": "Panel Admin Profesores",
+      "name": "Admin Profesores: Canal de chat directo profesor-alumno",
+      "status": "PASS",
+      "details": {}
+    },
+    {
+      "module": "Panel Admin Profesores",
+      "name": "Admin Profesores: Restauración de banco de preguntas base de Baradero",
+      "status": "PASS",
+      "details": {}
+    },
+    {
+      "module": "Flujo Completo Trámite: Licencia Nueva (Pasos 1 a 7)",
+      "name": "Paso 0: Alta y Registro de Ciudadano (Licencia Nueva)",
+      "status": "PASS",
+      "details": {}
+    },
+    {
+      "module": "Flujo Completo Trámite: Licencia Nueva (Pasos 1 a 7)",
+      "name": "Paso 0: Aprobación de Cuenta y habilitación para trámites",
+      "status": "PASS",
+      "details": {}
+    },
+    {
+      "module": "Flujo Completo Trámite: Licencia Nueva (Pasos 1 a 7)",
+      "name": "Paso 1: Obtener catálogo de charlas de seguridad vial",
+      "status": "PASS",
+      "details": {
+        "cantidad_videos": 4
+      }
+    },
+    {
+      "module": "Flujo Completo Trámite: Licencia Nueva (Pasos 1 a 7)",
+      "name": "Paso 1: Bloqueo de avance en videos fuera de orden secuencial",
+      "status": "PASS",
+      "details": {
+        "status": 400,
+        "resp": {
+          "error": "Debés ver los videos anteriores primero"
+        }
+      }
+    },
+    {
+      "module": "Flujo Completo Trámite: Licencia Nueva (Pasos 1 a 7)",
+      "name": "Paso 1: Charlas completadas y transición automática a 'formularios'",
+      "status": "PASS",
+      "details": {
+        "paso_actual": "formularios"
+      }
+    },
+    {
+      "module": "Flujo Completo Trámite: Licencia Nueva (Pasos 1 a 7)",
+      "name": "Paso 2: Presentación de Declaración Jurada Médica y Certificado",
+      "status": "PASS",
+      "details": {}
+    },
+    {
+      "module": "Flujo Completo Trámite: Licencia Nueva (Pasos 1 a 7)",
+      "name": "Paso 2: Dictamen de Apto Médico y transición a 'examen'",
+      "status": "PASS",
+      "details": {
+        "paso_actual": "examen"
+      }
+    },
+    {
+      "module": "Flujo Completo Trámite: Licencia Nueva (Pasos 1 a 7)",
+      "name": "Paso 3: Obtención de preguntas aleatorias para el examen teórico",
+      "status": "PASS",
+      "details": {
+        "total_preguntas": 5
+      }
+    },
+    {
+      "module": "Flujo Completo Trámite: Licencia Nueva (Pasos 1 a 7)",
+      "name": "Paso 3: Rendición y aprobación de examen teórico con transición a 'pago'",
+      "status": "PASS",
+      "details": {
+        "puntaje": 5,
+        "paso_actual": "pago"
+      }
+    },
+    {
+      "module": "Flujo Completo Trámite: Licencia Nueva (Pasos 1 a 7)",
+      "name": "Paso 4: Consulta de arancel oficial ($12.500) y datos bancarios CEPAT",
+      "status": "PASS",
+      "details": {}
+    },
+    {
+      "module": "Flujo Completo Trámite: Licencia Nueva (Pasos 1 a 7)",
+      "name": "Paso 4: Envío de comprobante de transferencia bancaria",
+      "status": "PASS",
+      "details": {}
+    },
+    {
+      "module": "Flujo Completo Trámite: Licencia Nueva (Pasos 1 a 7)",
+      "name": "Paso 4: Aprobación contable del arancel y transición a 'practico'",
+      "status": "PASS",
+      "details": {
+        "paso_actual": "practico"
+      }
+    },
+    {
+      "module": "Flujo Completo Trámite: Licencia Nueva (Pasos 1 a 7)",
+      "name": "Paso 5: Consulta de turnos y cupos disponibles en circuito municipal",
+      "status": "PASS",
+      "details": {}
+    },
+    {
+      "module": "Flujo Completo Trámite: Licencia Nueva (Pasos 1 a 7)",
+      "name": "Paso 5: Reserva de fecha y horario para examen de manejo",
+      "status": "PASS",
+      "details": {}
+    },
+    {
+      "module": "Flujo Completo Trámite: Licencia Nueva (Pasos 1 a 7)",
+      "name": "Paso 5: Toma biométrica y calificación práctica aprobada (avance a entrega/completado)",
+      "status": "PASS",
+      "details": {
+        "paso_actual": "entrega",
+        "estado": "completado"
+      }
+    },
+    {
+      "module": "Flujo Completo Trámite: Licencia Nueva (Pasos 1 a 7)",
+      "name": "Paso 6: Validación estricta de dirección para envío a domicilio",
+      "status": "PASS",
+      "details": {}
+    },
+    {
+      "module": "Flujo Completo Trámite: Licencia Nueva (Pasos 1 a 7)",
+      "name": "Paso 6: Registro de solicitud de entrega y finalización del trámite",
+      "status": "PASS",
+      "details": {}
+    },
+    {
+      "module": "Flujo Completo Trámite: Licencia Nueva (Pasos 1 a 7)",
+      "name": "Paso 7: Credencial digital emitida con QR, categoría B1 y vigencia PBA exacta (5 años)",
+      "status": "PASS",
+      "details": {
+        "numero_licencia": "91000109",
+        "fecha_emision": "2026-11-03",
+        "fecha_vencimiento": "2031-11-03",
+        "dias_vigencia_anios": 5
+      }
+    },
+    {
+      "module": "Flujo Completo Trámite: Renovación Abreviada",
+      "name": "Renovación: Alta con tipo 'renovacion' (adulto mayor PBA, 71 años)",
+      "status": "PASS",
+      "details": {}
+    },
+    {
+      "module": "Flujo Completo Trámite: Renovación Abreviada",
+      "name": "Renovación: Inicio directo en 'formularios' omitiendo charlas obligatorias",
+      "status": "PASS",
+      "details": {}
+    },
+    {
+      "module": "Flujo Completo Trámite: Renovación Abreviada",
+      "name": "Renovación: Aprobación médica avanza directamente a 'pago' omitiendo examen teórico",
+      "status": "PASS",
+      "details": {}
+    },
+    {
+      "module": "Flujo Completo Trámite: Renovación Abreviada",
+      "name": "Renovación: Aprobación de pago emite credencial digital directamente (omite práctico)",
+      "status": "PASS",
+      "details": {}
+    },
+    {
+      "module": "Flujo Completo Trámite: Renovación Abreviada",
+      "name": "Renovación: Vigencia PBA para mayores de 70 años calculada exactamente a 1 año",
+      "status": "PASS",
+      "details": {
+        "fecha_emision": "2026-11-03",
+        "fecha_vencimiento": "2027-11-03"
+      }
+    },
+    {
+      "module": "Secuenciamiento de Pasos, Stub y Boundaries",
+      "name": "Control de Secuencialidad 'puede_acceder_paso': Bloquea invocar examen (HTTP 403) sin cursar charlas ni salud",
+      "status": "PASS",
+      "details": {
+        "status": 403,
+        "resp": {
+          "error": "No podés acceder a este paso"
+        }
+      }
+    },
+    {
+      "module": "Secuenciamiento de Pasos, Stub y Boundaries",
+      "name": "Análisis de Endpoint 'saltar-paso': Permite completar trámite de forma arbitraria",
+      "status": "PASS",
+      "details": {
+        "status": 200,
+        "tramite_estado": {
+          "paso_actual": "finalizado",
+          "estado": "completado"
+        }
+      },
+      "observation": "CUELLO DE BOTELLA/BYPASS: El endpoint `/api/tramite/saltar-paso` (diseñado para demos de desarrollo) se encuentra accesible a usuarios normales sin privilegios de administrador ni verificación de entorno."
+    },
+    {
+      "module": "Secuenciamiento de Pasos, Stub y Boundaries",
+      "name": "Control de Multas en Endpoints: Permite ver progreso en Dashboard (200) pero bloquea avance de trámite (403)",
+      "status": "PASS",
+      "details": {
+        "progreso_status": 200,
+        "avance_status": 403
+      }
+    },
+    {
+      "module": "Secuenciamiento de Pasos, Stub y Boundaries",
+      "name": "Correlación Frontend-Backend: Endpoints /api/user/preferences y /api/user/activity operativos (HTTP 200/201)",
+      "status": "PASS",
+      "details": {
+        "get_prefs": 200,
+        "put_prefs": 200,
+        "post_act": 201
+      }
+    }
+  ],
+  "elapsed_seconds": 4.48
+}

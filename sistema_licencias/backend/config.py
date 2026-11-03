@@ -1,14 +1,8 @@
 # -*- coding: utf-8 -*-
 """
 Configuración de base de datos y constantes del sistema.
-Base de datos: MySQL (WampServer).
+Base de datos: SQLite (integrada, sin configuración externa).
 """
-
-MYSQL_HOST = 'localhost'
-MYSQL_PORT = 3306
-MYSQL_USER = 'root'
-MYSQL_PASSWORD = ''
-MYSQL_DB = 'tramites_bar'
 
 SECRET_KEY = 'tramites_baradero_2026_secret_key_change_in_production'
 JWT_EXPIRATION_HOURS = 24

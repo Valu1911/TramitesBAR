@@ -56,6 +56,14 @@ def token_required(f):
         data = decode_token(token)
         if not data:
             return jsonify({'error': 'Token inválido o expirado'}), 401
+        if 'id' not in data and 'usuario_id' in data:
+            data['id'] = data['usuario_id']
+        if request.path.startswith(('/api/charlas/', '/api/formularios/', '/api/examen/', '/api/pagos/', '/api/turnos/', '/api/entrega/', '/api/tramite/saltar-paso')):
+            uid = data.get('usuario_id') or data.get('id')
+            if uid:
+                u_row = execute_query("SELECT estado_cuenta FROM usuarios WHERE id=?", (uid,), fetch_one=True)
+                if u_row and u_row.get('estado_cuenta') in ('rechazada_multas', 'papelera'):
+                    return jsonify({'error': 'Tu cuenta registra infracciones de tránsito pendientes o restricciones administrativas. Regularizá tu situación en el panel principal antes de avanzar.'}), 403
         request.user_data = data
         return f(*args, **kwargs)
     return decorated
@@ -140,6 +148,12 @@ def get_paso_index(paso, tipo='nueva'):
 
 
 def puede_acceder_paso(paso_actual, paso_solicitado):
+    idx_actual = get_paso_index(paso_actual, 'nueva')
+    idx_solicitado = get_paso_index(paso_solicitado, 'nueva')
+    if idx_actual == -1 or idx_solicitado == -1:
+        return False
+    if idx_solicitado > idx_actual:
+        return False
     return True
 
 
@@ -168,6 +182,13 @@ def emitir_licencia_digital(usuario_id, tramite_id):
         fecha_vencimiento = datetime.date(hoy.year + anios_vigencia, hoy.month, 28).strftime('%Y-%m-%d')
 
     foto_rostro = usuario.get('foto_rostro')
+    qr_data = json.dumps({
+        'licencia': usuario['dni'],
+        'titular': f"{usuario.get('nombre', '')} {usuario.get('apellido', '')}".strip(),
+        'categoria': 'B1',
+        'vencimiento': fecha_vencimiento,
+        'municipio': 'Baradero'
+    })
 
     lic_id = execute_query(
         """INSERT INTO licencias 
@@ -1209,10 +1230,10 @@ def reservar_turno():
         return jsonify({'error': 'No podés acceder a este paso'}), 403
 
     existente = execute_query(
-        "SELECT id, estado FROM reservas_turno WHERE tramite_id=? ORDER BY id DESC LIMIT 1",
+        "SELECT id, estado, resultado_examen FROM reservas_turno WHERE tramite_id=? ORDER BY id DESC LIMIT 1",
         (tramite_id,), fetch_one=True
     )
-    if existente and existente['estado'] not in ('rechazado',):
+    if existente and existente['estado'] not in ('rechazado',) and not (existente['estado'] == 'completado' and existente.get('resultado_examen') in ('rechazado', 'reprobado', 'desaprobado')):
         return jsonify({'error': 'Ya tenés un turno reservado'}), 400
 
     turno_id = request.json.get('turno_id')
@@ -2384,9 +2405,53 @@ init_db()
 init_admin_passwords()
 
 
+def liberar_puerto(port=5000):
+    """Libera el puerto indicado terminando cualquier proceso previo que lo esté ocupando."""
+    if os.name != 'nt':
+        return
+    import subprocess
+    try:
+        output = subprocess.check_output(['netstat', '-ano'], text=True, errors='ignore')
+        my_pid = str(os.getpid())
+        pids = set()
+        for line in output.splitlines():
+            parts = line.split()
+            if len(parts) >= 5 and parts[0].upper() == 'TCP':
+                local_addr = parts[1]
+                state = parts[3].upper()
+                pid = parts[4]
+                if local_addr.endswith(f':{port}') and state in ('LISTENING', 'ESCUCHANDO') and pid not in ('0', my_pid):
+                    pids.add(pid)
+        for pid in pids:
+            subprocess.run(['taskkill', '/F', '/PID', pid], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            print(f"[OK] Proceso previo en el puerto {port} (PID {pid}) detenido.")
+    except Exception as e:
+        print(f"[WARN] No se pudo verificar/liberar el puerto {port}: {e}")
+
+
 if __name__ == '__main__':
+    if not os.environ.get('WERKZEUG_RUN_MAIN'):
+        liberar_puerto(5000)
     print("=" * 60)
     print("  Sistema de Licencias de Conducir - Baradero")
     print("  Servidor API corriendo en http://localhost:5000")
     print("=" * 60)
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    import threading
+    import webbrowser
+    import logging
+    import flask.cli
+
+    flask.cli.show_server_banner = lambda *args, **kwargs: None
+
+    class _HideDevServerWarning(logging.Filter):
+        def filter(self, record):
+            return "development server" not in record.getMessage()
+
+    logging.getLogger("werkzeug").addFilter(_HideDevServerWarning())
+
+    if not os.environ.get('WERKZEUG_RUN_MAIN') and not os.environ.get('NO_BROWSER'):
+        threading.Timer(1.2, lambda: webbrowser.open('http://localhost:5000')).start()
+
+    print("  [OK] Abriendo http://localhost:5000 en el navegador...")
+    print("=" * 60)
+    app.run(host='0.0.0.0', port=5000, debug=True, use_reloader=False)

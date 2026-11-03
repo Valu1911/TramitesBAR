@@ -1,5 +1,5 @@
 /**
- * App Principal - Router SPA + Toast System + Page Manager
+ * App Principal - Router SPA + Toast System + ConfirmModal (AlertDialog) + Page Manager
  */
 
 // ============================================================
@@ -22,16 +22,16 @@ class Toast {
         toast.className = `toast toast--${type} animate-slideUp`;
 
         const icons = {
-            success: Icons.check,
-            error: Icons.x,
-            warning: Icons.alert,
+            success: Icons.checkCircle || Icons.check,
+            error: Icons.xCircle || Icons.x,
+            warning: Icons.alertTriangle || Icons.alert,
             info: Icons.info
         };
 
         toast.innerHTML = `
             <span style="font-size:1.1rem;flex-shrink:0;display:flex;align-items:center">${icons[type] || Icons.info}</span>
             <span class="toast__message">${message}</span>
-            <button class="toast__close" onclick="this.parentElement.remove()">×</button>
+            <button class="toast__close" onclick="this.parentElement.remove()" aria-label="Cerrar">${Icons.x}</button>
         `;
 
         this.container.appendChild(toast);
@@ -45,19 +45,235 @@ class Toast {
 }
 
 // ============================================================
+// CONFIRM MODAL & PROMPT (Shadcn AlertDialog Style)
+// ============================================================
+class ConfirmModal {
+    static activeCleanup = null;
+
+    static closeActive() {
+        if (this.activeCleanup) {
+            this.activeCleanup();
+            this.activeCleanup = null;
+        }
+    }
+
+    /**
+     * Muestra un diálogo de confirmación estético estilo Shadcn AlertDialog
+     * @param {Object} options
+     * @returns {Promise<boolean>}
+     */
+    static show({
+        title = '¿Confirmar acción?',
+        message = '',
+        description = '',
+        confirmText = 'Confirmar',
+        cancelText = 'Cancelar',
+        variant = 'primary', // 'primary' | 'danger' | 'success' | 'warning'
+        icon = null
+    } = {}) {
+        const resolvedMessage = message || description || '¿Estás seguro de que deseás continuar con esta operación?';
+        this.closeActive();
+
+        return new Promise((resolve) => {
+            const backdrop = document.createElement('div');
+            backdrop.className = 'alert-dialog-backdrop';
+
+            const defaultIcons = {
+                danger: Icons.alertTriangle || Icons.alert,
+                warning: Icons.alertTriangle || Icons.alert,
+                success: Icons.checkCircle || Icons.check,
+                primary: Icons.shield || Icons.info
+            };
+            const renderedIcon = icon || defaultIcons[variant] || Icons.info;
+
+            backdrop.innerHTML = `
+                <div class="alert-dialog" role="alertdialog" aria-modal="true" aria-labelledby="alertDialogTitle" aria-describedby="alertDialogDesc">
+                    <div class="alert-dialog__header">
+                        <div class="alert-dialog__icon alert-dialog__icon--${variant}">
+                            ${renderedIcon}
+                        </div>
+                        <div class="alert-dialog__content">
+                            <h3 class="alert-dialog__title" id="alertDialogTitle">${title}</h3>
+                            <p class="alert-dialog__desc" id="alertDialogDesc">${resolvedMessage}</p>
+                        </div>
+                    </div>
+                    <div class="alert-dialog__footer">
+                        <button type="button" class="btn btn-ghost alert-dialog__cancel" data-action="cancel">
+                            ${cancelText}
+                        </button>
+                        <button type="button" class="btn alert-dialog__confirm alert-dialog__confirm--${variant}" data-action="confirm">
+                            ${confirmText}
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            const cleanup = (result) => {
+                document.removeEventListener('keydown', onKeyDown);
+                backdrop.remove();
+                this.activeCleanup = null;
+                resolve(result);
+            };
+
+            const onKeyDown = (e) => {
+                if (e.key === 'Escape') {
+                    e.preventDefault();
+                    cleanup(false);
+                } else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    cleanup(true);
+                }
+            };
+
+            this.activeCleanup = () => cleanup(false);
+
+            backdrop.addEventListener('click', (e) => {
+                if (e.target === backdrop) cleanup(false);
+            });
+
+            backdrop.querySelector('[data-action="cancel"]').addEventListener('click', () => cleanup(false));
+            backdrop.querySelector('[data-action="confirm"]').addEventListener('click', () => cleanup(true));
+
+            document.addEventListener('keydown', onKeyDown);
+            document.body.appendChild(backdrop);
+
+            const confirmBtn = backdrop.querySelector('[data-action="confirm"]');
+            if (confirmBtn) setTimeout(() => confirmBtn.focus(), 30);
+        });
+    }
+
+    /**
+     * Muestra un diálogo con campo de entrada de texto (reemplazo estético de window.prompt)
+     * @param {Object} options
+     * @returns {Promise<string|null>}
+     */
+    static prompt({
+        title = 'Ingresar información',
+        message = '',
+        description = '',
+        inputLabel = 'Detalle / Observación',
+        placeholder = 'Escribí aquí...',
+        defaultValue = '',
+        confirmText = 'Confirmar',
+        cancelText = 'Cancelar',
+        variant = 'primary',
+        required = false,
+        icon = null
+    } = {}) {
+        const resolvedPromptMsg = message || description || '';
+        this.closeActive();
+
+        return new Promise((resolve) => {
+            const backdrop = document.createElement('div');
+            backdrop.className = 'alert-dialog-backdrop';
+
+            const defaultIcons = {
+                danger: Icons.alertTriangle || Icons.alert,
+                warning: Icons.alertTriangle || Icons.alert,
+                success: Icons.checkCircle || Icons.check,
+                primary: Icons.edit || Icons.info
+            };
+            const renderedIcon = icon || defaultIcons[variant] || Icons.edit;
+
+            backdrop.innerHTML = `
+                <div class="alert-dialog" role="dialog" aria-modal="true" aria-labelledby="alertPromptTitle">
+                    <div class="alert-dialog__header">
+                        <div class="alert-dialog__icon alert-dialog__icon--${variant}">
+                            ${renderedIcon}
+                        </div>
+                        <div class="alert-dialog__content" style="width:100%">
+                            <h3 class="alert-dialog__title" id="alertPromptTitle">${title}</h3>
+                            ${resolvedPromptMsg ? `<p class="alert-dialog__desc">${resolvedPromptMsg}</p>` : ''}
+                            <div class="alert-dialog__field">
+                                ${inputLabel ? `<label class="alert-dialog__label" for="alertDialogInput">${inputLabel}${required ? ' *' : ''}</label>` : ''}
+                                <textarea id="alertDialogInput" class="form-input alert-dialog__input" rows="3" placeholder="${placeholder}">${defaultValue}</textarea>
+                                <div class="alert-dialog__error" id="alertDialogError" style="display:none">Este campo es obligatorio para continuar.</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="alert-dialog__footer">
+                        <button type="button" class="btn btn-ghost alert-dialog__cancel" data-action="cancel">
+                            ${cancelText}
+                        </button>
+                        <button type="button" class="btn alert-dialog__confirm alert-dialog__confirm--${variant}" data-action="confirm">
+                            ${confirmText}
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            const inputEl = backdrop.querySelector('#alertDialogInput');
+            const errorEl = backdrop.querySelector('#alertDialogError');
+
+            const cleanup = (result) => {
+                document.removeEventListener('keydown', onKeyDown);
+                backdrop.remove();
+                this.activeCleanup = null;
+                resolve(result);
+            };
+
+            const submitValue = () => {
+                const val = (inputEl?.value || '').trim();
+                if (required && !val) {
+                    if (errorEl) errorEl.style.display = 'block';
+                    if (inputEl) inputEl.focus();
+                    return;
+                }
+                cleanup(val);
+            };
+
+            const onKeyDown = (e) => {
+                if (e.key === 'Escape') {
+                    e.preventDefault();
+                    cleanup(null);
+                } else if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                    e.preventDefault();
+                    submitValue();
+                }
+            };
+
+            this.activeCleanup = () => cleanup(null);
+
+            backdrop.addEventListener('click', (e) => {
+                if (e.target === backdrop) cleanup(null);
+            });
+
+            backdrop.querySelector('[data-action="cancel"]').addEventListener('click', () => cleanup(null));
+            backdrop.querySelector('[data-action="confirm"]').addEventListener('click', submitValue);
+
+            document.addEventListener('keydown', onKeyDown);
+            document.body.appendChild(backdrop);
+
+            if (inputEl) {
+                setTimeout(() => {
+                    inputEl.focus();
+                    inputEl.setSelectionRange(inputEl.value.length, inputEl.value.length);
+                }, 30);
+            }
+        });
+    }
+}
+
+// ============================================================
 // SPA ROUTER
 // ============================================================
 class Router {
     static currentPage = null;
+    static _isNavigating = false;
 
     static navigate(page, params = {}) {
         this.currentPage = page;
-        window.location.hash = page;
+        if (window.location.hash.slice(1) !== page) {
+            this._isNavigating = true;
+            window.location.hash = page;
+            this._isNavigating = false;
+        }
         this.render(page, params);
     }
 
     static init() {
         window.addEventListener('hashchange', () => {
+            if (this._isNavigating) return;
             const page = window.location.hash.slice(1) || 'login';
             this.render(page);
         });
@@ -73,6 +289,20 @@ class Router {
         // Auth guard
         const publicPages = ['login', 'registro', 'admin-login'];
         const adminPages = ['admin-pagos', 'admin-salud', 'admin-turnos', 'admin-profesores', 'admin-cuentas'];
+        const pageRoleMap = {
+            'admin-cuentas': { rol: 'cuentas', user: 'admin_cuentas' },
+            'admin-profesores': { rol: 'profesores', user: 'admin_profesores' },
+            'admin-pagos': { rol: 'pagos', user: 'admin_pagos' },
+            'admin-salud': { rol: 'salud', user: 'admin_salud' },
+            'admin-turnos': { rol: 'turnos', user: 'admin_turnos' }
+        };
+
+        // Las vistas administrativas operan exclusivamente en Modo Claro Institucional
+        if (page === 'admin-login' || adminPages.includes(page)) {
+            document.body.classList.remove('dark');
+        } else {
+            initTheme();
+        }
 
         if (!publicPages.includes(page) && !adminPages.includes(page)) {
             const token = ApiService.getToken();
@@ -80,11 +310,26 @@ class Router {
                 this.navigate('login');
                 return;
             }
+            const stepPages = ['charlas', 'formularios', 'examen', 'pago', 'practico', 'entrega'];
+            if (stepPages.includes(page)) {
+                const currentUser = ApiService.getUser();
+                if (currentUser && currentUser.estado_cuenta && currentUser.estado_cuenta !== 'aprobada') {
+                    Toast.warning('Tu cuenta debe estar aprobada y sin multas pendientes para acceder a los pasos del trámite.');
+                    this.navigate('dashboard');
+                    return;
+                }
+            }
         }
 
         if (adminPages.includes(page)) {
             const adminToken = ApiService.getAdminToken();
-            if (!adminToken) {
+            const admin = ApiService.getAdmin();
+            const expected = pageRoleMap[page];
+            if (!adminToken || (expected && admin?.rol && admin.rol !== expected.rol && admin.rol !== 'superadmin')) {
+                if (expected) {
+                    sessionStorage.setItem('prefill_admin_user', expected.user);
+                }
+                ApiService.clearAdmin();
                 this.navigate('admin-login');
                 return;
             }
@@ -150,7 +395,7 @@ class Router {
 }
 
 // ============================================================
-// SIDEBAR COMPONENT (Replaces Navbar)
+// SIDEBAR COMPONENT (Citizen & Admin)
 // ============================================================
 let _sidebarCollapsed = false;
 let _sidebarMobileOpen = false;
@@ -174,12 +419,12 @@ function renderSidebar(user) {
     return `
     <div class="sidebar-overlay ${_sidebarMobileOpen ? 'active' : ''}" onclick="toggleMobileSidebar()"></div>
     <button class="sidebar__mobile-toggle" onclick="toggleMobileSidebar()" aria-label="Abrir menú">
-        <span style="display:flex;align-items:center">${Icons.menu || '☰'}</span>
+        <span style="display:flex;align-items:center">${Icons.menu}</span>
     </button>
     <aside class="sidebar ${collapsed} ${_sidebarMobileOpen ? 'mobile-open' : ''}" id="app-sidebar">
         <div class="sidebar__header">
             <div class="sidebar__logo">
-                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/></svg>
+                ${Icons.car}
             </div>
             <span class="sidebar__brand-text">Ciudadano Digital</span>
         </div>
@@ -210,7 +455,7 @@ function renderSidebar(user) {
                     <div class="sidebar__user-role">DNI ${user?.dni || ''}</div>
                 </div>
             </div>
-            <button class="sidebar__item" onclick="logout()" title="Cerrar sesión">
+            <button class="sidebar__item sidebar__item--logout" onclick="logout()" title="Cerrar sesión">
                 <span class="sidebar__item-icon">${Icons.logout}</span>
                 <span class="sidebar__item-text">Cerrar sesión</span>
             </button>
@@ -234,7 +479,6 @@ function toggleSidebar() {
     if (sidebar) sidebar.classList.toggle('collapsed', _sidebarCollapsed);
     if (main) main.classList.toggle('sidebar-collapsed', _sidebarCollapsed);
     
-    // Persist preference
     saveUserPreference('sidebar_collapsed', _sidebarCollapsed);
 }
 
@@ -254,37 +498,50 @@ function closeMobileSidebar() {
     if (overlay) overlay.classList.remove('active');
 }
 
-// Keep renderNavbar for backward compatibility (pages that use it)
-// Returns sidebar HTML only - #app gets margin from CSS automatically
 function renderNavbar(user) {
     return renderSidebar(user);
 }
 
 function renderAdminNavbar(admin) {
+    // Asegurar siempre modo claro en todas las cuentas de administrador
+    document.body.classList.remove('dark');
+
     const currentPage = window.location.hash.slice(1) || 'admin-cuentas';
     const collapsed = _sidebarCollapsed ? 'collapsed' : '';
-    const isDark = document.body.classList.contains('dark');
     
     const adminItems = [
-        { id: 'admin-cuentas', icon: Icons.shield, label: 'Cuentas' },
-        { id: 'admin-profesores', icon: Icons.teacher || Icons.user, label: 'Profesores' },
-        { id: 'admin-pagos', icon: Icons.money || Icons.credit, label: 'Pagos' },
-        { id: 'admin-salud', icon: Icons.heart || Icons.check, label: 'Salud' },
-        { id: 'admin-turnos', icon: Icons.calendar || Icons.clock, label: 'Turnos' },
+        { id: 'admin-cuentas', icon: Icons.shield, label: 'Cuentas e Infracciones', rolKey: 'cuentas' },
+        { id: 'admin-profesores', icon: Icons.teacher, label: 'Claustro Docente', rolKey: 'profesores' },
+        { id: 'admin-pagos', icon: Icons.creditCard, label: 'Tesorería y Pagos', rolKey: 'pagos' },
+        { id: 'admin-salud', icon: Icons.stethoscope, label: 'Aptitud Psicofísica', rolKey: 'salud' },
+        { id: 'admin-turnos', icon: Icons.calendar, label: 'Turnos y Biometría', rolKey: 'turnos' },
     ];
+
+    const rolLabels = {
+        cuentas: 'Auditoría de Cuentas',
+        profesores: 'Evaluación Teórica',
+        pagos: 'Tesorería Municipal',
+        salud: 'Auditoría Médica',
+        turnos: 'Centro de Emisión'
+    };
+    const rolLabel = rolLabels[admin?.rol] || 'Gestión Municipal';
 
     return `
     <div class="sidebar-overlay ${_sidebarMobileOpen ? 'active' : ''}" onclick="toggleMobileSidebar()"></div>
     <button class="sidebar__mobile-toggle" onclick="toggleMobileSidebar()" aria-label="Abrir menú">
-        <span style="display:flex;align-items:center">${Icons.menu || '☰'}</span>
+        <span style="display:flex;align-items:center">${Icons.menu}</span>
     </button>
-    <aside class="sidebar ${collapsed} ${_sidebarMobileOpen ? 'mobile-open' : ''}" id="app-sidebar">
-        <div class="sidebar__header" style="background:var(--blue-900);border-color:rgba(255,255,255,0.1)">
-            <div class="sidebar__logo" style="background:rgba(255,255,255,0.15)">${Icons.settings}</div>
-            <span class="sidebar__brand-text" style="color:white">Admin Panel</span>
+    <aside class="sidebar sidebar--admin ${collapsed} ${_sidebarMobileOpen ? 'mobile-open' : ''}" id="app-sidebar">
+        <div class="sidebar__admin-header">
+            <div class="sidebar__admin-eyebrow">MUNICIPIO DE BARADERO</div>
+            <div class="sidebar__admin-title">Panel Administrativo</div>
+            <div class="sidebar__admin-subtitle">
+                <span class="sidebar__admin-dot"></span>
+                <span>${rolLabel}</span>
+            </div>
         </div>
         <nav class="sidebar__nav">
-            <div class="sidebar__nav-label">Gestión</div>
+            <div class="sidebar__nav-label">Gestión Operativa</div>
             ${adminItems.map(item => `
                 <button class="sidebar__item ${currentPage === item.id ? 'active' : ''}" 
                         onclick="Router.navigate('${item.id}'); closeMobileSidebar();" 
@@ -293,22 +550,18 @@ function renderAdminNavbar(admin) {
                     <span class="sidebar__item-text">${item.label}</span>
                 </button>
             `).join('')}
-            
-            <div class="sidebar__nav-label" style="margin-top:8px">Sistema</div>
-            <button class="sidebar__item" onclick="toggleDarkMode()" title="${isDark ? 'Modo claro' : 'Modo oscuro'}">
-                <span class="sidebar__item-icon">${isDark ? Icons.sun : Icons.moon}</span>
-                <span class="sidebar__item-text">${isDark ? 'Modo claro' : 'Modo oscuro'}</span>
-            </button>
         </nav>
         <div class="sidebar__footer">
-            <div class="sidebar__user-info">
-                <div class="sidebar__user-avatar" style="border-color:var(--accent)">${Icons.user}</div>
+            <div class="sidebar__user-info sidebar__user-info--admin">
+                <div class="sidebar__user-avatar sidebar__user-avatar--admin">
+                    ${Icons.userCheck || Icons.user}
+                </div>
                 <div style="flex:1;min-width:0;">
-                    <div class="sidebar__user-name">${admin?.nombre || 'Admin'}</div>
-                    <div class="sidebar__user-role">${admin?.rol || 'administrador'}</div>
+                    <div class="sidebar__user-name">${admin?.nombre || 'Funcionario'}</div>
+                    <div class="sidebar__user-role">Rol: ${admin?.rol ? admin.rol.toUpperCase() : 'ADMIN'}</div>
                 </div>
             </div>
-            <button class="sidebar__item" onclick="adminLogout()" title="Cerrar sesión">
+            <button class="sidebar__item sidebar__item--logout" onclick="adminLogout()" title="Cerrar sesión">
                 <span class="sidebar__item-icon">${Icons.logout}</span>
                 <span class="sidebar__item-text">Cerrar sesión</span>
             </button>
@@ -356,45 +609,77 @@ function renderBackHeader(title, backTo = 'dashboard') {
 }
 
 // ============================================================
-// LOGOUT
+// LOGOUT (Con Modal Estético de Confirmación)
 // ============================================================
-function logout() {
+async function logout(skipConfirm = false) {
+    if (!skipConfirm) {
+        const confirmed = await ConfirmModal.show({
+            title: '¿Seguro que querés cerrar sesión?',
+            message: 'Tu sesión actual en el Portal del Ciudadano se cerrará y volverás a la pantalla de ingreso.',
+            confirmText: 'Sí, cerrar sesión',
+            cancelText: 'Cancelar',
+            variant: 'danger',
+            icon: Icons.logout
+        });
+        if (!confirmed) return;
+    }
     ApiService.clearToken();
     Router.navigate('login');
-    Toast.info('Sesión cerrada');
+    Toast.info('Sesión finalizada correctamente');
 }
 
-function adminLogout() {
+async function adminLogout(skipConfirm = false, silent = false) {
+    if (!skipConfirm) {
+        const confirmed = await ConfirmModal.show({
+            title: '¿Seguro que querés cerrar sesión?',
+            message: 'Se cerrará tu sesión administrativa activa en el Panel de Gestión de Licencias. Deberás volver a autenticarte para operar.',
+            confirmText: 'Sí, cerrar sesión',
+            cancelText: 'Cancelar',
+            variant: 'danger',
+            icon: Icons.logout
+        });
+        if (!confirmed) return;
+    }
     ApiService.clearAdmin();
     Router.navigate('admin-login');
-    Toast.info('Sesión admin cerrada');
+    if (!skipConfirm && !silent) {
+        Toast.info('Sesión administrativa cerrada');
+    }
 }
 
 // ============================================================
-// DARK MODE (with backend persistence)
+// DARK MODE (Solo para Portal Ciudadano — Deshabilitado en Admin)
 // ============================================================
 function toggleDarkMode() {
+    const currentPage = window.location.hash.slice(1) || 'dashboard';
+    if (currentPage.startsWith('admin')) {
+        document.body.classList.remove('dark');
+        return;
+    }
+
     const isDark = document.body.classList.toggle('dark');
     localStorage.setItem('theme', isDark ? 'dark' : 'light');
     
-    // Persist to backend
     saveUserPreference('theme', isDark ? 'dark' : 'light');
     
-    // Re-render sidebar to update icon
     const app = document.getElementById('app');
-    const currentPage = window.location.hash.slice(1) || 'dashboard';
     if (app && currentPage !== 'login' && currentPage !== 'registro' && currentPage !== 'admin-login') {
-        // Refresh page to update sidebar icons
         Router.render(currentPage);
     }
 }
 
 function initTheme() {
+    const currentPage = window.location.hash.slice(1) || 'login';
+    if (currentPage.startsWith('admin')) {
+        document.body.classList.remove('dark');
+        return;
+    }
     const theme = localStorage.getItem('theme');
     if (theme === 'dark') {
         document.body.classList.add('dark');
+    } else {
+        document.body.classList.remove('dark');
     }
-    // Default: light mode (no auto-detect dark)
 }
 
 // ============================================================
@@ -409,9 +694,12 @@ async function saveUserPreference(key, value) {
         currentPrefs[key] = value;
         localStorage.setItem('userPreferences', JSON.stringify(currentPrefs));
         
-        await ApiService.request('/api/user/preferences', 'PUT', currentPrefs);
+        await ApiService.request('/user/preferences', {
+            method: 'PUT',
+            body: currentPrefs
+        });
     } catch (e) {
-        // Silently fail — preferences are not critical
+        // Silently fail
     }
 }
 
@@ -420,10 +708,11 @@ async function loadUserPreferences() {
         const token = ApiService.getToken();
         if (!token) return;
         
-        const res = await ApiService.request('/api/user/preferences');
+        const res = await ApiService.request('/user/preferences');
         if (res?.preferences) {
             const prefs = res.preferences;
-            if (prefs.theme === 'dark') {
+            const currentPage = window.location.hash.slice(1) || 'login';
+            if (prefs.theme === 'dark' && !currentPage.startsWith('admin')) {
                 document.body.classList.add('dark');
                 localStorage.setItem('theme', 'dark');
             }
@@ -444,7 +733,10 @@ function trackActivity(action, detail = '') {
     try {
         const token = ApiService.getToken();
         if (!token) return;
-        ApiService.request('/api/user/activity', 'POST', { action, detail });
+        ApiService.request('/user/activity', {
+            method: 'POST',
+            body: { action, detail }
+        });
     } catch (e) {
         // Silently fail
     }
@@ -457,4 +749,3 @@ document.addEventListener('DOMContentLoaded', () => {
     initTheme();
     Router.init();
 });
-

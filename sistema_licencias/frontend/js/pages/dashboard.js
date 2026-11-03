@@ -20,6 +20,9 @@ class DashboardPage {
 
         try {
             const data = await ApiService.getProgreso();
+            if (data && data.usuario) {
+                ApiService.setUser({ ...(user || {}), ...data.usuario });
+            }
             this.renderContent(app, data, user);
         } catch (err) {
             if (err.status === 401) {
