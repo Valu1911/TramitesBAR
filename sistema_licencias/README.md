@@ -1,119 +1,139 @@
-# 🚗 Sistema de Trámites de Licencias de Conducir - Baradero
+# TramitesBAR — Módulo de Licencias de Conducir (`sistema_licencias`)
 
-Sistema web completo para automatizar el proceso de obtención y renovación de licencias de conducir de la Municipalidad de Baradero.
+Módulo municipal para la gestión de licencias de conducir de la Municipalidad de Baradero. Está diseñado como componente independiente integrable al portal SUBI (`guia-tramites-Baradero`).
 
-## 📋 Características
+## Stack técnico
 
-### Para Ciudadanos
-- **Login por DNI** (cuentas únicas, sin duplicados)
-- **Proceso secuencial** obligatorio (no se pueden saltear pasos):
-  1. 🎬 **Charlas en video** - Videos de seguridad vial (deben verse en orden)
-  2. 🏥 **Formularios de salud** - Datos médicos y certificados
-  3. 📝 **Examen teórico** - 5 preguntas aleatorias, un solo intento
-  4. 💳 **Pago del arancel** - Transferencia bancaria o tarjeta de débito
-  5. 🚗 **Examen práctico** - Selección y reserva de turno
-  6. 📦 **Entrega** - Domicilio o retiro presencial
+| Capa | Tecnología |
+|---|---|
+| Backend | Python 3.12+, FastAPI, SQLAlchemy 2, Alembic, Pydantic v2 |
+| Base de datos | MySQL 8.4 (`InnoDB`, `utf8mb4`) |
+| Autenticación y seguridad | Argon2id (`m=64 MiB`, `t=3`, `p=4`), sesiones opacas en cookie `httpOnly` + CSRF double-submit, MFA TOTP obligatorio para personal municipal, cifrado AES-256-GCM e índice ciego HMAC-SHA-256 para DNI |
+| Rate limiting y colas | Redis (ventana deslizante en producción) + worker de correo transaccional (`app.worker`) |
+| Almacenamiento | Local fuera del webroot en desarrollo (`storage/`) y S3/MinIO en producción |
+| Frontend | React 19, TypeScript, Vite, React Router 7, CSS institucional propio |
 
-### Para Administradores
-- **Panel de Pagos** (`admin_pagos`) - Aprobar/rechazar comprobantes de pago
-- **Panel de Salud** (`admin_salud`) - Verificar certificados de salud
-- **Panel de Turnos** (`admin_turnos`) - Gestionar turnos y registrar resultados de exámenes prácticos
+## Estructura del módulo
 
-## 🛠️ Tecnologías
-
-| Componente | Tecnología |
-|-----------|-----------|
-| Frontend  | HTML5, CSS3 (vanilla), JavaScript (ES6+) |
-| Backend   | Python 3 + Flask |
-| Base de datos | SQLite (integrada, sin configuración) |
-| Auth      | JWT (JSON Web Tokens) |
-
-## 🚀 Instalación y Ejecución
-
-### Requisitos previos
-- **Python 3.8+** instalado
-- **pip** (gestor de paquetes de Python)
-
-### Paso 1: Dependencias Python
-```bash
-cd sistema_licencias/backend
-pip install -r requirements.txt
-```
-
-### Paso 2: Ejecutar
-**Opción A** - Doble clic en `iniciar.bat`
-
-**Opción B** - Manual:
-```bash
-cd sistema_licencias/backend
-python app.py
-```
-
-### Paso 3: Acceder
-- **Frontend**: http://localhost:5000
-- **API**: http://localhost:5000/api
-
-## 👤 Credenciales
-
-### Usuarios (ciudadanos)
-- Ingresá cualquier DNI de 7-8 dígitos
-- Si no existe, se te pedirá completar el registro
-
-### Administradores
-| Usuario | Contraseña | Rol |
-|---------|-----------|-----|
-| `admin_pagos` | `admin123` | Gestión de pagos |
-| `admin_salud` | `admin123` | Verificación de certificados |
-| `admin_turnos` | `admin123` | Gestión de turnos y exámenes |
-
-## 📁 Estructura del Proyecto
-
-```
+```text
 sistema_licencias/
-├── database/
-│   └── schema.sql          # Schema MySQL completo
+├── .env.example          # Plantilla de variables de entorno (sin secretos)
+├── iniciar.bat           # Arranque rápido para Windows
+├── iniciar.sh            # Arranque rápido para Linux / macOS
 ├── backend/
-│   ├── app.py              # Servidor Flask (API)
-│   ├── config.py           # Configuración
-│   ├── db.py               # Módulo de conexión MySQL
-│   └── requirements.txt    # Dependencias Python
-├── frontend/
-│   ├── index.html          # Página principal (SPA)
-│   ├── css/
-│   │   └── styles.css      # Diseño completo
-│   └── js/
-│       ├── api.js           # Servicio de comunicación con API
-│       ├── app.js           # Router SPA + Toasts + Navbar
-│       └── pages/
-│           ├── login.js         # Login por DNI
-│           ├── registro.js      # Registro de nuevo usuario
-│           ├── dashboard.js     # Panel principal
-│           ├── charlas.js       # Videos de seguridad vial
-│           ├── examen.js        # Examen teórico
-│           ├── formularios.js   # Formularios de salud
-│           ├── pago.js          # Pago del arancel
-│           ├── practico.js      # Examen práctico (turnos)
-│           ├── entrega.js       # Entrega de licencia
-│           ├── admin-login.js   # Login administrador
-│           ├── admin-pagos.js   # Panel admin pagos
-│           ├── admin-salud.js   # Panel admin salud
-│           └── admin-turnos.js  # Panel admin turnos
-├── iniciar.bat              # Script de inicio rápido
-└── README.md                # Este archivo
+│   ├── alembic/          # Migraciones de esquema relacional
+│   ├── app/
+│   │   ├── api/v1/       # Rutas HTTP (/api/v1/* y /health*)
+│   │   ├── core/         # Configuración, base de datos, seguridad, permisos y rate limit
+│   │   ├── domain/       # Enumeraciones y constantes de negocio
+│   │   ├── models/       # Modelos SQLAlchemy 2
+│   │   ├── schemas/      # Contratos Pydantic de entrada y salida
+│   │   ├── services/     # Lógica de dominio, pagos, exámenes, auditoría y Bari
+│   │   ├── cli.py        # Comandos administrativos por consola
+│   │   ├── main.py       # Punto de entrada FastAPI y middlewares
+│   │   ├── seed.py       # Catálogo inicial (sin usuarios ni datos demo)
+│   │   └── worker.py     # Proceso de envío de correo y purga de sesiones/tokens
+│   ├── scripts/
+│   │   └── generate_env.py
+│   └── tests/            # Suite de tests con pytest
+└── frontend/
+    ├── src/
+    │   ├── api/          # Cliente HTTP tipado con soporte CSRF
+    │   ├── auth/         # Contexto de sesión y guardas de ruta/políticas
+    │   ├── components/   # Layout, iconos SVG y widget de Bari
+    │   └── pages/        # Vistas públicas, del ciudadano y del backoffice
+    └── package.json
 ```
 
-## ⚙️ Configuración
+## Puesta en marcha local
 
-Editá `backend/config.py` para ajustar:
-- **Conexión MySQL**: host, puerto, usuario, contraseña
-- **Monto del arancel**: `MONTO_LICENCIA`
-- **Datos bancarios**: alias y CBU
-- **Examen**: cantidad de preguntas y mínimo para aprobar
+### 1. Requisitos previos
 
-## 🎨 Diseño
+- Python 3.12 o superior
+- Node.js 20 o superior y npm
+- MySQL 8.4 (local en WAMP o mediante `docker compose -f ../docker-compose.dev.yml up -d`)
 
-- Paleta de colores **azules y celestes** armónicos
-- Efecto **glassmorphism** en tarjetas
-- **Micro-animaciones** y transiciones suaves
-- Diseño **responsive** (móvil y escritorio)
-- Tipografía **Inter** de Google Fonts
+### 2. Configurar variables de entorno
+
+Desde `sistema_licencias/backend`:
+
+```bash
+python scripts/generate_env.py
+```
+
+Esto genera `sistema_licencias/.env` con claves criptográficas aleatorias (`SECRET_KEY`, `ENCRYPTION_KEY`, `DNI_HMAC_KEY`). Ajustar `DATABASE_URL` con las credenciales locales de MySQL (`tramites_bar`).
+
+### 3. Migrar base de datos y poblar catálogo inicial
+
+```bash
+cd sistema_licencias/backend
+alembic upgrade head
+python -m app.cli seed
+```
+
+El comando `seed` carga únicamente tipos de trámite, matriz inicial configurable, materiales de lectura, políticas legales versión 1 y banco base de preguntas. **No crea cuentas por defecto ni contraseñas predefinidas.**
+
+### 4. Crear cuentas operativas
+
+Las cuentas del personal municipal se crean por consola y exigen enrolar MFA TOTP en el primer inicio de sesión:
+
+```bash
+cd sistema_licencias/backend
+
+# Crear superadministrador inicial
+python -m app.cli create-superadmin --email sistemas@baradero.gob.ar
+
+# Crear personal municipal por rol (admin, admin_pagos, admin_salud, admin_turnos, admin_cuentas)
+python -m app.cli create-staff --email pagos@baradero.gob.ar --role admin_pagos
+```
+
+### 5. Levantar servicios
+
+Backend (puerto `8000`):
+
+```bash
+cd sistema_licencias/backend
+uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
+```
+
+Worker de correo y mantenimiento (opcional en desarrollo si `EMAIL_TRANSPORT=console`):
+
+```bash
+cd sistema_licencias/backend
+python -m app.worker
+```
+
+Frontend (puerto `5173`):
+
+```bash
+cd sistema_licencias/frontend
+npm install
+npm run dev
+```
+
+También se puede usar `iniciar.bat` (Windows) o `./iniciar.sh` (Linux) desde la carpeta `sistema_licencias/`.
+
+## Verificación de calidad
+
+Backend:
+
+```bash
+cd sistema_licencias/backend
+ruff check .
+mypy app tests
+pytest
+```
+
+Frontend:
+
+```bash
+cd sistema_licencias/frontend
+npm run typecheck
+npm run lint
+npm test -- --run
+npm run build
+```
+
+## Documentación relacionada
+
+La documentación de arquitectura, modelo de datos, API, seguridad, operación y runbooks está en la carpeta [`../docs/`](../docs/) en la raíz del repositorio.

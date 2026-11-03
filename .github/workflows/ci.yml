@@ -1,0 +1,105 @@
+name: CI
+
+on:
+  push:
+    branches: ["main", "develop", "fase-*"]
+  pull_request:
+    branches: ["main", "develop"]
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    name: Backend (Ruff, Mypy, Pytest + Alembic)
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: ci_root_password
+          MYSQL_DATABASE: tramites_bar_ci
+          MYSQL_USER: tramites_app
+          MYSQL_PASSWORD: ci_app_password
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -u tramites_app --password=ci_app_password"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=15
+
+    defaults:
+      run:
+        working-directory: sistema_licencias/backend
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+          cache-dependency-path: sistema_licencias/backend/requirements.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Lint with Ruff
+        run: ruff check .
+
+      - name: Typecheck with Mypy
+        run: mypy app tests
+
+      - name: Run unit & integration test suite
+        run: pytest
+
+      - name: Verify Alembic migrations and seed on MySQL 8.4
+        env:
+          APP_ENV: development
+          DATABASE_URL: mysql+pymysql://tramites_app:ci_app_password@127.0.0.1:3306/tramites_bar_ci?charset=utf8mb4
+          SECRET_KEY: ci-ephemeral-secret-key-at-least-thirty-two-bytes-long
+          ENCRYPTION_KEY: MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=
+          DNI_HMAC_KEY: ci-ephemeral-dni-hmac-key-at-least-thirty-two-bytes
+        run: |
+          alembic upgrade head
+          python -m app.cli seed
+          alembic downgrade base
+          alembic upgrade head
+
+  frontend:
+    name: Frontend (TypeScript, ESLint, Vitest, Build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: sistema_licencias/frontend
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: sistema_licencias/frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Unit tests
+        run: npm test -- --run
+
+      - name: Production build
+        run: npm run build

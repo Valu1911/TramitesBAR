@@ -453,3 +453,83 @@ export interface SessionInfo {
   expires_at: string;
   is_current: boolean;
 }
+
+export interface AttemptAdmin {
+  id: number;
+  procedure_code: string;
+  citizen_email: string;
+  status: string;
+  score: number | null;
+  total: number;
+  started_at: string;
+  submitted_at: string | null;
+}
+
+export interface RetryAuthorization {
+  procedure_id: number;
+  extra_attempts: number;
+  message: string;
+}
+
+export const STEP_LABELS: Record<string, string> = {
+  charlas: "Charlas de seguridad vial",
+  health: "Formulario y certificado de salud",
+  theory: "Examen teórico",
+  payment: "Pago del arancel",
+  practical: "Examen práctico",
+  delivery: "Entrega de la credencial",
+};
+
+export const PROCEDURE_STATUS_LABELS: Record<string, string> = {
+  in_progress: "En curso",
+  under_review: "En revisión",
+  completed: "Completado",
+  rejected: "Rechazado",
+  cancelled: "Cancelado",
+};
+
+export const STEP_STATUS_LABELS: Record<string, string> = {
+  pending: "Pendiente",
+  in_progress: "En curso",
+  scheduled: "Turno reservado",
+  submitted: "En revisión",
+  completed: "Completado",
+  rejected: "Observado",
+};
+
+export const PAYMENT_STATUS_LABELS: Record<string, string> = {
+  pending: "Pendiente de pago",
+  claimed: "Comprobante enviado",
+  pending_second: "Doble control pendiente",
+  approved: "Aprobado",
+  rejected: "Observado",
+  refunded: "Reintegrado",
+};
+
+export const DOCUMENT_KIND_LABELS: Record<string, string> = {
+  health_certificate: "Certificado de aptitud psicofísica",
+  payment_receipt: "Comprobante de transferencia",
+  dni_front: "DNI (frente)",
+  dni_back: "DNI (dorso)",
+  proof_address: "Constancia de domicilio",
+  photo: "Fotografía digital",
+  guardian_authorization: "Autorización de madre, padre o tutor",
+  other: "Documentación respaldatoria",
+};
+
+export const DOCUMENT_STATUS_LABELS: Record<string, string> = {
+  pending: "En revisión",
+  approved: "Aprobado",
+  rejected: "Observado",
+};
+
+export const ROLE_LABELS: Record<Role, string> = {
+  citizen: "Vecino / Ciudadano",
+  admin_pagos: "Área de Pagos y Recaudación",
+  admin_salud: "Área de Salud",
+  admin_turnos: "Examinador / Turnos",
+  admin_cuentas: "Mesa de Entradas / Cuentas",
+  admin: "Administración General",
+  superadmin: "Superadministración",
+};
+

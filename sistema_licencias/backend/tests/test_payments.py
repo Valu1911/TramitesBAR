@@ -5,9 +5,9 @@ from __future__ import annotations
 import io
 from decimal import Decimal
 
+from fastapi import UploadFile
 from sqlalchemy import select
 from sqlalchemy.orm import Session
-from starlette.datastructures import UploadFile
 
 from app.domain.enums import PaymentStatus, Role
 from app.models.payment import Payment

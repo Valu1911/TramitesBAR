@@ -11,7 +11,7 @@ import base64
 import os
 import secrets
 import tempfile
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
 from datetime import date
 from pathlib import Path
 
@@ -72,7 +72,7 @@ def clean_state(engine):  # type: ignore[no-untyped-def]
 
 
 @pytest.fixture
-def db() -> Session:
+def db() -> Iterator[Session]:
     """Sesión de base para preparar datos o verificar resultados."""
     session = get_session_factory()()
     try:
@@ -82,7 +82,7 @@ def db() -> Session:
 
 
 @pytest.fixture
-def client() -> TestClient:
+def client() -> Iterator[TestClient]:
     """Cliente HTTP con el ciclo de vida de la aplicación."""
     with TestClient(app) as test_client:
         yield test_client
