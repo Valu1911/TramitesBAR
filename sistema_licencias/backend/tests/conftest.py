@@ -44,7 +44,7 @@ from app import models  # noqa: E402,F401 - registra las tablas
 from app.core.db import Base, get_engine, get_session_factory  # noqa: E402
 from app.core.rate_limit import _memory  # noqa: E402
 from app.core.security import blind_index, hash_password, utcnow  # noqa: E402
-from app.domain.enums import Role, UserStatus  # noqa: E402
+from app.domain.enums import AccountStatus, Role, UserStatus  # noqa: E402
 from app.main import app  # noqa: E402
 from app.models.policy import PolicyAcceptance  # noqa: E402
 from app.models.user import CitizenProfile, User  # noqa: E402
@@ -107,12 +107,14 @@ def make_user(db: Session) -> Callable[..., User]:
         role: str = Role.CITIZEN.value,
         mfa_enabled: bool = False,
         birth_date: date = date(1990, 1, 1),
+        account_status: str = AccountStatus.APPROVED.value,
     ) -> User:
         counter["value"] += 1
         suffix = counter["value"]
         email = email or f"persona{suffix}@example.com"
         dni = f"3{suffix:07d}"
         cipher = get_cipher()
+        totp_secret = "JBSWY3DPEHPK3PXP"
         user = User(
             email=email,
             password_hash=hash_password(password),
@@ -120,6 +122,7 @@ def make_user(db: Session) -> Callable[..., User]:
             status=UserStatus.ACTIVE.value,
             email_verified_at=utcnow(),
             mfa_enabled=mfa_enabled,
+            mfa_secret_enc=cipher.encrypt(totp_secret) if mfa_enabled else None,
         )
         db.add(user)
         db.flush()
@@ -132,6 +135,7 @@ def make_user(db: Session) -> Callable[..., User]:
                 dni_hmac=blind_index(dni, os.environ["DNI_HMAC_KEY"]),
                 birth_date=birth_date,
                 locality="Baradero",
+                account_status=account_status,
             )
         )
 
@@ -161,11 +165,16 @@ def make_user(db: Session) -> Callable[..., User]:
 def login(client: TestClient) -> Callable[..., tuple[str, str]]:
     """Inicia sesión y devuelve el token CSRF y el identificador de sesión."""
 
-    def do_login(email: str, password: str = TEST_PASSWORD) -> tuple[str, str]:
-        response = client.post(
-            "/api/v1/auth/login",
-            json={"identifier": email, "password": password},
-        )
+    def do_login(email: str, password: str = TEST_PASSWORD, mfa_code: str | None = None) -> tuple[str, str]:
+        import pyotp
+
+        body: dict[str, str] = {"identifier": email, "password": password}
+        if mfa_code is not None:
+            body["mfa_code"] = mfa_code
+        response = client.post("/api/v1/auth/login", json=body)
+        if response.status_code == 401 and response.json().get("error", {}).get("code") == "mfa_required":
+            body["mfa_code"] = pyotp.TOTP("JBSWY3DPEHPK3PXP").now()
+            response = client.post("/api/v1/auth/login", json=body)
         assert response.status_code == 200, response.text
         payload = response.json()
         return payload["csrf_token"], payload["user"]["id"]

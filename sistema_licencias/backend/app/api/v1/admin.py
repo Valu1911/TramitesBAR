@@ -18,6 +18,7 @@ from app.core.errors import api_error
 from app.core.permissions import has_permission
 from app.core.security import blind_index, safe_filename, utcnow
 from app.domain.enums import (
+    AccountStatus,
     DocumentKind,
     DocumentStatus,
     PaymentStatus,
@@ -31,14 +32,21 @@ from app.models.license import License
 from app.models.payment import Payment
 from app.models.policy import Policy
 from app.models.procedure import Appointment, Document, Procedure
-from app.models.user import CitizenProfile, User, UserSession
+from app.models.user import AccountMessage, CitizenProfile, User, UserSession
 from app.schemas.admin import (
+    AccountDetailOut,
+    AccountKpiOut,
+    AccountListOut,
+    AccountMessageOut,
+    AdminAccountMessageIn,
     AdminAppointmentOut,
     AppointmentCreateIn,
     AppointmentUpdateIn,
     AuditVerifyOut,
+    CitizenAccountSummaryOut,
     DashboardOut,
     PolicyCreateIn,
+    RejectFinesIn,
     UserAdminOut,
     UserAdminUpdate,
 )
@@ -55,9 +63,11 @@ from app.services.audit import record_audit, verify_audit_chain
 from app.services.notifications import notify_user, queue_email
 from app.services.policies import policy_hash
 from app.services.serializers import (
+    account_message_out,
     admin_procedure_out,
     appointment_out,
     audit_out,
+    citizen_account_summary_out,
     document_out,
     user_admin_out,
 )
@@ -692,3 +702,405 @@ def create_policy(
         "version": policy.version,
         "content_hash": policy.content_hash,
     }
+
+
+
+# ============================================================
+# AUDITORÍA DE ANTECEDENTES VIALES Y GESTIÓN DE CUENTAS
+# ============================================================
+
+@router.get("/accounts", response_model=AccountListOut)
+def list_accounts(
+    filter_status: str = Query(default="todos", alias="filtro", max_length=30),
+    q: str | None = Query(default=None, max_length=80),
+    limit: int = Query(default=50, ge=1, le=100),
+    offset: int = Query(default=0, ge=0),
+    _user: User = Depends(require_permission("users.read")),
+    db: Session = Depends(get_db),
+) -> AccountListOut:
+    """Lista solicitudes ciudadanas y KPIs para el operador de tránsito."""
+    # Cálculo de KPIs en tiempo real
+    total_citizens = db.execute(
+        select(func.count(CitizenProfile.user_id))
+        .join(User, User.id == CitizenProfile.user_id)
+        .where(CitizenProfile.account_status != AccountStatus.TRASH.value)
+    ).scalar_one()
+
+    kpi_pending = db.execute(
+        select(func.count(CitizenProfile.user_id))
+        .where(CitizenProfile.account_status == AccountStatus.PENDING.value)
+    ).scalar_one()
+
+    kpi_fines = db.execute(
+        select(func.count(CitizenProfile.user_id))
+        .where(CitizenProfile.account_status == AccountStatus.REJECTED_FINES.value)
+    ).scalar_one()
+
+    kpi_approved = db.execute(
+        select(func.count(CitizenProfile.user_id))
+        .where(CitizenProfile.account_status == AccountStatus.APPROVED.value)
+    ).scalar_one()
+
+    kpi_trash = db.execute(
+        select(func.count(CitizenProfile.user_id))
+        .where(CitizenProfile.account_status == AccountStatus.TRASH.value)
+    ).scalar_one()
+
+    kpis = AccountKpiOut(
+        total=int(total_citizens),
+        pending=int(kpi_pending),
+        fines=int(kpi_fines),
+        approved=int(kpi_approved),
+        trash=int(kpi_trash),
+    )
+
+    # Filtrado según pestaña seleccionada
+    stmt = (
+        select(CitizenProfile, User)
+        .join(User, User.id == CitizenProfile.user_id)
+        .options(selectinload(User.profile))
+    )
+
+    conditions = []
+    if filter_status == "pendiente":
+        conditions.append(CitizenProfile.account_status == AccountStatus.PENDING.value)
+    elif filter_status == "aprobada":
+        conditions.append(CitizenProfile.account_status == AccountStatus.APPROVED.value)
+    elif filter_status == "rechazada_multas":
+        conditions.append(CitizenProfile.account_status == AccountStatus.REJECTED_FINES.value)
+    elif filter_status == "papelera":
+        conditions.append(CitizenProfile.account_status == AccountStatus.TRASH.value)
+    else:  # "todos"
+        conditions.append(CitizenProfile.account_status != AccountStatus.TRASH.value)
+
+    if q:
+        search = q.strip()
+        like = f"%{search}%"
+        digits = "".join(ch for ch in search if ch.isdigit())
+        if len(digits) in {7, 8}:
+            from app.core.config import get_settings
+            digest = blind_index(digits, get_settings().dni_hmac_key)
+            conditions.append(CitizenProfile.dni_hmac == digest)
+        else:
+            conditions.append(
+                (CitizenProfile.first_name.ilike(like)) | (CitizenProfile.last_name.ilike(like)) | (User.email.ilike(like))
+            )
+
+    if conditions:
+        stmt = stmt.where(*conditions)
+
+    total_filtered = db.execute(
+        select(func.count()).select_from(stmt.order_by(None).subquery())
+    ).scalar_one()
+
+    rows = (
+        db.execute(stmt.order_by(CitizenProfile.user_id.desc()).limit(limit).offset(offset))
+        .all()
+    )
+
+    items = []
+    for profile, citizen_user in rows:
+        unread = db.execute(
+            select(func.count(AccountMessage.id)).where(
+                AccountMessage.user_id == citizen_user.id,
+                AccountMessage.sender == "citizen",
+                AccountMessage.read_at.is_(None),
+            )
+        ).scalar_one()
+        items.append(
+            citizen_account_summary_out(
+                profile,
+                citizen_user,
+                unread_messages=int(unread),
+                include_full_dni=False,
+            )
+        )
+
+    return AccountListOut(
+        items=items,
+        kpis=kpis,
+        total=int(total_filtered),
+        page=(offset // limit) + 1,
+        page_size=limit,
+    )
+
+
+@router.get("/accounts/{user_id}", response_model=AccountDetailOut)
+def get_account_detail(
+    user_id: int,
+    _user: User = Depends(require_permission("users.read")),
+    db: Session = Depends(get_db),
+) -> AccountDetailOut:
+    """Obtiene el expediente ciudadano con DNI descifrado para consulta en Infracciones BA y el chat."""
+    citizen_user = db.execute(
+        select(User).where(User.id == user_id).options(selectinload(User.profile))
+    ).scalar_one_or_none()
+    if citizen_user is None or citizen_user.profile is None:
+        raise api_error(404, "account_not_found", "No encontramos esa cuenta ciudadana")
+
+    # Marcar mensajes del ciudadano como leídos por el administrador
+    db.execute(
+        update(AccountMessage)
+        .where(AccountMessage.user_id == user_id, AccountMessage.sender == "citizen", AccountMessage.read_at.is_(None))
+        .values(read_at=utcnow())
+    )
+    db.commit()
+
+    messages_rows = db.execute(
+        select(AccountMessage).where(AccountMessage.user_id == user_id).order_by(AccountMessage.created_at.asc())
+    ).scalars().all()
+
+    messages = [account_message_out(m) for m in messages_rows]
+    account_summary = citizen_account_summary_out(
+        citizen_user.profile,
+        citizen_user,
+        unread_messages=0,
+        include_full_dni=True,
+    )
+
+    return AccountDetailOut(account=account_summary, messages=messages)
+
+
+@router.post("/accounts/{user_id}/approve", response_model=CitizenAccountSummaryOut)
+def approve_account(
+    user_id: int,
+    actor: User = Depends(require_permission("users.manage")),
+    db: Session = Depends(get_db),
+    meta: RequestMeta = Depends(request_meta),
+) -> CitizenAccountSummaryOut:
+    """Aprueba la cuenta ciudadana al no registrar multas pendientes."""
+    from decimal import Decimal
+
+    citizen_user = db.execute(
+        select(User).where(User.id == user_id).options(selectinload(User.profile))
+    ).scalar_one_or_none()
+    if citizen_user is None or citizen_user.profile is None:
+        raise api_error(404, "account_not_found", "No encontramos esa cuenta ciudadana")
+
+    profile = citizen_user.profile
+    before_status = profile.account_status
+
+    profile.account_status = AccountStatus.APPROVED.value
+    profile.fines_count = 0
+    profile.fines_amount = Decimal("0.00")
+    profile.fines_reason = None
+    profile.fines_payment_claimed = False
+    profile.fines_reviewed_at = utcnow()
+
+    # Mensaje automático para el ciudadano
+    msg = AccountMessage(
+        user_id=citizen_user.id,
+        admin_id=actor.id,
+        sender="admin",
+        message="¡Tu cuenta ha sido aprobada por el área de Tránsito! Ya podés comenzar con los pasos de tu licencia.",
+        created_at=utcnow(),
+    )
+    db.add(msg)
+
+    record_audit(
+        db,
+        action="account.approved",
+        entity_type="citizen_profile",
+        entity_id=profile.user_id,
+        actor_user_id=actor.id,
+        actor_role=actor.role,
+        before={"account_status": before_status},
+        after={"account_status": profile.account_status},
+        ip=meta.ip,
+        user_agent=meta.user_agent,
+    )
+    notify_user(
+        db,
+        user=citizen_user,
+        title="Cuenta Aprobada",
+        body="Tu cuenta fue verificada y habilitada para realizar trámites de licencias de conducir.",
+        link="/panel",
+        idempotency_key=f"account-approved-{citizen_user.id}",
+    )
+    db.commit()
+
+    return citizen_account_summary_out(profile, citizen_user, include_full_dni=True)
+
+
+@router.post("/accounts/{user_id}/reject-fines", response_model=CitizenAccountSummaryOut)
+def reject_account_fines(
+    user_id: int,
+    data: RejectFinesIn,
+    actor: User = Depends(require_permission("users.manage")),
+    db: Session = Depends(get_db),
+    meta: RequestMeta = Depends(request_meta),
+) -> CitizenAccountSummaryOut:
+    """Rechaza la cuenta registrando infracciones de tránsito pendientes."""
+    citizen_user = db.execute(
+        select(User).where(User.id == user_id).options(selectinload(User.profile))
+    ).scalar_one_or_none()
+    if citizen_user is None or citizen_user.profile is None:
+        raise api_error(404, "account_not_found", "No encontramos esa cuenta ciudadana")
+
+    profile = citizen_user.profile
+    before = {
+        "account_status": profile.account_status,
+        "fines_count": profile.fines_count,
+        "fines_amount": str(profile.fines_amount),
+    }
+
+    profile.account_status = AccountStatus.REJECTED_FINES.value
+    profile.fines_count = data.fines_count
+    profile.fines_amount = data.fines_amount
+    profile.fines_reason = data.reason
+    profile.fines_payment_claimed = False
+    profile.fines_reviewed_at = utcnow()
+
+    formatted_amount = f"{data.fines_amount:,.2f}"
+    notice_text = (
+        f"Se detectaron {data.fines_count} infracción(es) de tránsito pendiente(s) por un monto total de ${formatted_amount}. "
+        f"Detalle: {data.reason}. "
+        "Por favor regularice su situación y presione el botón 'Ya pagué' adjuntando su comprobante."
+    )
+    msg = AccountMessage(
+        user_id=citizen_user.id,
+        admin_id=actor.id,
+        sender="admin",
+        message=notice_text,
+        created_at=utcnow(),
+    )
+    db.add(msg)
+
+    record_audit(
+        db,
+        action="account.fines_recorded",
+        entity_type="citizen_profile",
+        entity_id=profile.user_id,
+        actor_user_id=actor.id,
+        actor_role=actor.role,
+        before=before,
+        after={
+            "account_status": profile.account_status,
+            "fines_count": profile.fines_count,
+            "fines_amount": str(profile.fines_amount),
+            "reason": data.reason,
+        },
+        ip=meta.ip,
+        user_agent=meta.user_agent,
+    )
+    notify_user(
+        db,
+        user=citizen_user,
+        title="Infracciones de tránsito detectadas",
+        body=f"Se detectaron {data.fines_count} multa(s) pendientes. Ingresá al portal para más detalles.",
+        link="/panel",
+        idempotency_key=f"account-fines-{citizen_user.id}-{utcnow().date().isoformat()}",
+    )
+    db.commit()
+
+    return citizen_account_summary_out(profile, citizen_user, include_full_dni=True)
+
+
+@router.post("/accounts/{user_id}/trash", response_model=CitizenAccountSummaryOut)
+def move_account_to_trash(
+    user_id: int,
+    actor: User = Depends(require_permission("users.manage")),
+    db: Session = Depends(get_db),
+    meta: RequestMeta = Depends(request_meta),
+) -> CitizenAccountSummaryOut:
+    """Mueve una solicitud ciudadana a la papelera sin eliminar historial."""
+    citizen_user = db.execute(
+        select(User).where(User.id == user_id).options(selectinload(User.profile))
+    ).scalar_one_or_none()
+    if citizen_user is None or citizen_user.profile is None:
+        raise api_error(404, "account_not_found", "No encontramos esa cuenta ciudadana")
+
+    profile = citizen_user.profile
+    profile.account_status = AccountStatus.TRASH.value
+
+    record_audit(
+        db,
+        action="account.moved_to_trash",
+        entity_type="citizen_profile",
+        entity_id=profile.user_id,
+        actor_user_id=actor.id,
+        actor_role=actor.role,
+        ip=meta.ip,
+        user_agent=meta.user_agent,
+    )
+    db.commit()
+    return citizen_account_summary_out(profile, citizen_user, include_full_dni=True)
+
+
+@router.post("/accounts/{user_id}/restore", response_model=CitizenAccountSummaryOut)
+def restore_account(
+    user_id: int,
+    actor: User = Depends(require_permission("users.manage")),
+    db: Session = Depends(get_db),
+    meta: RequestMeta = Depends(request_meta),
+) -> CitizenAccountSummaryOut:
+    """Restaura una cuenta ciudadana de la papelera dejándola aprobada."""
+    citizen_user = db.execute(
+        select(User).where(User.id == user_id).options(selectinload(User.profile))
+    ).scalar_one_or_none()
+    if citizen_user is None or citizen_user.profile is None:
+        raise api_error(404, "account_not_found", "No encontramos esa cuenta ciudadana")
+
+    profile = citizen_user.profile
+    profile.account_status = AccountStatus.APPROVED.value
+
+    record_audit(
+        db,
+        action="account.restored",
+        entity_type="citizen_profile",
+        entity_id=profile.user_id,
+        actor_user_id=actor.id,
+        actor_role=actor.role,
+        ip=meta.ip,
+        user_agent=meta.user_agent,
+    )
+    db.commit()
+    return citizen_account_summary_out(profile, citizen_user, include_full_dni=True)
+
+
+@router.post("/accounts/{user_id}/messages", response_model=AccountMessageOut)
+def send_admin_account_message(
+    user_id: int,
+    data: AdminAccountMessageIn,
+    actor: User = Depends(require_permission("users.manage")),
+    db: Session = Depends(get_db),
+    meta: RequestMeta = Depends(request_meta),
+) -> AccountMessageOut:
+    """Envía un mensaje o indicación oficial al ciudadano."""
+    citizen_user = db.execute(
+        select(User).where(User.id == user_id).options(selectinload(User.profile))
+    ).scalar_one_or_none()
+    if citizen_user is None or citizen_user.profile is None:
+        raise api_error(404, "account_not_found", "No encontramos esa cuenta ciudadana")
+
+    msg = AccountMessage(
+        user_id=citizen_user.id,
+        admin_id=actor.id,
+        sender="admin",
+        message=data.message.strip(),
+        created_at=utcnow(),
+    )
+    db.add(msg)
+    db.flush()
+
+    record_audit(
+        db,
+        action="account_message.sent_by_admin",
+        entity_type="account_message",
+        entity_id=msg.id,
+        actor_user_id=actor.id,
+        actor_role=actor.role,
+        ip=meta.ip,
+        user_agent=meta.user_agent,
+    )
+    notify_user(
+        db,
+        user=citizen_user,
+        title="Nuevo mensaje de Tránsito",
+        body=data.message[:100],
+        link="/panel",
+        idempotency_key=f"account-msg-{msg.id}",
+    )
+    db.commit()
+
+    return account_message_out(msg)

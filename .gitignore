@@ -30,6 +30,9 @@ htmlcov/
 # Datos locales y archivos subidos
 sistema_licencias/storage/
 sistema_licencias/uploads/
+sistema_licencias/Excel/
+sistema_licencias/Musica streamig/
+sistema_licencias/automatizacion/
 *.db
 *.sqlite
 *.sqlite3

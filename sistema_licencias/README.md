@@ -1,119 +1,51 @@
-# 🚗 Sistema de Trámites de Licencias de Conducir - Baradero
+# TramitesBAR — Sistema de Trámites de Licencias de Conducir
 
-Sistema web completo para automatizar el proceso de obtención y renovación de licencias de conducir de la Municipalidad de Baradero.
+Módulo municipal oficial de emisión y renovación de licencias de conducir de la Municipalidad de Baradero (`sistema_licencias`).
 
-## 📋 Características
+## Arquitectura y Stack Tecnológico
 
-### Para Ciudadanos
-- **Login por DNI** (cuentas únicas, sin duplicados)
-- **Proceso secuencial** obligatorio (no se pueden saltear pasos):
-  1. 🎬 **Charlas en video** - Videos de seguridad vial (deben verse en orden)
-  2. 🏥 **Formularios de salud** - Datos médicos y certificados
-  3. 📝 **Examen teórico** - 5 preguntas aleatorias, un solo intento
-  4. 💳 **Pago del arancel** - Transferencia bancaria o tarjeta de débito
-  5. 🚗 **Examen práctico** - Selección y reserva de turno
-  6. 📦 **Entrega** - Domicilio o retiro presencial
+- **Backend**: Python 3.12+ / FastAPI / SQLAlchemy 2.0 / Alembic / Pydantic v2
+- **Base de Datos**: MySQL 8.4 InnoDB `utf8mb4` (cifrado AES-256-GCM para PII, HMAC-SHA-256 para índices ciegos de DNI)
+- **Frontend**: React 19 / TypeScript / Vite / Tailwind CSS / Lucide SVGs (WCAG 2.1 AA)
+- **Seguridad**: Autenticación Argon2id, tokens CSRF double-submit con hash en servidor, RBAC con MFA (TOTP) obligatorio para staff municipal, auditoría inmutable encadenada SHA-256
 
-### Para Administradores
-- **Panel de Pagos** (`admin_pagos`) - Aprobar/rechazar comprobantes de pago
-- **Panel de Salud** (`admin_salud`) - Verificar certificados de salud
-- **Panel de Turnos** (`admin_turnos`) - Gestionar turnos y registrar resultados de exámenes prácticos
+## Requisitos Previos
 
-## 🛠️ Tecnologías
+- Python 3.12+
+- Node.js 20+ y npm
+- MySQL 8.4 (o SQLite en entorno local de pruebas con migraciones compatibles)
 
-| Componente | Tecnología |
-|-----------|-----------|
-| Frontend  | HTML5, CSS3 (vanilla), JavaScript (ES6+) |
-| Backend   | Python 3 + Flask |
-| Base de datos | SQLite (integrada, sin configuración) |
-| Auth      | JWT (JSON Web Tokens) |
+## Puesta en Marcha
 
-## 🚀 Instalación y Ejecución
+### 1. Backend
 
-### Requisitos previos
-- **Python 3.8+** instalado
-- **pip** (gestor de paquetes de Python)
-
-### Paso 1: Dependencias Python
 ```bash
-cd sistema_licencias/backend
-pip install -r requirements.txt
+cd backend
+python -m pip install -r requirements.txt
+python -m pip install -r requirements-dev.txt
+python scripts/generate_env.py > .env
+python -m alembic upgrade head
+python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
 ```
 
-### Paso 2: Ejecutar
-**Opción A** - Doble clic en `iniciar.bat`
+O ejecutá `iniciar.bat` en Windows.
 
-**Opción B** - Manual:
+### 2. Frontend
+
 ```bash
-cd sistema_licencias/backend
-python app.py
+cd frontend
+npm install
+npm run dev
 ```
 
-### Paso 3: Acceder
-- **Frontend**: http://localhost:5000
-- **API**: http://localhost:5000/api
+O ejecutá `iniciar_frontend.bat` en Windows.
 
-## 👤 Credenciales
+## Verificación de Calidad
 
-### Usuarios (ciudadanos)
-- Ingresá cualquier DNI de 7-8 dígitos
-- Si no existe, se te pedirá completar el registro
+- **Backend Tests**: `cd backend && python -m pytest tests`
+- **Backend Lint**: `cd backend && python -m ruff check .`
+- **Backend Tipos**: `cd backend && python -m mypy app`
+- **Frontend Tipos**: `cd frontend && npm run typecheck`
+- **Frontend Lint**: `cd frontend && npm run lint`
+- **Frontend Build**: `cd frontend && npm run build`
 
-### Administradores
-| Usuario | Contraseña | Rol |
-|---------|-----------|-----|
-| `admin_pagos` | `admin123` | Gestión de pagos |
-| `admin_salud` | `admin123` | Verificación de certificados |
-| `admin_turnos` | `admin123` | Gestión de turnos y exámenes |
-
-## 📁 Estructura del Proyecto
-
-```
-sistema_licencias/
-├── database/
-│   └── schema.sql          # Schema MySQL completo
-├── backend/
-│   ├── app.py              # Servidor Flask (API)
-│   ├── config.py           # Configuración
-│   ├── db.py               # Módulo de conexión MySQL
-│   └── requirements.txt    # Dependencias Python
-├── frontend/
-│   ├── index.html          # Página principal (SPA)
-│   ├── css/
-│   │   └── styles.css      # Diseño completo
-│   └── js/
-│       ├── api.js           # Servicio de comunicación con API
-│       ├── app.js           # Router SPA + Toasts + Navbar
-│       └── pages/
-│           ├── login.js         # Login por DNI
-│           ├── registro.js      # Registro de nuevo usuario
-│           ├── dashboard.js     # Panel principal
-│           ├── charlas.js       # Videos de seguridad vial
-│           ├── examen.js        # Examen teórico
-│           ├── formularios.js   # Formularios de salud
-│           ├── pago.js          # Pago del arancel
-│           ├── practico.js      # Examen práctico (turnos)
-│           ├── entrega.js       # Entrega de licencia
-│           ├── admin-login.js   # Login administrador
-│           ├── admin-pagos.js   # Panel admin pagos
-│           ├── admin-salud.js   # Panel admin salud
-│           └── admin-turnos.js  # Panel admin turnos
-├── iniciar.bat              # Script de inicio rápido
-└── README.md                # Este archivo
-```
-
-## ⚙️ Configuración
-
-Editá `backend/config.py` para ajustar:
-- **Conexión MySQL**: host, puerto, usuario, contraseña
-- **Monto del arancel**: `MONTO_LICENCIA`
-- **Datos bancarios**: alias y CBU
-- **Examen**: cantidad de preguntas y mínimo para aprobar
-
-## 🎨 Diseño
-
-- Paleta de colores **azules y celestes** armónicos
-- Efecto **glassmorphism** en tarjetas
-- **Micro-animaciones** y transiciones suaves
-- Diseño **responsive** (móvil y escritorio)
-- Tipografía **Inter** de Google Fonts

@@ -51,6 +51,12 @@ export interface Profile {
   phone: string | null;
   address: string | null;
   locality: string;
+  account_status?: "pendiente" | "aprobada" | "rechazada_multas" | "papelera";
+  fines_count?: number;
+  fines_amount?: string;
+  fines_reason?: string | null;
+  fines_payment_claimed?: boolean;
+  welcome_dismissed?: boolean;
 }
 
 export interface User {
@@ -452,4 +458,53 @@ export interface SessionInfo {
   last_seen_at: string;
   expires_at: string;
   is_current: boolean;
+}
+
+
+export interface AccountMessage {
+  id: number;
+  sender: "citizen" | "admin";
+  message: string;
+  attachment_name: string | null;
+  attachment_url: string | null;
+  read: boolean;
+  created_at: string;
+}
+
+export interface CitizenAccountSummary {
+  id: number;
+  user_id: number;
+  first_name: string;
+  last_name: string;
+  dni_masked: string;
+  dni_full: string | null;
+  birth_date: string;
+  age: number;
+  email: string;
+  phone: string | null;
+  address: string | null;
+  locality: string;
+  account_status: "pendiente" | "aprobada" | "rechazada_multas" | "papelera";
+  fines_count: number;
+  fines_amount: string;
+  fines_reason: string | null;
+  fines_payment_claimed: boolean;
+  unread_messages: number;
+  created_at: string;
+}
+
+export interface AccountKpi {
+  total: number;
+  pending: number;
+  fines: number;
+  approved: number;
+  trash: number;
+}
+
+export interface AccountList {
+  items: CitizenAccountSummary[];
+  kpis: AccountKpi;
+  total: number;
+  page: number;
+  page_size: number;
 }

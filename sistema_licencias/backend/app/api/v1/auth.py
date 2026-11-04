@@ -19,9 +19,12 @@ from app.core.db import get_db
 from app.core.errors import api_error
 from app.core.rate_limit import enforce_rate_limit
 from app.core.security import hash_token, new_token
-from app.models.user import User, UserSession
+from app.models.user import AccountMessage, User, UserSession
 from app.schemas.auth import (
+    AccountMessageIn,
+    AccountMessageOut,
     ChangePasswordIn,
+    ClaimFinesPaymentIn,
     ForgotPasswordIn,
     LoginIn,
     MfaDisableIn,
@@ -39,7 +42,7 @@ from app.schemas.auth import (
 from app.schemas.common import MessageOut
 from app.services import auth as auth_service
 from app.services.crypto import get_cipher
-from app.services.serializers import user_out
+from app.services.serializers import account_message_out, user_out
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -362,3 +365,126 @@ def mfa_disable(
         user_agent=meta.user_agent,
     )
     return MessageOut(message="Segundo factor desactivado")
+
+
+
+# ============================================================
+# ESTADO DE CUENTA CIUDADANA Y MENSAJERÍA DE INFRACCIONES
+# ============================================================
+
+@router.post("/account/notify-paid", response_model=MessageOut)
+def notify_fines_paid(
+    data: ClaimFinesPaymentIn,
+    user: User = Depends(current_user),
+    db: Session = Depends(get_db),
+    meta: RequestMeta = Depends(request_meta),
+) -> MessageOut:
+    """Notifica al área de Tránsito que se pagaron las multas ('Ya pagué')."""
+    from app.core.security import utcnow
+    from app.services.audit import record_audit
+
+    if user.profile is None:
+        raise api_error(404, "profile_not_found", "No encontramos tu perfil")
+
+    user.profile.fines_payment_claimed = True
+
+    body_text = "📌 [NOTIFICACIÓN DE PAGO]: El ciudadano marcó 'Ya pagué' y solicita revisión de sus antecedentes viales."
+    if data.message:
+        body_text += f"\nMensaje: {data.message.strip()}"
+
+    msg = AccountMessage(
+        user_id=user.id,
+        admin_id=None,
+        sender="citizen",
+        message=body_text,
+        created_at=utcnow(),
+    )
+    db.add(msg)
+
+    record_audit(
+        db,
+        action="account.fines_payment_claimed",
+        entity_type="citizen_profile",
+        entity_id=user.profile.user_id,
+        actor_user_id=user.id,
+        actor_role=user.role,
+        after={"claimed": True},
+        ip=meta.ip,
+        user_agent=meta.user_agent,
+    )
+    db.commit()
+
+    return MessageOut(message="Notificación de pago enviada. El área de Tránsito revisará tu comprobante a la brevedad.")
+
+
+@router.get("/account/messages", response_model=list[AccountMessageOut])
+def list_account_messages(
+    user: User = Depends(current_user),
+    db: Session = Depends(get_db),
+) -> list[AccountMessageOut]:
+    """Lista los mensajes de verificación e infracciones con el área de Tránsito."""
+    from sqlalchemy import select, update
+
+    from app.core.security import utcnow
+
+    # Marcar como leídos los mensajes que envió el admin
+    db.execute(
+        update(AccountMessage)
+        .where(AccountMessage.user_id == user.id, AccountMessage.sender == "admin", AccountMessage.read_at.is_(None))
+        .values(read_at=utcnow())
+    )
+    db.commit()
+
+    rows = db.execute(
+        select(AccountMessage).where(AccountMessage.user_id == user.id).order_by(AccountMessage.created_at.asc())
+    ).scalars().all()
+
+    return [account_message_out(m) for m in rows]
+
+
+@router.post("/account/messages", response_model=AccountMessageOut)
+def send_account_message(
+    data: AccountMessageIn,
+    user: User = Depends(current_user),
+    db: Session = Depends(get_db),
+    meta: RequestMeta = Depends(request_meta),
+) -> AccountMessageOut:
+    """Envía un mensaje o respuesta al área de Tránsito."""
+    from app.core.security import utcnow
+    from app.services.audit import record_audit
+
+    msg = AccountMessage(
+        user_id=user.id,
+        admin_id=None,
+        sender="citizen",
+        message=data.message.strip(),
+        created_at=utcnow(),
+    )
+    db.add(msg)
+    db.flush()
+
+    record_audit(
+        db,
+        action="account_message.sent_by_citizen",
+        entity_type="account_message",
+        entity_id=msg.id,
+        actor_user_id=user.id,
+        actor_role=user.role,
+        ip=meta.ip,
+        user_agent=meta.user_agent,
+    )
+    db.commit()
+
+    return account_message_out(msg)
+
+
+@router.post("/account/welcome-dismiss", response_model=MessageOut)
+def dismiss_welcome(
+    user: User = Depends(current_user),
+    db: Session = Depends(get_db),
+) -> MessageOut:
+    """Marca la tarjeta de bienvenida inicial como vista."""
+    if user.profile is not None:
+        user.profile.welcome_dismissed = True
+        db.commit()
+    return MessageOut(message="Bienvenida marcada como vista")

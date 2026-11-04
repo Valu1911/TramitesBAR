@@ -17,6 +17,7 @@ from app.core.config import get_settings
 from app.core.errors import api_error
 from app.core.security import blind_index, mask_dni, utcnow
 from app.domain.enums import (
+    AccountStatus,
     AppointmentResult,
     AppointmentStatus,
     DocumentKind,
@@ -24,6 +25,7 @@ from app.domain.enums import (
     GuardianStatus,
     PaymentStatus,
     ProcedureStatus,
+    Role,
     StepCode,
     StepStatus,
 )
@@ -166,6 +168,20 @@ def create_procedure(
         )
     if user.profile is None:
         raise api_error(403, "profile_incomplete", "Completá tus datos personales")
+
+    if user.role == Role.CITIZEN.value and user.profile.account_status != AccountStatus.APPROVED.value:
+            if user.profile.account_status == AccountStatus.REJECTED_FINES.value:
+                raise api_error(
+                    403,
+                    "fines_pending",
+                    f"Tu cuenta registra {user.profile.fines_count} infracción(es) de tránsito pendiente(s). "
+                    "Regularizá tu situación en el área de Tránsito para poder iniciar el trámite.",
+                )
+            raise api_error(
+                403,
+                "account_pending_verification",
+                "Tu cuenta está pendiente de verificación de antecedentes por el área de Tránsito.",
+            )
 
     pendientes = _pending_policies(db, user)
     if pendientes:

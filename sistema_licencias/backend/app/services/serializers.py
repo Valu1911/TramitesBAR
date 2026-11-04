@@ -20,8 +20,9 @@ from app.models.procedure import (
     ProcedureStep,
     ProcedureType,
 )
-from app.models.user import CitizenProfile, User
-from app.schemas.admin import AuditOut, UserAdminOut
+from app.models.user import AccountMessage, CitizenProfile, User
+from app.schemas.admin import AuditOut, CitizenAccountSummaryOut, UserAdminOut
+from app.schemas.auth import AccountMessageOut
 from app.schemas.catalog import MatrixOut, ProcedureTypeOut
 from app.schemas.exam import QuestionOut
 from app.schemas.license import LicenseOut, PublicLicenseOut
@@ -63,6 +64,12 @@ def profile_out(profile: CitizenProfile):  # type: ignore[no-untyped-def]
         phone=_decrypt(profile.phone_encrypted),
         address=profile.address,
         locality=profile.locality,
+        account_status=profile.account_status,
+        fines_count=profile.fines_count,
+        fines_amount=str(profile.fines_amount),
+        fines_reason=profile.fines_reason,
+        fines_payment_claimed=profile.fines_payment_claimed,
+        welcome_dismissed=profile.welcome_dismissed,
     )
 
 
@@ -372,4 +379,53 @@ def audit_out(entry) -> AuditOut:  # type: ignore[no-untyped-def]
         ip=entry.ip,
         created_at=entry.created_at,
         entry_hash=entry.entry_hash,
+    )
+
+
+
+def citizen_account_summary_out(
+    profile: CitizenProfile,
+    user: User,
+    *,
+    unread_messages: int = 0,
+    include_full_dni: bool = False,
+) -> CitizenAccountSummaryOut:
+    """Serializa el expediente de cuenta ciudadana para el operador de tránsito."""
+    from app.services.procedures import age_at
+
+    dni = _decrypt(profile.dni_encrypted) or ""
+    return CitizenAccountSummaryOut(
+        id=profile.user_id,
+        user_id=profile.user_id,
+        first_name=profile.first_name,
+        last_name=profile.last_name,
+        dni_masked=mask_dni(dni),
+        dni_full=dni if include_full_dni else None,
+        birth_date=profile.birth_date,
+        age=age_at(profile.birth_date),
+        email=user.email,
+        phone=_decrypt(profile.phone_encrypted),
+        address=profile.address,
+        locality=profile.locality,
+        account_status=profile.account_status,
+        fines_count=profile.fines_count,
+        fines_amount=str(profile.fines_amount),
+        fines_reason=profile.fines_reason,
+        fines_payment_claimed=profile.fines_payment_claimed,
+        unread_messages=unread_messages,
+        created_at=user.created_at,
+    )
+
+
+def account_message_out(msg: AccountMessage) -> AccountMessageOut:
+    """Serializa un mensaje del hilo de verificación."""
+
+    return AccountMessageOut(
+        id=msg.id,
+        sender=msg.sender,
+        message=msg.message,
+        attachment_name=msg.attachment_name,
+        attachment_url=f"/api/v1/auth/account/messages/{msg.id}/attachment" if msg.attachment_storage_key else None,
+        read=msg.read_at is not None,
+        created_at=msg.created_at,
     )

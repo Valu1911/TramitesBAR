@@ -62,6 +62,12 @@ class ProfileOut(BaseModel):
     phone: str | None = None
     address: str | None = None
     locality: str
+    account_status: str = "pendiente"
+    fines_count: int = 0
+    fines_amount: str = "0.00"
+    fines_reason: str | None = None
+    fines_payment_claimed: bool = False
+    welcome_dismissed: bool = False
 
 
 class UserOut(BaseModel):
@@ -157,3 +163,27 @@ class SessionInfoOut(BaseModel):
     last_seen_at: datetime
     expires_at: datetime
     is_current: bool = False
+
+
+class ClaimFinesPaymentIn(BaseModel):
+    """Notificación de pago de multas del ciudadano ('Ya pagué')."""
+
+    message: str | None = Field(default=None, max_length=1000)
+
+
+class AccountMessageIn(BaseModel):
+    """Mensaje del ciudadano para el área de Tránsito."""
+
+    message: str = Field(min_length=1, max_length=2000)
+
+
+class AccountMessageOut(BaseModel):
+    """Mensaje del hilo de verificación de antecedentes."""
+
+    id: int
+    sender: str
+    message: str
+    attachment_name: str | None = None
+    attachment_url: str | None = None
+    read: bool
+    created_at: datetime
