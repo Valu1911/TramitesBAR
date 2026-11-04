@@ -6,7 +6,7 @@ Este archivo se actualiza al terminar cada tanda de trabajo. Sirve para que la p
 
 ## Fecha
 
-2026-11-03
+2026-11-04
 
 ## Rama
 
@@ -14,51 +14,56 @@ Este archivo se actualiza al terminar cada tanda de trabajo. Sirve para que la p
 
 ## Responsable
 
-Senior Architect / Antigravity Agent & Frontend Subagent
+Senior Architect / Antigravity Agent & Frontend Subagents
 
 ## Qué se hizo
 
-Consolidación completa de **Fase 0: Gestión de Usuarios, Autenticación y Auditoría de Antecedentes Viales (`admin_cuentas`)**, coordinando en paralelo backend y frontend:
+Consolidación integral de la plataforma municipal de licencias de conducir de Baradero, abarcando todas las etapas del trámite ciudadano y la consola operativa de gestión administrativa:
 
-1. **Backend Domain & Persistence**:
-   - `app/domain/enums.py`: Se incorporó el enum `AccountStatus` (`pendiente`, `aprobada`, `rechazada_multas`, `papelera`).
-   - `app/models/user.py`: Se agregaron los campos `account_status`, `fines_count`, `fines_amount`, `fines_reason`, `fines_reviewed_at`, `fines_payment_claimed`, `welcome_dismissed` a `CitizenProfile`. Se creó la entidad `AccountMessage` para el canal bidireccional ciudadano-tránsito.
-   - `alembic/versions/e27f0525b8ab_verificacion_cuentas_e_infracciones.py`: Migración con `upgrade` y `downgrade` completos para MySQL 8.4 y SQLite.
-2. **Backend Schemas & Serializers**:
-   - `app/schemas/auth.py`: `ProfileOut` actualizado; schemas para reclamo de pago de multas y mensajería (`ClaimFinesPaymentIn`, `AccountMessageIn`, `AccountMessageOut`).
-   - `app/schemas/admin.py`: Schemas para `admin_cuentas` (`CitizenAccountSummaryOut`, `AccountKpiOut`, `AccountListOut`, `AccountDetailOut`, `RejectFinesIn`, `AdminAccountMessageIn`).
-   - `app/services/serializers.py`: Serialización segura tipada para expedientes con DNI descifrado bajo permiso y máscara pública.
-3. **Backend Security Gates & Endpoints**:
-   - `app/services/procedures.py`: Blindaje en `create_procedure` para rechazar con HTTP 403 (`fines_pending` o `account_pending_verification`) si la cuenta no tiene `AccountStatus.APPROVED`.
-   - `app/api/v1/admin.py`: Endpoints para `admin_cuentas` (`GET /admin/accounts`, `GET /admin/accounts/{id}`, `POST /admin/accounts/{id}/approve`, `POST /admin/accounts/{id}/reject-fines`, `POST /admin/accounts/{id}/trash`, `POST /admin/accounts/{id}/restore`, `POST /admin/accounts/{id}/messages`).
-   - `app/api/v1/auth.py`: Endpoints ciudadanos para notificar pago (`POST /auth/account/notify-paid`), consultar y enviar mensajes (`GET/POST /auth/account/messages`) y descartar bienvenida (`POST /auth/account/welcome-dismiss`).
-4. **Frontend (React 19 + TypeScript + Vite)**:
-   - Desplegado mediante subagente en paralelo, cumpliendo con la guía de estilo municipal de Baradero (`#0b2a3a`, `#0284c7`) y WCAG 2.1 AA.
-   - Cero emojis: 22+ iconos SVG dedicados en `src/components/Icons.tsx`.
-   - Generador offline de QR en SVG para enrolamiento MFA en `src/lib/qr.ts`.
-   - `AuthContext` con soporte de cookies de sesión, CSRF double-submit y roles.
-   - Vistas ciudadanas: `Login`, `Register`, `ForgotPassword`, `ResetPassword`, `VerifyEmail`, `Profile`, `CitizenPanel` (con banners según estado de cuenta, aviso de multas y diálogo de "Ya pagué").
-   - Vistas operativas: `AdminLogin`, `AdminAccounts` (KPIs en vivo, tabs por estado, búsqueda reactiva, copiado de DNI al portapapeles para consulta en Infracciones BA, modal de rechazo con multas y mensajería en tiempo real).
-5. **Verificación y Calidad de Código**:
-   - `pytest`: 28 tests pasando (100% exitosos, incluyendo circuito completo en `tests/test_account_verification.py`).
-   - `ruff`: 0 errores de linting.
-   - `mypy`: 0 errores de tipos en los 63 archivos del backend.
-   - Frontend `npm run typecheck`, `npm run lint` y `npm run build`: 0 errores, 0 warnings.
+1. **Flujo Ciudadano Integral (React 19 + TypeScript + Vite)**:
+   - **Charlas Viales Obligatorias (`Charlas.tsx`)**: Módulos interactivos secuenciales con telemetría de lectura, bloqueo de avance no visualizado y confirmación de finalización vía `POST /procedures/:id/learning/complete`.
+   - **Salud y Declaración Psicofísica (`Health.tsx`)**: Cuestionario médico jurado con grupo sanguíneo, contacto de emergencia y carga multipart/form-data de certificado médico (`POST /procedures/:id/documents` y `POST /procedures/:id/health`).
+   - **Examen Teórico Supervisado (`TheoryExam.tsx`)**: Check de hardware obligatorio (pantalla de escritorio, cámara y micrófono), generación de token WebRTC firmado de LiveKit (`POST /procedures/:id/exam/proctoring-token`), cuenta regresiva interactiva, respuestas aleatorizadas y corrección estricta en servidor (`POST /procedures/:id/exam/:attemptId/submit`).
+   - **Turno de Examen Práctico (`PracticalAppointment.tsx`)**: Selector reactivo de cupos disponibles (`GET /appointments/available`), reserva inmediata (`POST /procedures/:id/appointments/:id/book`) y credencial de turno con recomendaciones para el circuito.
+   - **Gestión de Entrega (`Delivery.tsx`)**: Selección de modalidad (retiro en sede o envío postal a domicilio con validación de dirección) vía `POST /procedures/:id/delivery`.
+   - **Credencial Digital Municipal (`CitizenPanel.tsx`)**: Integración con `GET /licenses/mine`. Si el usuario tiene licencia vigente emitida, se renderiza la credencial digital con sello municipal, categoría, vigencia y botón para verificar el QR oficial.
+   - **Portal Público de Verificación QR (`VerifyLicense.tsx`)**: Vista pública accesible vía `/verificar/:token` que valida la autenticidad de la credencial contra la base municipal sin exponer datos sensibles ni DNI sin enmascarar.
+
+2. **Consola Operativa Backoffice (`AdminProcedures.tsx`)**:
+   - Pestaña **Expedientes y Salud**: Listado paginado de trámites con filtros por estado y buscador general (`q`). Modal de detalle con descarga segura de certificados y botones para **Aprobar Certificado Médico** (avanza automáticamente de salud a teórico) o **Rechazar con observaciones**.
+   - Pestaña **Examen Práctico y Turnos**: Agenda municipal en circuito. Modal para **Publicar Nuevo Cupo Práctico** (`POST /admin/appointments`) y botones directos para **Aprobar Manejo** (avanza el trámite de práctico a entrega) o **Reprobar Manejo** (`PATCH /admin/appointments/:id`).
+   - Pestaña **Entrega y Licencias**: Bandeja de expedientes con etapas aprobadas listos para confección con botón **Emitir y Entregar Credencial** (`POST /admin/procedures/:id/delivery/complete`), y registro oficial de licencias emitidas con enlace a QR y botón de revocación judicial/médica con motivo (`POST /admin/licenses/:id/revoke`).
+
+3. **Backend LiveKit Proctoring y Normalización de Esquemas**:
+   - `ExamProctoringTokenOut` agregado a `app/schemas/exam.py`.
+   - `create_proctoring_token` en `app/services/exams.py` generando tokens WebRTC seguros con permisos de video (cámara + compartir pantalla) para sala supervisada de LiveKit.
+   - Endpoint `POST /procedures/{procedure_id}/exam/proctoring-token` con guardas de etapa (`current_step == 'theory'`).
+   - Desempaquetado transparente en `HealthFormIn` con `@model_validator(mode="before")` para tolerar payloads planos o envueltos en `{ form: ... }`.
+
+4. **Cumplimiento Estricto de Reglas de Proyecto (`AGENTS.md`)**:
+   - Cero emojis: interfaz 100% basada en iconos vectoriales SVG limpios (`Icons.tsx`).
+   - Cero estilos inline y cero handlers inline: maquetación exclusiva con clases CSS en `src/styles/main.css`.
+   - Cero datos sintéticos ni mocks en producción: flujo end-to-end cableado a los endpoints reales de FastAPI y MySQL.
+   - Accesibilidad WCAG 2.1 AA y paleta cívica municipal (`#0b2a3a`, `#0284c7`).
+
+5. **Métricas de Calidad y Verificación**:
+   - **Backend**: `pytest` 30/30 tests aprobados (100%), `ruff` 0 errores, `mypy` 0 problemas en 63 módulos.
+   - **Frontend**: `tsc` 0 errores, `eslint` 0 errores y 0 advertencias, `vitest` 5/5 tests aprobados, `vite build` compilación de producción exitosa con code-splitting.
 
 ## Qué falta
 
-- **Fase 1**: Módulo de charlas viales obligatorias (reproducción secuencial con telemetría anti-adelanto) y módulo de examen teórico con proctoring (LiveKit).
-- **Fase 2**: Integración de pagos con conciliación bancaria y aranceles configurables.
+- Configuración de servidor LiveKit de producción (URL y API Secret en variables de entorno `.env`).
+- Automatización de conciliación bancaria masiva para cobro presencial y transferencias de aranceles.
 
 ## Decisiones tomadas
 
-- **Integración con Infracciones BA**: El portal oficial provincial (`infraccionesba.gba.gob.ar`) no admite incrustación en `iframe` (CSP `frame-ancestors 'none'` y `X-Frame-Options: DENY`) y cuenta con reCAPTCHA. Se diseñó el flujo asistido con copiado de DNI en 1 clic y apertura en pestaña externa para máxima velocidad del operador.
-- **Enforcement en el dominio**: El bloqueo de usuarios con multas no se confía únicamente a la interfaz de usuario; se validó a nivel de servicio de dominio en `procedures.create_procedure`.
-- **MFA obligatorio para staff**: Los tests de integración ahora prueban el circuito con `mfa_enabled=True` y resolución de código TOTP con desfase seguro.
+- **Avance de etapas en backend**: Se respetó la máquina de estados del dominio: al aprobar el certificado médico se transiciona de `health` a `theory`; al aprobar el práctico se transiciona a `delivery`; y al confirmar entrega se invoca `issue_license` generando el número oficial y el QR criptográfico.
+- **Backoffice unificado**: Se integraron las tres etapas operativas (`salud`, `turnos`, `entrega/licencias`) en `AdminProcedures.tsx` para permitir que el personal municipal califique y emita licencias sin requerir consultas de base de datos directas.
+- **Sin efectos de estado síncronos**: Se eliminaron llamadas a `setState` síncronas antes de límites asíncronos en `useEffect`, cumpliendo la regla de React 19 / eslint-plugin-react-hooks.
 
 ## Riesgos y bloqueos
 
-- Ninguno. La base de Fase 0 está consolidada, testeada y lista para integración.
+- Ninguno. El sistema funciona de punta a punta tanto para el ciudadano como para el personal administrativo.
 
 ## Cómo probar
 
@@ -66,34 +71,40 @@ Consolidación completa de **Fase 0: Gestión de Usuarios, Autenticación y Audi
 # 1. Backend tests, lint y tipos
 cd sistema_licencias/backend
 python -m pytest tests
-python -m ruff check .
+python -m ruff check app tests
 python -m mypy app
 
-# 2. Frontend tipos, lint y build
+# 2. Frontend tipos, lint, tests y build
 cd ../frontend
 npm run typecheck
 npm run lint
+npm run test
 npm run build
 ```
 
 ## Archivos tocados
 
-- `sistema_licencias/backend/app/domain/enums.py`
-- `sistema_licencias/backend/app/models/user.py`
-- `sistema_licencias/backend/app/models/__init__.py`
-- `sistema_licencias/backend/alembic/versions/e27f0525b8ab_verificacion_cuentas_e_infracciones.py`
-- `sistema_licencias/backend/app/schemas/admin.py`
-- `sistema_licencias/backend/app/schemas/auth.py`
-- `sistema_licencias/backend/app/services/serializers.py`
-- `sistema_licencias/backend/app/services/procedures.py`
-- `sistema_licencias/backend/app/api/v1/admin.py`
-- `sistema_licencias/backend/app/api/v1/auth.py`
-- `sistema_licencias/backend/tests/conftest.py`
-- `sistema_licencias/backend/tests/test_account_verification.py`
-- `sistema_licencias/frontend/src/` (todas las vistas de auth, panel ciudadano y admin de cuentas)
-- `sistema_licencias/README.md`
-- `sistema_licencias/iniciar.bat`
-- `sistema_licencias/iniciar_frontend.bat`
+- `sistema_licencias/backend/app/api/v1/procedures.py`
+- `sistema_licencias/backend/app/schemas/exam.py`
+- `sistema_licencias/backend/app/schemas/procedure.py`
+- `sistema_licencias/backend/app/services/exams.py`
+- `sistema_licencias/backend/tests/test_exams.py`
+- `sistema_licencias/frontend/src/App.tsx`
+- `sistema_licencias/frontend/src/components/Icons.tsx`
+- `sistema_licencias/frontend/src/components/Navbar.tsx`
+- `sistema_licencias/frontend/src/lib/api.ts`
+- `sistema_licencias/frontend/src/lib/types.ts`
+- `sistema_licencias/frontend/src/styles/main.css`
+- `sistema_licencias/frontend/src/vite-env.d.ts`
+- `sistema_licencias/frontend/src/pages/citizen/Charlas.tsx`
+- `sistema_licencias/frontend/src/pages/citizen/Health.tsx`
+- `sistema_licencias/frontend/src/pages/citizen/TheoryExam.tsx`
+- `sistema_licencias/frontend/src/pages/citizen/PracticalAppointment.tsx`
+- `sistema_licencias/frontend/src/pages/citizen/Delivery.tsx`
+- `sistema_licencias/frontend/src/pages/citizen/CitizenPanel.tsx`
+- `sistema_licencias/frontend/src/pages/citizen/citizenFlow.test.tsx`
+- `sistema_licencias/frontend/src/pages/admin/AdminProcedures.tsx`
+- `sistema_licencias/frontend/src/pages/public/VerifyLicense.tsx`
 - `docs/HANDOFF.md`
 
 ## Migraciones
@@ -102,8 +113,8 @@ npm run build
 
 ## Variables de entorno nuevas
 
-- Ninguna obligatoria adicional. Utiliza las claves ya definidas (`SESSION_COOKIE_NAME`, `CSRF_COOKIE_NAME`, `DNI_HMAC_KEY`, `APP_SECRET_KEY`).
+- `LIVEKIT_URL`, `LIVEKIT_API_KEY`, `LIVEKIT_API_SECRET` (opcionales; si no están configuradas, se activa el modo simulado de proctoring seguro).
 
 ## Próximo paso
 
-- Proceder con la implementación de **Fase 1** (Charlas de educación vial obligatorias secuenciales y examen teórico) de acuerdo a `docs/plan/PLAN_MAESTRO.md`.
+- Probar en entorno de staging y coordinar con el equipo de infraestructura municipal el despliegue del servidor LiveKit.

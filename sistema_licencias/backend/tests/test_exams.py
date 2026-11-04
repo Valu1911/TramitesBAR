@@ -126,3 +126,104 @@ def test_exam_submit_rejects_incomplete_answers(
 
     assert response.status_code == 422
     assert response.json()["error"]["code"] == "answers_incomplete"
+
+
+def test_exam_proctoring_token_and_step_validation(
+    client: TestClient, make_user, login, seeded: Session, db: Session
+) -> None:
+    """El token de proctoring LiveKit solo se emite cuando el trámite está en la etapa teórica."""
+    make_user(email="proctoring@example.com")
+    csrf, _ = login("proctoring@example.com")
+
+    # 1. Trámite recién creado (etapa 'charlas') -> debe rechazar con 409
+    res_proc = client.post(
+        "/api/v1/procedures",
+        headers={"X-CSRF-Token": csrf},
+        json={"procedure_type": "nueva", "license_category": "B", "data": {}},
+    )
+    assert res_proc.status_code == 201
+    procedure_id = res_proc.json()["id"]
+
+    res_early = client.post(
+        f"/api/v1/procedures/{procedure_id}/exam/proctoring-token",
+        headers={"X-CSRF-Token": csrf},
+    )
+    assert res_early.status_code == 409
+    assert res_early.json()["error"]["code"] == "step_not_current"
+
+    # 2. Dejar en etapa 'theory' -> emite el token LiveKit
+    db.execute(
+        update(ProcedureStep)
+        .where(
+            ProcedureStep.procedure_id == procedure_id,
+            ProcedureStep.code.in_(["charlas", "health"]),
+        )
+        .values(status="completed", completed_at=utcnow())
+    )
+    db.execute(
+        update(ProcedureStep)
+        .where(
+            ProcedureStep.procedure_id == procedure_id,
+            ProcedureStep.code == "theory",
+        )
+        .values(status="in_progress")
+    )
+    db.execute(
+        update(Procedure)
+        .where(Procedure.id == procedure_id)
+        .values(current_step="theory")
+    )
+    db.commit()
+    db.expire_all()
+    procedure = db.execute(select(Procedure).where(Procedure.id == procedure_id)).scalar_one()
+
+    res_token = client.post(
+        f"/api/v1/procedures/{procedure_id}/exam/proctoring-token",
+        headers={"X-CSRF-Token": csrf},
+    )
+    assert res_token.status_code == 200, res_token.text
+    data = res_token.json()
+    assert data["room_name"] == f"exam-{procedure.public_code}"
+    assert "token" in data
+    assert "server_url" in data
+    assert "participant_name" in data
+
+
+def test_complete_learning_materials_flow(
+    client: TestClient, make_user, login, seeded: Session, db: Session
+) -> None:
+    """Completar charlas viales exige todos los materiales y avanza el expediente."""
+    make_user(email="charlas@example.com")
+    csrf, _ = login("charlas@example.com")
+
+    res_proc = client.post(
+        "/api/v1/procedures",
+        headers={"X-CSRF-Token": csrf},
+        json={"procedure_type": "nueva", "license_category": "B", "data": {}},
+    )
+    assert res_proc.status_code == 201
+    proc_id = res_proc.json()["id"]
+
+    # Faltan materiales -> 422
+    res_fail = client.post(
+        f"/api/v1/procedures/{proc_id}/learning/complete",
+        headers={"X-CSRF-Token": csrf},
+        json={"material_ids": [1]},
+    )
+    assert res_fail.status_code == 422
+    assert res_fail.json()["error"]["code"] == "materials_incomplete"
+
+    # Enviar todos los materiales requeridos
+    res_materials = client.get("/api/v1/catalog/materials")
+    assert res_materials.status_code == 200
+    all_ids = [m["id"] for m in res_materials.json()]
+
+    res_ok = client.post(
+        f"/api/v1/procedures/{proc_id}/learning/complete",
+        headers={"X-CSRF-Token": csrf},
+        json={"material_ids": all_ids},
+    )
+    assert res_ok.status_code == 200
+    db.expire_all()
+    proc = db.execute(select(Procedure).where(Procedure.id == proc_id)).scalar_one()
+    assert proc.current_step == "health"

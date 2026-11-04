@@ -1,17 +1,60 @@
+import { lazy, Suspense, type ReactNode } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import { Navbar } from './components/Navbar';
-import { Login } from './pages/auth/Login';
-import { Register } from './pages/auth/Register';
-import { ForgotPassword } from './pages/auth/ForgotPassword';
-import { ResetPassword } from './pages/auth/ResetPassword';
-import { VerifyEmail } from './pages/auth/VerifyEmail';
-import { Profile } from './pages/citizen/Profile';
-import { CitizenPanel } from './pages/citizen/CitizenPanel';
-import { AdminLogin } from './pages/admin/AdminLogin';
-import { AdminAccounts } from './pages/admin/AdminAccounts';
 import type { Role } from './lib/types';
-import type { ReactNode } from 'react';
+
+// Carga diferida de vistas para optimización de paquetes y rendimiento
+const Login = lazy(() => import('./pages/auth/Login').then((m) => ({ default: m.Login })));
+const Register = lazy(() => import('./pages/auth/Register').then((m) => ({ default: m.Register })));
+const ForgotPassword = lazy(() =>
+  import('./pages/auth/ForgotPassword').then((m) => ({ default: m.ForgotPassword })),
+);
+const ResetPassword = lazy(() =>
+  import('./pages/auth/ResetPassword').then((m) => ({ default: m.ResetPassword })),
+);
+const VerifyEmail = lazy(() =>
+  import('./pages/auth/VerifyEmail').then((m) => ({ default: m.VerifyEmail })),
+);
+const Profile = lazy(() => import('./pages/citizen/Profile').then((m) => ({ default: m.Profile })));
+const CitizenPanel = lazy(() =>
+  import('./pages/citizen/CitizenPanel').then((m) => ({ default: m.CitizenPanel })),
+);
+const Charlas = lazy(() =>
+  import('./pages/citizen/Charlas').then((m) => ({ default: m.Charlas })),
+);
+const Health = lazy(() =>
+  import('./pages/citizen/Health').then((m) => ({ default: m.Health })),
+);
+const TheoryExam = lazy(() =>
+  import('./pages/citizen/TheoryExam').then((m) => ({ default: m.TheoryExam })),
+);
+const PracticalAppointment = lazy(() =>
+  import('./pages/citizen/PracticalAppointment').then((m) => ({ default: m.PracticalAppointment })),
+);
+const Delivery = lazy(() =>
+  import('./pages/citizen/Delivery').then((m) => ({ default: m.Delivery })),
+);
+const VerifyLicense = lazy(() =>
+  import('./pages/public/VerifyLicense').then((m) => ({ default: m.VerifyLicense })),
+);
+const AdminLogin = lazy(() =>
+  import('./pages/admin/AdminLogin').then((m) => ({ default: m.AdminLogin })),
+);
+const AdminAccounts = lazy(() =>
+  import('./pages/admin/AdminAccounts').then((m) => ({ default: m.AdminAccounts })),
+);
+const AdminProcedures = lazy(() =>
+  import('./pages/admin/AdminProcedures').then((m) => ({ default: m.AdminProcedures })),
+);
+
+function RouteLoadingFallback() {
+  return (
+    <div className="container loading-container">
+      <p className="loading-text">Cargando sección...</p>
+    </div>
+  );
+}
 
 function ProtectedRoute({
   children,
@@ -87,89 +130,150 @@ export function App() {
     <>
       <Navbar />
       <main>
-        <Routes>
-          {/* Redirección inteligente de inicio */}
-          <Route path="/" element={<HomeRedirect />} />
+        <Suspense fallback={<RouteLoadingFallback />}>
+          <Routes>
+            {/* Redirección inteligente de inicio */}
+            <Route path="/" element={<HomeRedirect />} />
 
-          {/* Rutas públicas de autenticación */}
-          <Route
-            path="/login"
-            element={
-              <PublicOnlyRoute>
-                <Login />
-              </PublicOnlyRoute>
-            }
-          />
-          <Route
-            path="/register"
-            element={
-              <PublicOnlyRoute>
-                <Register />
-              </PublicOnlyRoute>
-            }
-          />
-          <Route
-            path="/forgot-password"
-            element={
-              <PublicOnlyRoute>
-                <ForgotPassword />
-              </PublicOnlyRoute>
-            }
-          />
-          <Route
-            path="/reset-password"
-            element={
-              <PublicOnlyRoute>
-                <ResetPassword />
-              </PublicOnlyRoute>
-            }
-          />
-          <Route path="/verify-email" element={<VerifyEmail />} />
-          <Route
-            path="/admin/login"
-            element={
-              <PublicOnlyRoute>
-                <AdminLogin />
-              </PublicOnlyRoute>
-            }
-          />
+            {/* Rutas públicas de autenticación */}
+            <Route
+              path="/login"
+              element={
+                <PublicOnlyRoute>
+                  <Login />
+                </PublicOnlyRoute>
+              }
+            />
+            <Route
+              path="/register"
+              element={
+                <PublicOnlyRoute>
+                  <Register />
+                </PublicOnlyRoute>
+              }
+            />
+            <Route
+              path="/forgot-password"
+              element={
+                <PublicOnlyRoute>
+                  <ForgotPassword />
+                </PublicOnlyRoute>
+              }
+            />
+            <Route
+              path="/reset-password"
+              element={
+                <PublicOnlyRoute>
+                  <ResetPassword />
+                </PublicOnlyRoute>
+              }
+            />
+            <Route path="/verify-email" element={<VerifyEmail />} />
+            <Route
+              path="/admin/login"
+              element={
+                <PublicOnlyRoute>
+                  <AdminLogin />
+                </PublicOnlyRoute>
+              }
+            />
 
-          {/* Rutas protegidas para ciudadanos */}
-          <Route
-            path="/panel"
-            element={
-              <ProtectedRoute allowRoles={['citizen']}>
-                <CitizenPanel />
-              </ProtectedRoute>
-            }
-          />
+            {/* Rutas protegidas para ciudadanos */}
+            <Route
+              path="/panel"
+              element={
+                <ProtectedRoute allowRoles={['citizen']}>
+                  <CitizenPanel />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/tramites/:id/charlas"
+              element={
+                <ProtectedRoute allowRoles={['citizen']}>
+                  <Charlas />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/tramites/:id/salud"
+              element={
+                <ProtectedRoute allowRoles={['citizen']}>
+                  <Health />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/tramites/:id/examen"
+              element={
+                <ProtectedRoute allowRoles={['citizen']}>
+                  <TheoryExam />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/tramites/:id/turnos"
+              element={
+                <ProtectedRoute allowRoles={['citizen']}>
+                  <PracticalAppointment />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/tramites/:id/entrega"
+              element={
+                <ProtectedRoute allowRoles={['citizen']}>
+                  <Delivery />
+                </ProtectedRoute>
+              }
+            />
 
-          {/* Perfil accesible tanto para ciudadano como staff */}
-          <Route
-            path="/perfil"
-            element={
-              <ProtectedRoute>
-                <Profile />
-              </ProtectedRoute>
-            }
-          />
+            {/* Verificación pública de credencial con código QR */}
+            <Route path="/verificar/:token" element={<VerifyLicense />} />
 
-          {/* Rutas protegidas para staff municipal */}
-          <Route
-            path="/admin/cuentas"
-            element={
-              <ProtectedRoute allowRoles={['admin_cuentas', 'admin', 'superadmin']}>
-                <AdminAccounts />
-              </ProtectedRoute>
-            }
-          />
+            {/* Perfil accesible tanto para ciudadano como staff */}
+            <Route
+              path="/perfil"
+              element={
+                <ProtectedRoute>
+                  <Profile />
+                </ProtectedRoute>
+              }
+            />
 
-          {/* Redirección por defecto ante rutas desconocidas */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+            {/* Rutas protegidas para staff municipal */}
+            <Route
+              path="/admin/cuentas"
+              element={
+                <ProtectedRoute allowRoles={['admin_cuentas', 'admin', 'superadmin']}>
+                  <AdminAccounts />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/tramites"
+              element={
+                <ProtectedRoute
+                  allowRoles={[
+                    'admin_salud',
+                    'admin_turnos',
+                    'admin_pagos',
+                    'admin_cuentas',
+                    'admin',
+                    'superadmin',
+                  ]}
+                >
+                  <AdminProcedures />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Redirección por defecto ante rutas desconocidas */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </Suspense>
       </main>
     </>
   );
 }
 export default App;
-

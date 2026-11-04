@@ -284,6 +284,15 @@ export interface AttemptSummary {
   submitted_at: string | null;
 }
 
+export interface ExamProctoringToken {
+  room_name: string;
+  identity: string;
+  token: string;
+  server_url: string;
+  participant_name: string;
+  simulated: boolean;
+}
+
 export interface License {
   id: number;
   license_number: string;

@@ -21,6 +21,7 @@ from app.schemas.exam import (
     AttemptResultOut,
     AttemptStartOut,
     AttemptSummaryOut,
+    ExamProctoringTokenOut,
     ExamSubmitIn,
 )
 from app.schemas.payment import PaymentInstructionsOut, PaymentOut
@@ -339,6 +340,24 @@ def list_attempts(
         )
         for item in rows
     ]
+
+
+
+@router.post(
+    "/procedures/{procedure_id}/exam/proctoring-token",
+    response_model=ExamProctoringTokenOut,
+    dependencies=[Depends(rate_limit("exam_token", 30, 3600))],
+)
+def get_exam_proctoring_token(
+    procedure_id: int,
+    user: User = Depends(current_user),
+    db: Session = Depends(get_db),
+) -> ExamProctoringTokenOut:
+    """Obtiene el token de conexión LiveKit para la sesión supervisada de examen."""
+    procedure = procedure_service.get_procedure_or_404(db, procedure_id, user=user)
+    if procedure.current_step != StepCode.THEORY.value:
+        raise api_error(409, "step_not_current", "El examen teórico no es la etapa actual del trámite")
+    return exam_service.create_proctoring_token(procedure, user)
 
 
 @router.post(

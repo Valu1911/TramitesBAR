@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import date, datetime
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from app.schemas.catalog import MatrixOut, ProcedureTypeOut
 from app.schemas.payment import PaymentOut
@@ -107,6 +107,17 @@ class HealthFormIn(BaseModel):
     emergency_contact_name: str = Field(min_length=3, max_length=150)
     emergency_contact_phone: str = Field(min_length=6, max_length=30)
     declares_apt: bool
+
+    @model_validator(mode="before")
+    @classmethod
+    def _unwrap_form(cls, values: object) -> object:
+        if isinstance(values, dict) and "form" in values and isinstance(values["form"], dict):
+            merged = dict(values["form"])
+            for k, v in values.items():
+                if k != "form" and k not in merged:
+                    merged[k] = v
+            return merged
+        return values
 
 
 class LearningCompleteIn(BaseModel):

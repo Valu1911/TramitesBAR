@@ -41,7 +41,9 @@ function readCookie(name: string): string | null {
 }
 
 function buildUrl(path: string, params?: Record<string, unknown>): string {
-  const url = `${API_BASE}${path.startsWith("/") ? path : `/${path}`}`;
+  const url = path.startsWith(API_BASE)
+    ? path
+    : `${API_BASE}${path.startsWith("/") ? path : `/${path}`}`;
   if (!params) return url;
   const search = new URLSearchParams();
   for (const [key, value] of Object.entries(params)) {

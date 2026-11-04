@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LogOut, User as UserIcon, Menu, X, Shield } from './Icons';
+import { LogOut, User as UserIcon, Menu, X, Shield, FileText } from './Icons';
 import type { Role } from '../lib/types';
 
 const ROLE_LABELS: Record<Role, string> = {
@@ -69,6 +69,14 @@ export function Navbar() {
                     >
                       <Shield width={16} height={16} />
                       <span>Gestión de Cuentas</span>
+                    </Link>
+                    <Link
+                      to="/admin/tramites"
+                      className={`nav-link ${location.pathname.startsWith('/admin/tramites') ? 'active' : ''}`}
+                      onClick={closeMenu}
+                    >
+                      <FileText width={16} height={16} />
+                      <span>Trámites y Operaciones</span>
                     </Link>
                   </>
                 ) : (
