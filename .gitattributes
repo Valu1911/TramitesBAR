@@ -1,0 +1,6 @@
+# Finales de linea por tipo de archivo. Los .bat necesitan CRLF para que cmd
+# resuelva bien los bloques; los .sh necesitan LF o bash falla con '\r'.
+* text=auto
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.sh text eol=lf
