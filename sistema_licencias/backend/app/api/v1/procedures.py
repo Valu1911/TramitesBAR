@@ -21,6 +21,7 @@ from app.schemas.exam import (
     AttemptResultOut,
     AttemptStartOut,
     AttemptSummaryOut,
+    ExamProctoringTokenOut,
     ExamSubmitIn,
 )
 from app.schemas.payment import PaymentInstructionsOut, PaymentOut
@@ -341,6 +342,24 @@ def list_attempts(
     ]
 
 
+
+@router.post(
+    "/procedures/{procedure_id}/exam/proctoring-token",
+    response_model=ExamProctoringTokenOut,
+    dependencies=[Depends(rate_limit("exam_token", 30, 3600))],
+)
+def get_exam_proctoring_token(
+    procedure_id: int,
+    user: User = Depends(current_user),
+    db: Session = Depends(get_db),
+) -> ExamProctoringTokenOut:
+    """Obtiene el token de conexión LiveKit para la sesión supervisada de examen."""
+    procedure = procedure_service.get_procedure_or_404(db, procedure_id, user=user)
+    if procedure.current_step != StepCode.THEORY.value:
+        raise api_error(409, "step_not_current", "El examen teórico no es la etapa actual del trámite")
+    return exam_service.create_proctoring_token(procedure, user)
+
+
 @router.post(
     "/procedures/{procedure_id}/exam/start",
     response_model=AttemptStartOut,
@@ -412,19 +431,28 @@ def available_appointments(
     response_model=AppointmentOut,
     dependencies=[Depends(rate_limit("appointment_book", 10, 3600))],
 )
+@router.post(
+    "/procedures/{procedure_id}/appointments/{appointment_id}/book",
+    response_model=AppointmentOut,
+    dependencies=[Depends(rate_limit("appointment_book", 10, 3600))],
+)
 def book_appointment(
     procedure_id: int,
-    data: BookAppointmentIn,
+    appointment_id: int | None = None,
+    data: BookAppointmentIn | None = None,
     user: User = Depends(current_user),
     db: Session = Depends(get_db),
     meta: RequestMeta = Depends(request_meta),
 ) -> AppointmentOut:
     """Reserva un cupo de examen práctico."""
+    app_id = appointment_id if appointment_id is not None else (data.appointment_id if data else None)
+    if app_id is None:
+        raise api_error(422, "missing_appointment_id", "Falta el identificador del turno")
     procedure = procedure_service.get_procedure_or_404(db, procedure_id, user=user)
     appointment = procedure_service.book_appointment(
         db,
         procedure,
-        appointment_id=data.appointment_id,
+        appointment_id=app_id,
         actor=user,
         ip=meta.ip,
         user_agent=meta.user_agent,

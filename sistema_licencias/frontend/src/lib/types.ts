@@ -51,6 +51,12 @@ export interface Profile {
   phone: string | null;
   address: string | null;
   locality: string;
+  account_status?: "pendiente" | "aprobada" | "rechazada_multas" | "papelera";
+  fines_count?: number;
+  fines_amount?: string;
+  fines_reason?: string | null;
+  fines_payment_claimed?: boolean;
+  welcome_dismissed?: boolean;
 }
 
 export interface User {
@@ -278,6 +284,15 @@ export interface AttemptSummary {
   submitted_at: string | null;
 }
 
+export interface ExamProctoringToken {
+  room_name: string;
+  identity: string;
+  token: string;
+  server_url: string;
+  participant_name: string;
+  simulated: boolean;
+}
+
 export interface License {
   id: number;
   license_number: string;
@@ -454,6 +469,7 @@ export interface SessionInfo {
   is_current: boolean;
 }
 
+<<<<<<< HEAD
 export interface AttemptAdmin {
   id: number;
   procedure_code: string;
@@ -533,3 +549,53 @@ export const ROLE_LABELS: Record<Role, string> = {
   superadmin: "Superadministración",
 };
 
+=======
+
+export interface AccountMessage {
+  id: number;
+  sender: "citizen" | "admin";
+  message: string;
+  attachment_name: string | null;
+  attachment_url: string | null;
+  read: boolean;
+  created_at: string;
+}
+
+export interface CitizenAccountSummary {
+  id: number;
+  user_id: number;
+  first_name: string;
+  last_name: string;
+  dni_masked: string;
+  dni_full: string | null;
+  birth_date: string;
+  age: number;
+  email: string;
+  phone: string | null;
+  address: string | null;
+  locality: string;
+  account_status: "pendiente" | "aprobada" | "rechazada_multas" | "papelera";
+  fines_count: number;
+  fines_amount: string;
+  fines_reason: string | null;
+  fines_payment_claimed: boolean;
+  unread_messages: number;
+  created_at: string;
+}
+
+export interface AccountKpi {
+  total: number;
+  pending: number;
+  fines: number;
+  approved: number;
+  trash: number;
+}
+
+export interface AccountList {
+  items: CitizenAccountSummary[];
+  kpis: AccountKpi;
+  total: number;
+  page: number;
+  page_size: number;
+}
+>>>>>>> 375601f98034ff3fad8c977a1bdcea7ff8dc8984

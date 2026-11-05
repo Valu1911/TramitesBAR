@@ -16,7 +16,14 @@ from app.models.procedure import (
     ProcedureStep,
     ProcedureType,
 )
-from app.models.user import AuthToken, CitizenProfile, GuardianConsent, User, UserSession
+from app.models.user import (
+    AccountMessage,
+    AuthToken,
+    CitizenProfile,
+    GuardianConsent,
+    User,
+    UserSession,
+)
 
 __all__ = [
     "AuditLog",
@@ -39,6 +46,7 @@ __all__ = [
     "ProcedureMatrix",
     "ProcedureStep",
     "ProcedureType",
+    "AccountMessage",
     "AuthToken",
     "CitizenProfile",
     "GuardianConsent",

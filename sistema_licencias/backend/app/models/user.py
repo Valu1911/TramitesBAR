@@ -3,12 +3,24 @@
 from __future__ import annotations
 
 from datetime import date, datetime
+from decimal import Decimal
 
-from sqlalchemy import JSON, Boolean, Date, DateTime, ForeignKey, Index, Integer, String, Text
+from sqlalchemy import (
+    JSON,
+    Boolean,
+    Date,
+    DateTime,
+    ForeignKey,
+    Index,
+    Integer,
+    Numeric,
+    String,
+    Text,
+)
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.orm import relationship as orm_relationship
 
-from app.domain.enums import GuardianStatus, Role, TokenPurpose, UserStatus
+from app.domain.enums import AccountStatus, GuardianStatus, Role, TokenPurpose, UserStatus
 from app.models.base import Base, BigIntPK, TimestampMixin
 
 
@@ -60,6 +72,13 @@ class CitizenProfile(Base, TimestampMixin):
     phone_encrypted: Mapped[str | None] = mapped_column(Text, nullable=True)
     address: Mapped[str | None] = mapped_column(String(255), nullable=True)
     locality: Mapped[str] = mapped_column(String(100), default="Baradero", nullable=False)
+    account_status: Mapped[str] = mapped_column(String(20), default=AccountStatus.PENDING.value, index=True)
+    fines_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    fines_amount: Mapped[Decimal] = mapped_column(Numeric(10, 2), default=Decimal("0.00"), nullable=False)
+    fines_reason: Mapped[str | None] = mapped_column(Text, nullable=True)
+    fines_reviewed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    fines_payment_claimed: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    welcome_dismissed: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
     user: Mapped[User] = orm_relationship(back_populates="profile")
 
@@ -143,7 +162,32 @@ Index("ix_sessions_user_revoked", UserSession.user_id, UserSession.revoked_at)
 Index("ix_auth_tokens_user_purpose", AuthToken.user_id, AuthToken.purpose)
 
 
+
+class AccountMessage(Base):
+    """Mensajería bidireccional entre el ciudadano y el área de Tránsito para infracciones."""
+
+    __tablename__ = "account_messages"
+
+    id: Mapped[int] = mapped_column(BigIntPK, primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(
+        BigIntPK, ForeignKey("users.id", ondelete="CASCADE"), index=True, nullable=False
+    )
+    admin_id: Mapped[int | None] = mapped_column(
+        BigIntPK, ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+    )
+    sender: Mapped[str] = mapped_column(String(10), nullable=False)  # "citizen" | "admin"
+    message: Mapped[str] = mapped_column(Text, nullable=False)
+    attachment_storage_key: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    attachment_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    read_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+
+    user: Mapped[User] = orm_relationship(foreign_keys=[user_id])
+    admin: Mapped[User | None] = orm_relationship(foreign_keys=[admin_id])
+
+
 __all__ = [
+    "AccountMessage",
     "User",
     "CitizenProfile",
     "UserSession",

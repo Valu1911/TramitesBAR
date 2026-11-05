@@ -24,6 +24,14 @@ class UserStatus(str, Enum):
     SUSPENDED = "suspended"
     PENDING = "pending"
 
+class AccountStatus(str, Enum):
+    """Estados de verificación ciudadana y antecedentes viales."""
+
+    PENDING = "pendiente"
+    APPROVED = "aprobada"
+    REJECTED_FINES = "rechazada_multas"
+    TRASH = "papelera"
+
 
 class ProcedureStatus(str, Enum):
     """Estados del trámite."""

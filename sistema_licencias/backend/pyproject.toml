@@ -36,6 +36,7 @@ warn_redundant_casts = true
 disallow_untyped_defs = true
 check_untyped_defs = true
 ignore_missing_imports = true
+disable_error_code = ["import-untyped"]
 exclude = ["alembic/versions/"]
 
 [[tool.mypy.overrides]]
@@ -47,3 +48,7 @@ pythonpath = ["."]
 testpaths = ["tests"]
 addopts = "-q"
 filterwarnings = ["error::DeprecationWarning"]
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+disallow_untyped_defs = false

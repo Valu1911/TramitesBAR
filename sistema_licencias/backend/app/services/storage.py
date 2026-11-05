@@ -17,7 +17,7 @@ from fastapi import UploadFile
 
 from app.core.config import get_settings
 from app.core.errors import api_error
-from app.core.security import detect_mime, file_extension_for_mime, safe_filename
+from app.core.security import detect_mime, file_extension_for_mime, safe_filename, utcnow
 
 ALLOWED_MIME = {
     "application/pdf",
@@ -84,7 +84,7 @@ def save_upload(file: UploadFile, kind: str) -> StoredFile:
         )
 
     extension = file_extension_for_mime(mime)
-    key = f"{kind}/{datetime.utcnow():%Y/%m}/{uuid.uuid4().hex}{extension}"
+    key = f"{kind}/{utcnow():%Y/%m}/{uuid.uuid4().hex}{extension}"
     digest = hashlib.sha256(content).hexdigest()
 
     if settings.storage_backend == "local":

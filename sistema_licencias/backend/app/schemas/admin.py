@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import date, datetime
+from decimal import Decimal
 from typing import Literal
 
 from pydantic import BaseModel, Field
+
+from app.schemas.auth import AccountMessageOut
 
 
 class DashboardOut(BaseModel):
@@ -112,3 +115,68 @@ class AuditVerifyOut(BaseModel):
     checked: int
     broken_at: int | None
     message: str
+
+
+class CitizenAccountSummaryOut(BaseModel):
+    """Resumen de cuenta ciudadana para auditoría de antecedentes viales."""
+
+    id: int
+    user_id: int
+    first_name: str
+    last_name: str
+    dni_masked: str
+    dni_full: str | None = None
+    birth_date: date
+    age: int
+    email: str
+    phone: str | None = None
+    address: str | None = None
+    locality: str
+    account_status: str
+    fines_count: int
+    fines_amount: str
+    fines_reason: str | None = None
+    fines_payment_claimed: bool
+    unread_messages: int = 0
+    created_at: datetime
+
+
+class AccountKpiOut(BaseModel):
+    """Métricas en tiempo real para admin_cuentas."""
+
+    total: int
+    pending: int
+    fines: int
+    approved: int
+    trash: int
+
+
+class AccountListOut(BaseModel):
+    """Listado paginado de cuentas con KPIs."""
+
+    items: list[CitizenAccountSummaryOut]
+    kpis: AccountKpiOut
+    total: int
+    page: int
+    page_size: int
+
+
+class AccountDetailOut(BaseModel):
+    """Expediente completo de cuenta para consulta en Infracciones BA y chat."""
+
+    account: CitizenAccountSummaryOut
+    messages: list[AccountMessageOut]
+
+
+class RejectFinesIn(BaseModel):
+    """Plantilla para registrar multas de tránsito."""
+
+    fines_count: int = Field(default=1, ge=1, le=99)
+    fines_amount: Decimal = Field(gt=0)
+    reason: str = Field(min_length=3, max_length=2000)
+
+
+class AdminAccountMessageIn(BaseModel):
+    """Respuesta o mensaje del administrador para el ciudadano."""
+
+    message: str = Field(min_length=1, max_length=2000)

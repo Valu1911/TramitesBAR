@@ -23,6 +23,7 @@ from app.schemas.exam import (
     AttemptResultOut,
     AttemptStartOut,
     ExamAnswerIn,
+    ExamProctoringTokenOut,
 )
 from app.services.audit import record_audit
 from app.services.notifications import notify_user
@@ -513,3 +514,60 @@ def import_questions(
     )
     db.commit()
     return inserted
+
+
+def create_proctoring_token(
+    procedure: Procedure,
+    user: User,
+) -> ExamProctoringTokenOut:
+    """Genera el token de acceso para la sala de supervisión de LiveKit."""
+    import time
+
+    import jwt
+
+    from app.core.config import get_settings
+    from app.schemas.exam import ExamProctoringTokenOut
+
+    settings = get_settings()
+    room_name = f"exam-{procedure.public_code}"
+    identity = f"citizen-{user.id}"
+    participant_name = (
+        f"{user.profile.first_name} {user.profile.last_name}"
+        if user.profile
+        else user.email
+    )
+
+    if not settings.livekit_api_key or not settings.livekit_api_secret:
+        return ExamProctoringTokenOut(
+            room_name=room_name,
+            identity=identity,
+            token=f"simulated-{procedure.public_code}-{user.id}",  # noqa: S106
+            server_url=settings.livekit_url or "ws://127.0.0.1:7880",
+            participant_name=participant_name,
+            simulated=True,
+        )
+
+    now = int(time.time())
+    payload = {
+        "iss": settings.livekit_api_key,
+        "sub": identity,
+        "name": participant_name,
+        "nbf": now - 5,
+        "exp": now + 7200,
+        "video": {
+            "room": room_name,
+            "roomJoin": True,
+            "canPublish": True,
+            "canSubscribe": True,
+            "canPublishData": True,
+        },
+    }
+    token = jwt.encode(payload, settings.livekit_api_secret, algorithm="HS256")
+    return ExamProctoringTokenOut(
+        room_name=room_name,
+        identity=identity,
+        token=token,
+        server_url=settings.livekit_url or "ws://127.0.0.1:7880",
+        participant_name=participant_name,
+        simulated=False,
+    )

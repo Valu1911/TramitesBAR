@@ -132,3 +132,14 @@ class RetryAuthorizationOut(BaseModel):
     procedure_id: int
     extra_attempts: int
     message: str
+
+
+class ExamProctoringTokenOut(BaseModel):
+    """Token de acceso WebRTC (LiveKit) para supervisión de examen."""
+
+    room_name: str
+    identity: str
+    token: str
+    server_url: str
+    participant_name: str
+    simulated: bool = False
