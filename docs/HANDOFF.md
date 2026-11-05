@@ -19,10 +19,10 @@
 
 **Riesgos y pendientes**
 - `legacy/backend/db.py` y `legacy/database/schema.sql` siguen con marcadores de conflicto antiguos (anteriores a este merge). No se tocaron.
-- `iniciar.bat` combina pasos de ambas ramas: crea el venv e instala dependencias, pero termina lanzando `uvicorn` con el `python` global. Conviene unificarlo.
+- `iniciar.bat` quedó unificado con `iniciar.sh` (venv, dependencias, `.env`, migraciones, semilla y `uvicorn` del venv, cortando ante cada error). Se agregó `.gitattributes` para fijar CRLF en `.bat` y LF en `.sh`. Los pasos 4 y 5 requieren MySQL levantado y un `.env` generado de forma interactiva.
 
 **Próximo paso**
-- Unificar `iniciar.bat` y retomar el plan en `docs/plan/PLAN_MAESTRO.md`.
+- Levantar MySQL, generar `.env`, correr `iniciar.bat` de punta a punta y retomar el plan en `docs/plan/PLAN_MAESTRO.md`.
 
 ---
 
