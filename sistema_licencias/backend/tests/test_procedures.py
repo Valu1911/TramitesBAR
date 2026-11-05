@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import timedelta
+from datetime import UTC, timedelta
 
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
@@ -126,8 +126,10 @@ def test_full_procedure_lifecycle_from_start_to_license_issued(
     client: TestClient, make_user, login, seeded: Session, db: Session
 ) -> None:
     """Circuito completo: charlas, salud, examen con token, turnos, entrega y verificación pública QR."""
-    from datetime import datetime, timedelta, timezone
+    from datetime import datetime, timedelta
+
     from sqlalchemy import select, update
+
     from app.models.exam import ExamAttempt, Question
 
     # 1. El ciudadano inicia su trámite de licencia
@@ -227,7 +229,7 @@ def test_full_procedure_lifecycle_from_start_to_license_issued(
 
     # 6. Tránsito publica cupo práctico y el ciudadano lo reserva
     csrf_admin, _ = login("admin.salud@baradero.gob.ar")
-    slot_time = (datetime.now(timezone.utc) + timedelta(days=2)).isoformat()
+    slot_time = (datetime.now(UTC) + timedelta(days=2)).isoformat()
     slot_res = client.post(
         "/api/v1/admin/appointments",
         headers={"X-CSRF-Token": csrf_admin},

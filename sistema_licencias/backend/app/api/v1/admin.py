@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import timezone
+from datetime import UTC
 
 from fastapi import APIRouter, Depends, Query
 from fastapi.responses import Response
@@ -501,7 +501,7 @@ def create_appointment(
     """Crea un cupo de examen práctico."""
     scheduled = data.scheduled_at
     if scheduled.tzinfo is not None:
-        scheduled = scheduled.astimezone(timezone.utc).replace(tzinfo=None)
+        scheduled = scheduled.astimezone(UTC).replace(tzinfo=None)
     if scheduled <= utcnow():
         raise api_error(422, "appointment_in_past", "El turno tiene que ser en el futuro")
     appointment = Appointment(
