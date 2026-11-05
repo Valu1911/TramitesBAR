@@ -1,9 +1,9 @@
 # Project recovery: bounded first slice
 
-Current phase: T02 policy preflight blocked before source/test edits. T01 remains
-completed locally; T02 and T03 remain incomplete. Conflicting v1 admission rules
-must be clarified before changing exam start behavior. This document does not
-certify that the application works end to end.
+Current phase: independent T03 navigation implementation, authorized by the parent
+while T02 stays policy-blocked. T01 remains complete. The T02 question below stays
+unchanged for eventual municipal clarification; no exam behavior is in scope.
+This document does not certify that the application works end to end.
 
 ## Recovery locator and execution boundary
 
@@ -14,9 +14,9 @@ certify that the application works end to end.
 | Original branch / base | `fase-0-base` / `80f888d` |
 | Working branch | `fix/project-recovery`, created locally from that HEAD |
 | Initial status | Only preexisting untracked `.atl/`; preserve it unchanged |
-| Route / trigger | Delegated T02 implementation; mandatory policy preflight before behavior changes |
-| Current authorization | T02 tests/source/docs and local commit, conditional on resolving genuine policy gaps |
-| Implementation state | Paused before source/test edits; only blocker documentation changed |
+| Route / trigger | Delegated independent T03; navigation consumers, behavior tests and docs span 2+ files |
+| Current authorization | T03 frontend landing/link policy, redirects, login/MFA consumers, tests/docs and local commit |
+| Implementation state | Tests-first T03; T02 remains paused and T01 preserved |
 | Model | Default runtime model; no verified explicit override |
 | Review lifecycle | RDD remains on; native transport unsupported; no lifecycle invocation or approval |
 | TDD effective state | Unknown; no verified enabling toggle |
@@ -36,9 +36,10 @@ Do not run `iniciar.bat`, start services, or inspect `.env` secret contents.
 Allowed future scope is the three fixes below, their regression tests, and the
 necessary API/proctoring/navigation documentation and `docs/HANDOFF.md` update.
 Each behavior change needs its tests and documentation in the same work unit.
-T02's intended scope is exam availability guards, honest frontend status and their
-tests/API/proctoring/handoff docs, not navigation or CI. The mandatory policy gate
-is unresolved: this preflight changes only this document and `docs/HANDOFF.md`.
+Current T03 scope is role-aware navigation in App, login screens and Navbar, with
+MFA return handling where relevant, regression tests and handoff/task docs. Preserve
+all route/backend allowlists and MFA checks. No backend, exam, CI or policy edits.
+The unrelated T02 admission-policy gate remains unresolved.
 Do not rewrite authoritative API/proctoring policy to manufacture agreement.
 
 Preserve `legacy/`, `.atl/`, secrets, existing databases, real service data,
@@ -112,28 +113,28 @@ Authored additions plus deletions, including tests/comments/docs, not net lines:
 
 Forecast exceeded 400 and was reported before source work. User selected
 `stacked-to-main`; retain cohesive T01, T02, T03 work-unit boundaries, not file-type
-splits. No size exception or PR is authorized. For this local T02 phase the user
-made the per-task threshold advisory: report a coherent unit's actual overage and
+splits. No size exception or PR is authorized. Repository/orchestrator instructions
+make the per-task threshold advisory: report a coherent unit's actual overage and
 future review decision after one honest slicing pass, not stop solely on size or
 remove tests/comments/compress code. The present stop is policy-based, not size.
 Later task completion requires exact focused/full results, runtime scenario or
 explicit justified N/A, rollback boundary, and a work-unit commit when authorized.
 Initial pre-baseline estimate was 600-950; evidence/runner documentation increased
-the shared-documentation allowance. T01 is complete; T02 code remains paused at
-the policy gate despite conditional implementation authorization.
+the shared-documentation allowance. T01 is complete; T03 proceeds independently
+from `01a193c`, while T02 code remains paused at its policy gate.
 
 Selected local chain plan (no remote branches or PRs created):
 
 ```text
 main (future integration target; no checkout or mutation)
   <- T01: CI provisioning + recovery/handoff docs [complete]
-  <- T02: fail-closed supervision + tests/docs [current, policy blocked]
-  <- T03: role-aware navigation + tests/docs [pending]
+  <- T03: role-aware navigation + tests/docs [current, independent of T02]
+  <- T02: fail-closed supervision + tests/docs [held for product decision]
 ```
 
 T01 starts at `80f888d`; its implementation commit is recorded below. T02 starts
-at `8083efc` and has no implementation commit. Later slices depend on the preceding boundary and are intended
-to integrate in that order. No tracker/feature-branch-chain strategy is mixed in.
+at `8083efc` and has no implementation commit. Parent authorized independent T03
+ahead of blocked T02; its review base is `01a193c`. No tracker/feature-branch-chain strategy is mixed in.
 Native review and any future publication/integration remain parent-owned.
 
 ## TDD configuration evidence and runners
@@ -143,6 +144,7 @@ Native review and any future publication/integration remain parent-owned.
   red/green cycle for T01. T02 will use tests-first conservatively once policy is
   resolved, without claiming configured strict TDD or changing settings. No T02
   RED/GREEN execution has occurred during this blocked preflight.
+  T03 adopts conservative tests-first verification without changing TDD settings.
   Do not run `sdd-init` or change session configuration.
 - Project probes: `.opencode/`, `opencode.json`, `opencode.jsonc` and `.gentle/`
   do not exist; tracked filename probe found no TDD/Gentle/OpenCode config.
@@ -320,7 +322,7 @@ if in-person is allowed, identify its authoritative server-verifiable admission
 contract. The current source does not prove either interpretation. Client input,
 the feature flag or arbitrary procedure JSON must not become attendance proof.
 
-Per the user's stop-on-policy-gap instruction and master-plan line 13, no blanket
+Per repository/orchestrator stop-on-policy-gap instructions and master-plan line 13, no blanket
 start block, flag-off remote permission, invented mode, test bypass, schema change
 or token/camera/UI implementation was made. Keep this coupled safety unit pending
 until the admission contract is resolved; do not mark the existing JWT failures
@@ -347,7 +349,7 @@ future independent T02 functional/security verification remains parent-owned.
 - `C:/Users/pc8-1/.config/agents/skills/chained-pr/SKILL.md`
 - `C:/Users/pc8-1/.config/agents/skills/cognitive-doc-design/SKILL.md`
 
-T01 stays complete. Resolve the T02 admission-policy gap with the parent/municipal
-owner, then resume tests-first against that explicit contract. Mirror this blocker
-record and locator to Engram and read it back. T02/T03 remain incomplete; no remote
-operations or production/CI readiness are claimed. Do not start T03 in this phase.
+Complete only independent T03 with real navigation RED/GREEN and full checks;
+record local work-unit evidence and mirror this document/locator to Engram.
+T01 stays complete. Relay the unchanged T02 admission question to the parent;
+T02 stays incomplete. No remote operations or production/CI readiness are claimed.
