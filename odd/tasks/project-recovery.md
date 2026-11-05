@@ -1,9 +1,9 @@
 # Project recovery: bounded first slice
 
-Current phase: T01 backend CI dependency provisioning completed locally, with
-verification and a work-unit commit. T02 fail-closed proctoring and T03 role-aware navigation
-remain separate pending work units. This document does not certify that the
-application works end to end.
+Current phase: T02 policy preflight blocked before source/test edits. T01 remains
+completed locally; T02 and T03 remain incomplete. Conflicting v1 admission rules
+must be clarified before changing exam start behavior. This document does not
+certify that the application works end to end.
 
 ## Recovery locator and execution boundary
 
@@ -14,11 +14,11 @@ application works end to end.
 | Original branch / base | `fase-0-base` / `80f888d` |
 | Working branch | `fix/project-recovery`, created locally from that HEAD |
 | Initial status | Only preexisting untracked `.atl/`; preserve it unchanged |
-| Route / trigger | Delegated T01 implementation; workflow and documentation span 2+ files |
-| Current authorization | T01 workflow, handoff/task docs, local checks and local work-unit commit |
-| Implementation authorization in this phase | Workflow provisioning/cache only; no application/test edits |
+| Route / trigger | Delegated T02 implementation; mandatory policy preflight before behavior changes |
+| Current authorization | T02 tests/source/docs and local commit, conditional on resolving genuine policy gaps |
+| Implementation state | Paused before source/test edits; only blocker documentation changed |
 | Model | Default runtime model; no verified explicit override |
-| Review lifecycle | RDD globally on per task input; owned by parent, not run here |
+| Review lifecycle | RDD remains on; native transport unsupported; no lifecycle invocation or approval |
 | TDD effective state | Unknown; no verified enabling toggle |
 | Delivery strategy | `ask-on-risk`; approximately 400 authored changed lines advisory |
 | Selected chain strategy | `stacked-to-main` (user selected staged integration) |
@@ -27,7 +27,8 @@ CodeGraph already failed because its index is missing (parent evidence). Use
 targeted filesystem inspection for this phase; do not initialize an index.
 No child delegation, remote commands, fetch, push, PR, merge, reset, rebase,
 production access, existing-database migration, or ambient credential reuse.
-Local T01 work-unit commit and a small tracking commit are explicitly authorized.
+Local work-unit commits are authorized; a blocker-documentation commit must not
+be represented as a T02 implementation commit or task closure.
 Do not run `iniciar.bat`, start services, or inspect `.env` secret contents.
 
 ## Scope and exclusions
@@ -35,8 +36,10 @@ Do not run `iniciar.bat`, start services, or inspect `.env` secret contents.
 Allowed future scope is the three fixes below, their regression tests, and the
 necessary API/proctoring/navigation documentation and `docs/HANDOFF.md` update.
 Each behavior change needs its tests and documentation in the same work unit.
-The present phase changes only `.github/workflows/ci.yml`, `docs/HANDOFF.md` and
-this document; no application or test changes are authorized.
+T02's intended scope is exam availability guards, honest frontend status and their
+tests/API/proctoring/handoff docs, not navigation or CI. The mandatory policy gate
+is unresolved: this preflight changes only this document and `docs/HANDOFF.md`.
+Do not rewrite authoritative API/proctoring policy to manufacture agreement.
 
 Preserve `legacy/`, `.atl/`, secrets, existing databases, real service data,
 uploads, runtime credentials, dependency locks, municipal policy, and the stack.
@@ -73,9 +76,11 @@ record locally, or enable an unsupervised substitute for supervised exams.
     CSRF and direct start; frontend tests for unavailable/failed token, camera
     rejection/missing API, blocked start and honest room status. Test-only doubles
     are acceptable; no live remote connection or invented production readiness.
-  - Safety decision: because real LiveKit admission/connection is not implemented
-    in this slice, keep the supervised path unavailable rather than inventing
-    admission evidence or enabling it solely because keys are configured.
+  - Safety premise under review: unavailable real supervision must never be
+    presented as connected. However, blanket rejection of all theory starts is
+    not authorized by the current conflicting v1 documents. Resolve whether the
+    flag-off path is remotely permitted or limited to verified in-person exams
+    before implementing an admission guard. Do not invent a modality or bypass.
   - Rollback: availability guards, token behavior, corresponding UI/types/tests
     and docs as one coherent security unit; no schema changes.
 
@@ -107,25 +112,27 @@ Authored additions plus deletions, including tests/comments/docs, not net lines:
 
 Forecast exceeded 400 and was reported before source work. User selected
 `stacked-to-main`; retain cohesive T01, T02, T03 work-unit boundaries, not file-type
-splits. No size exception or PR is authorized. T02 may itself exceed the advisory
-threshold; stop for the parent's size/risk decision rather
-than removing tests/comments or compressing code. This is one honest sizing pass.
+splits. No size exception or PR is authorized. For this local T02 phase the user
+made the per-task threshold advisory: report a coherent unit's actual overage and
+future review decision after one honest slicing pass, not stop solely on size or
+remove tests/comments/compress code. The present stop is policy-based, not size.
 Later task completion requires exact focused/full results, runtime scenario or
 explicit justified N/A, rollback boundary, and a work-unit commit when authorized.
 Initial pre-baseline estimate was 600-950; evidence/runner documentation increased
-the shared-documentation allowance. Only T01 CI source work is now authorized.
+the shared-documentation allowance. T01 is complete; T02 code remains paused at
+the policy gate despite conditional implementation authorization.
 
 Selected local chain plan (no remote branches or PRs created):
 
 ```text
 main (future integration target; no checkout or mutation)
-  <- T01: CI provisioning + recovery/handoff docs [current slice]
-  <- T02: fail-closed supervision + tests/docs [pending]
+  <- T01: CI provisioning + recovery/handoff docs [complete]
+  <- T02: fail-closed supervision + tests/docs [current, policy blocked]
   <- T03: role-aware navigation + tests/docs [pending]
 ```
 
-Current slice starts at `80f888d`; end is the T01 implementation commit recorded
-below. Later slices depend on the preceding work-unit boundary and are intended
+T01 starts at `80f888d`; its implementation commit is recorded below. T02 starts
+at `8083efc` and has no implementation commit. Later slices depend on the preceding boundary and are intended
 to integrate in that order. No tracker/feature-branch-chain strategy is mixed in.
 Native review and any future publication/integration remain parent-owned.
 
@@ -133,14 +140,17 @@ Native review and any future publication/integration remain parent-owned.
 
 - Task input explicitly says no verified TDD enabling toggle; do not infer one
   from the existence of tests. Ordinary baseline checks apply here, not a claimed
-  red/green cycle. T01 is nonbehavioral provisioning: ordinary checks apply.
+  red/green cycle for T01. T02 will use tests-first conservatively once policy is
+  resolved, without claiming configured strict TDD or changing settings. No T02
+  RED/GREEN execution has occurred during this blocked preflight.
   Do not run `sdd-init` or change session configuration.
 - Project probes: `.opencode/`, `opencode.json`, `opencode.jsonc` and `.gentle/`
   do not exist; tracked filename probe found no TDD/Gentle/OpenCode config.
 - `AGENTS.md` has test requirements but no explicit TDD enable setting.
-- Global `~/.config/opencode/opencode.jsonc` exists, but a targeted TDD/RDD grep
-  exceeded the tool's JSON-record limit. Its effective toggle is unverified;
-  do not dump the file or infer a state. No session config was provided.
+- The first targeted global config grep exceeded the tool's record limit. The
+  parent's independent verifier subsequently parsed global configuration metadata
+  and found no TDD keys. Effective configured state remains unknown, not off/on;
+  no session enabling toggle was provided. Do not dump secrets or infer a toggle.
 - Backend runner: existing `.venv/Scripts/python.exe`, Python 3.14.6; project
   declares >=3.12 and CI uses 3.12. Cross-version parity is not established.
   Initially Ruff, Mypy, Pytest, pytest-cov and types-requests are absent.
@@ -290,6 +300,44 @@ closure; it deliberately does not embed its own hash. Parent can record the fina
 documentation commit from Git without starting a circular receipt-commit loop.
 T02/T03 remain pending; RDD review parent-owned. No source changed after checks.
 
+## T02 policy preflight blocker
+
+Observed on 2026-11-05 at `8083efc`, before any application or test write:
+
+| Evidence | Consequence |
+|---|---|
+| `docs/PROCTORING.md:7-16` | Explicitly describes flag-off v1 theoretical exams without WebRTC; does not restrict that path to in-person attendance |
+| `docs/ARQUITECTURA.md:98` | Also documents v1 exams with server-side integrity and optional later live supervision |
+| `docs/plan/PLAN_MAESTRO.md:410-446` | Describes assigned examiner admission and mandatory camera, microphone and screen for supervised exams |
+| `docs/plan/PLAN_MAESTRO.md:630-641` | Separates exam phase 4 from proctoring phases 5-7; minimum productive cut excludes live proctoring |
+| `docs/plan/DECISIONES.md`, ADR-004/005/006/014 | Defines live infrastructure, evidence consent and certified examiners, but no v1 remote exemption or in-person admission contract |
+| `docs/plan/PLAN_MAESTRO.md:537` | Mentions an in-person alternative for minors, not a general theoretical-exam modality contract |
+| `app/api/v1/procedures.py:363-383`, `models/exam.py:34-64`, `models/procedure.py:54-87` | Start endpoint, attempt and matrix have no explicit remote/in-person discriminator or verified examiner-admission state |
+
+Required clarification: define whether the documented `FEATURES_PROCTORING=false`
+v1 admission path is allowed remotely or only for verified in-person attendance;
+if in-person is allowed, identify its authoritative server-verifiable admission
+contract. The current source does not prove either interpretation. Client input,
+the feature flag or arbitrary procedure JSON must not become attendance proof.
+
+Per the user's stop-on-policy-gap instruction and master-plan line 13, no blanket
+start block, flag-off remote permission, invented mode, test bypass, schema change
+or token/camera/UI implementation was made. Keep this coupled safety unit pending
+until the admission contract is resolved; do not mark the existing JWT failures
+as fixed or legitimate unsupervised exams as newly authorized.
+
+No T02 tests were authored/run, so there is no RED/GREEN or final-suite evidence
+for T02. The 29/31 backend and 5/5 frontend results above are historical T01 runs,
+not reruns. Only documentation integrity/scope/secret checks apply to this blocker
+record. No application behavior was exercised or changed in this phase.
+
+Parent independently verified T01 without defects/new failures (supplied evidence).
+Native RDD assess failed high/unassessable; preflight STATUS was
+`immutable_review_transport_unsupported`, `next_action=stop`,
+`mutation_not_started`, `retry_safe=false` (only claude-code/codex supported).
+RDD remains on unchanged. No native retry/toggle/review/approval/receipt is claimed;
+future independent T02 functional/security verification remains parent-owned.
+
 ## Preparation skills and next step
 
 `skill_resolution: paths-injected` (read before work):
@@ -299,8 +347,7 @@ T02/T03 remain pending; RDD review parent-owned. No source changed after checks.
 - `C:/Users/pc8-1/.config/agents/skills/chained-pr/SKILL.md`
 - `C:/Users/pc8-1/.config/agents/skills/cognitive-doc-design/SKILL.md`
 
-T01 local acceptance is closed. Mirror this full document and relative locator to
-Engram and read it back; return commit identities, known failures and slice counts
-to parent. Next is T02, requiring later authorization and its own size/risk check.
-T03 remains pending. RDD review remains the parent's responsibility; no remote
-operations are authorized and a green production/CI result is not claimed.
+T01 stays complete. Resolve the T02 admission-policy gap with the parent/municipal
+owner, then resume tests-first against that explicit contract. Mirror this blocker
+record and locator to Engram and read it back. T02/T03 remain incomplete; no remote
+operations or production/CI readiness are claimed. Do not start T03 in this phase.

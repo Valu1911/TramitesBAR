@@ -3,7 +3,18 @@
 **Fecha de actualización:** 2026-11-05  
 **Rama:** `fix/project-recovery`
 
-**Estado:** T01 de recuperación verificado localmente; backend con 29 pruebas aprobadas y 2 fallos preexistentes por `jwt`. No se certifica funcionamiento integral ni preparación para producción.
+**Estado:** T02 detenido en la validación de política, antes de modificar aplicación o pruebas. T01 conserva su verificación local; los 2 fallos conocidos por `jwt` siguen pendientes. No se certifica funcionamiento integral ni preparación para producción.
+
+## Sesión 2026-11-05 — Bloqueo de política previo a T02
+
+- Se contrastaron el plan, las decisiones, proctoring, arquitectura y los contratos reales de examen. No se modificaron la aplicación, las pruebas, CI, esquemas ni documentos canónicos para resolver el desacuerdo por cuenta propia.
+- `docs/PROCTORING.md:7-16` y `docs/ARQUITECTURA.md:98` describen examen v1 sin WebRTC con `FEATURES_PROCTORING=false`. No limitan expresamente esa modalidad a atención presencial.
+- `PLAN_MAESTRO.md:410-446` describe admisión del examinador y cámara, micrófono y pantalla obligatorios; las líneas 630-641 separan examen y proctoring y excluyen este último del corte mínimo productivo. Los ADR de supervisión no resuelven la admisión v1 sin transmisión.
+- El inicio por API, `ExamAttempt` y `ProcedureMatrix` no distinguen explícitamente modalidad remota/presencial ni acreditan admisión de un examinador. No corresponde deducir presencia física de una bandera o de datos enviados por el ciudadano.
+- **Definición necesaria:** alcance remoto o exclusivamente presencial del examen v1 sin WebRTC y, si se admite el presencial, contrato de admisión verificable en servidor. Un bloqueo general podría eliminar una modalidad legítima; dejar el inicio abierto podría permitir un examen remoto sin supervisión. Se recomienda aclarar este punto antes de modificar la admisión.
+- T02 y T03 siguen incompletos. No se añadieron ni ejecutaron pruebas en este preflight; no hay evidencia RED/GREEN nueva. Los resultados de T01 indicados abajo no son una repetición de pruebas de T02. Los fallos por `jwt` no están corregidos.
+- El coordinador verificó T01 independientemente sin defectos ni fallos nuevos. La revisión RDD nativa sigue habilitada pero no disponible: `immutable_review_transport_unsupported`, `next_action=stop`, `mutation_not_started`, `retry_safe=false`; no se reintentó, desactivó ni afirmó aprobación.
+- Solo se actualizan este handoff y `odd/tasks/project-recovery.md` para conservar el bloqueo. Próximo paso: definición del responsable municipal/coordinador y luego regresiones primero para T02. Sin acceso remoto, servicios reales, migraciones, publicación ni cambios en `.atl/` o `legacy/`.
 
 ## Sesión 2026-11-05 — T01: dependencias de desarrollo en CI
 
