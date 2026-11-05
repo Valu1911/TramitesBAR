@@ -1,7 +1,7 @@
 # Project recovery: bounded first slice
 
-Current phase: T01 backend CI dependency provisioning only, with local verification
-and a work-unit commit. T02 fail-closed proctoring and T03 role-aware navigation
+Current phase: T01 backend CI dependency provisioning completed locally, with
+verification and a work-unit commit. T02 fail-closed proctoring and T03 role-aware navigation
 remain separate pending work units. This document does not certify that the
 application works end to end.
 
@@ -43,9 +43,9 @@ uploads, runtime credentials, dependency locks, municipal policy, and the stack.
 Do not invent municipal requirements, implement real LiveKit infrastructure,
 record locally, or enable an unsupervised substitute for supervised exams.
 
-## Pending implementation tasks
+## Implementation tasks
 
-- [ ] **T01 — CI dependency provisioning.** Install the declared backend dev
+- [x] **T01 — CI dependency provisioning.** Install the declared backend dev
   requirements in CI rather than runtime requirements alone. Keep production
   dependencies separate and preserve existing checks and security controls.
   - Original evidence: CI cached/installed `requirements.txt` but invoked Ruff,
@@ -249,7 +249,7 @@ both files. No checks, permissions, actions, triggers, migrations or runtime
 dependency declarations were changed. Existing version ranges remain unpinned;
 this provisioning fix does not promise identical future dependency resolution.
 
-Local acceptance satisfied on 2026-11-05; closure commit pending. A PyYAML
+Local acceptance satisfied on 2026-11-05 and committed in `0349eea`. A PyYAML
 `safe_load` assertion check on `git show :.github/workflows/ci.yml` passed (exit 0):
 both cache manifests, dev installation through Python, backend working directory,
 unchanged Ruff/Mypy/Pytest commands and read-only contents permission. Manual
@@ -279,7 +279,16 @@ cross-version limitations are unchanged from the baseline.
 Rollback: restore only workflow install/cache lines and corresponding T01 docs;
 application/test bytes remain unchanged. `docs/HANDOFF.md` now reports the actual
 red backend baseline and labels older all-green claims as historical.
-Implementation commit: pending. T02/T03 remain pending; RDD review parent-owned.
+Implementation commit: `0349eea3eef8724196de76c4c9e9d025f29d56ce`
+(`fix(ci): provision backend development checks`), parent `80f888d`.
+Implementation snapshot: 3 files, 332 additions + 4 deletions = 336 authored
+changed lines, including the full recovery document; below the 400-line advisory.
+Scoped staged-addition secret-pattern check and manual diff inspection passed.
+Commit completed without hook failures or tracked-byte changes afterward.
+This small follow-up tracking commit records that implementation identity and
+closure; it deliberately does not embed its own hash. Parent can record the final
+documentation commit from Git without starting a circular receipt-commit loop.
+T02/T03 remain pending; RDD review parent-owned. No source changed after checks.
 
 ## Preparation skills and next step
 
@@ -290,8 +299,8 @@ Implementation commit: pending. T02/T03 remain pending; RDD review parent-owned.
 - `C:/Users/pc8-1/.config/agents/skills/chained-pr/SKILL.md`
 - `C:/Users/pc8-1/.config/agents/skills/cognitive-doc-design/SKILL.md`
 
-Finish T01 checks, update the handoff and evidence, commit only its three files,
-record the implementation commit in a small tracking commit if needed, mirror
-this full document and relative locator to Engram, and read it back. Return known
-failures and slice counts to parent; T02/T03 require later authorization. RDD
-review remains the parent's responsibility; no remote operations are authorized.
+T01 local acceptance is closed. Mirror this full document and relative locator to
+Engram and read it back; return commit identities, known failures and slice counts
+to parent. Next is T02, requiring later authorization and its own size/risk check.
+T03 remains pending. RDD review remains the parent's responsibility; no remote
+operations are authorized and a green production/CI result is not claimed.
