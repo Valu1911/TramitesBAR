@@ -81,7 +81,9 @@ export function PracticalAppointment() {
     try {
       setSubmitting(true);
       setErrorMsg(null);
-      await api.post(`/procedures/${id}/appointments/${selectedSlotId}/book`);
+      await api.post(`/procedures/${id}/appointment`, {
+        appointment_id: selectedSlotId,
+      });
       setSuccessMsg('¡Turno práctico reservado con éxito!');
       await loadData();
     } catch (err) {

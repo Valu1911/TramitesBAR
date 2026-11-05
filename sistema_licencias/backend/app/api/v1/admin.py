@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from datetime import timezone
+
 from fastapi import APIRouter, Depends, Query
 from fastapi.responses import Response
 from sqlalchemy import func, select, update
@@ -497,11 +499,14 @@ def create_appointment(
     meta: RequestMeta = Depends(request_meta),
 ) -> AdminAppointmentOut:
     """Crea un cupo de examen práctico."""
-    if data.scheduled_at <= utcnow():
+    scheduled = data.scheduled_at
+    if scheduled.tzinfo is not None:
+        scheduled = scheduled.astimezone(timezone.utc).replace(tzinfo=None)
+    if scheduled <= utcnow():
         raise api_error(422, "appointment_in_past", "El turno tiene que ser en el futuro")
     appointment = Appointment(
         kind=data.kind,
-        scheduled_at=data.scheduled_at,
+        scheduled_at=scheduled,
         location=data.location,
         capacity=data.capacity,
         status="available",
