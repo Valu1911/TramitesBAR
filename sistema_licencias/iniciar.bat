@@ -3,12 +3,8 @@ setlocal
 cd /d "%~dp0"
 
 echo ============================================================
-<<<<<<< HEAD
-echo   TramitesBAR - Sistema Municipal de Licencias (Baradero)
-=======
 echo   SISTEMA DE LICENCIAS DE CONDUCIR - BARADERO
 echo   Iniciando Backend FastAPI (Uvicorn)...
->>>>>>> 375601f98034ff3fad8c977a1bdcea7ff8dc8984
 echo ============================================================
 echo.
 
@@ -44,32 +40,5 @@ if not exist ".env" (
 )
 
 cd /d "%~dp0backend"
-<<<<<<< HEAD
-
-echo [4/5] Aplicando migraciones y semilla base...
-"%ALEMBIC%" upgrade head
-if errorlevel 1 (
-    echo Error al aplicar migraciones. Verifica DATABASE_URL y que MySQL 8.4 este corriendo.
-    exit /b 1
-)
-
-"%PYTHON%" -m app.cli seed
-if errorlevel 1 (
-    echo Error al cargar el catalogo inicial.
-    exit /b 1
-)
-
-echo.
-echo [5/5] Iniciando API FastAPI...
-echo   API:      http://127.0.0.1:8000
-echo   Docs:     http://127.0.0.1:8000/docs
-echo   Frontend: En otra terminal ejecuta:
-echo             cd sistema_licencias\frontend ^&^& npm install ^&^& npm run dev
-echo             (http://127.0.0.1:5173)
-echo.
-
-"%UVICORN%" app.main:app --host 127.0.0.1 --port 8000 --reload
-=======
 python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
 pause
->>>>>>> 375601f98034ff3fad8c977a1bdcea7ff8dc8984

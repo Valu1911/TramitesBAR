@@ -40,11 +40,7 @@ function readCookie(name: string): string | null {
   return null;
 }
 
-<<<<<<< HEAD
-export function buildUrl(path: string, params?: Record<string, unknown>): string {
-=======
 function buildUrl(path: string, params?: Record<string, unknown>): string {
->>>>>>> 375601f98034ff3fad8c977a1bdcea7ff8dc8984
   const url = path.startsWith(API_BASE)
     ? path
     : `${API_BASE}${path.startsWith("/") ? path : `/${path}`}`;
