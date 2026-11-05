@@ -1,8 +1,37 @@
 # Handoff del Proyecto — TramitesBAR
 
 **Fecha de actualización:** 2026-11-05  
-**Rama:** `fase-0-base`  
-**Estado:** v1 operativa completa (Fases 0 a 4, 8 y 9 implementadas y verificadas; Fases 5 a 7 y 10 parametrizadas por feature flags a la espera de definiciones externas).
+**Rama:** `fix/project-recovery`
+
+**Estado:** T01 de recuperación verificado localmente; backend con 29 pruebas aprobadas y 2 fallos preexistentes por `jwt`. No se certifica funcionamiento integral ni preparación para producción.
+
+## Sesión 2026-11-05 — T01: dependencias de desarrollo en CI
+
+**Qué se hizo**
+- CI instala `requirements-dev.txt` mediante `python -m pip`; este archivo incluye las dependencias de ejecución. La caché de pip considera tanto `requirements.txt` como `requirements-dev.txt`.
+- Se creó el registro recuperable `odd/tasks/project-recovery.md` con alcance, exclusiones, criterios, comandos aislados y evidencia. Se preservó `.atl/` sin incluirlo en el commit.
+- No se modificaron la aplicación, las pruebas, los manifiestos de dependencias, los permisos ni los disparadores de CI.
+
+**Decisión y límites**
+- Integración por etapas: `chain_strategy: stacked-to-main`, `delivery_strategy: ask-on-risk`. T01 es la primera unidad; T02 y T03 siguen pendientes. Solo trabajo y commits locales; sin publicación, PR ni merge.
+- TDD sin estado habilitado verificado; comprobaciones ordinarias para este cambio de aprovisionamiento, sin afirmar un ciclo RED/GREEN. La revisión RDD corresponde al coordinador.
+
+**Verificación observada**
+- Backend, con el Python del venv: `ruff check .` sin errores; `mypy app tests` sin errores en 71 archivos; `pip check` sin dependencias rotas.
+- Pytest con el aislamiento documentado: 29 aprobadas, 2 fallidas y 1 `StarletteDeprecationWarning`. La repetición con resumen tardó 9,56 s. Son exactamente los mismos fallos de la línea base, no fallos ambientales ni regresiones nuevas observadas.
+- Fallan `test_exam_proctoring_token_and_step_validation` y `test_full_procedure_lifecycle_from_start_to_license_issued`: `ModuleNotFoundError: No module named 'jwt'` en `app/services/exams.py:526`. No se omitieron ni modificaron esas pruebas.
+- Frontend: `npm run typecheck`, `npm run lint`, `npm test` (5/5, un archivo) y `npm run build` aprobados; 253 módulos transformados.
+- Comprobación estructural de YAML aprobada sobre el workflow preparado para commit: instalación de desarrollo, ambas rutas de caché, directorio de trabajo, controles de calidad y permisos de solo lectura.
+
+**Riesgos, prueba y próximo paso**
+- Python local 3.14.6 frente a CI 3.12; Node local 24.18.0 frente a CI 20. No se verificó paridad entre versiones, ejecución remota de Actions, restauración de caché ni migraciones MySQL.
+- Para repetir las pruebas, usar el wrapper de aislamiento completo y los comandos de `odd/tasks/project-recovery.md`; no ejecutar contra configuración heredada ni usar `iniciar.bat`.
+- T01 corrige únicamente el aprovisionamiento; CI todavía puede fallar por los defectos existentes de examen. El siguiente paso es T02, supervisión con rechazo seguro, previa autorización. No se habilitará un examen sin supervisión como alternativa.
+- Archivos de esta unidad: `.github/workflows/ci.yml`, `docs/HANDOFF.md`, `odd/tasks/project-recovery.md`. Reversión acotada: líneas de instalación/caché y documentación de T01, sin cambios de esquema ni de aplicación.
+
+## Historial previo (no constituye evidencia vigente)
+
+Las afirmaciones anteriores de pruebas totalmente aprobadas, supervisión real o funcionamiento de punta a punta no describen la verificación actual. Se conservan a continuación como historial; prevalecen el estado y la evidencia de T01 indicados arriba.
 
 ---
 
