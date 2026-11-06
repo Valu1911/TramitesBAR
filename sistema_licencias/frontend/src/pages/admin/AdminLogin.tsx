@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { ApiError } from '../../lib/api';
 import { Shield, Eye, EyeOff } from '../../components/Icons';
+import { RequiredMark, RequiredFieldsNote } from '../../components/FormFeedback';
 
 export function AdminLogin() {
   const { login, logout } = useAuth();
@@ -83,10 +84,11 @@ export function AdminLogin() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} noValidate>
+        <form onSubmit={handleSubmit}>
+          <RequiredFieldsNote />
           <div className="form-group">
             <label htmlFor="adminIdentifier" className="form-label">
-              Correo oficial o DNI
+              Correo oficial o DNI<RequiredMark />
             </label>
             <input
               id="adminIdentifier"
@@ -103,7 +105,7 @@ export function AdminLogin() {
 
           <div className="form-group">
             <label htmlFor="adminPassword" className="form-label">
-              Contraseña
+              Contraseña<RequiredMark />
             </label>
             <div className="input-password-wrapper">
               <input

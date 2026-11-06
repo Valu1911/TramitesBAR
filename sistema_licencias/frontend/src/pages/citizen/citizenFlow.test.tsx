@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { CitizenPanel } from './CitizenPanel';
 import { Charlas } from './Charlas';
@@ -107,8 +107,12 @@ describe('Flujo Ciudadano de Licencias - TramitesBAR', () => {
       await waitFor(() => {
         expect(screen.getByText('Iniciar Nuevo Trámite de Licencia')).toBeInTheDocument();
         expect(screen.getByText('Licencia Nueva')).toBeInTheDocument();
-        expect(screen.getByText('Iniciar Solicitud de Trámite')).toBeInTheDocument();
       });
+      expect(screen.queryByText('Iniciar Solicitud de Trámite')).not.toBeInTheDocument();
+      fireEvent.click(screen.getByRole('button', { name: /Licencia Nueva/ }));
+      expect(screen.getByText('Iniciar Solicitud de Trámite')).toBeDisabled();
+      fireEvent.click(screen.getByRole('button', { name: 'Categoría B' }));
+      expect(screen.getByText('Iniciar Solicitud de Trámite')).toBeEnabled();
     });
 
     it('muestra el Stepper visual de etapas cuando hay un trámite activo', async () => {

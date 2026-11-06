@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { ApiError } from '../../lib/api';
 import { Shield, Lock, Eye, EyeOff } from '../../components/Icons';
+import { RequiredMark, RequiredFieldsNote, FormError } from '../../components/FormFeedback';
 
 export function Login() {
   const { login } = useAuth();
@@ -89,16 +90,13 @@ export function Login() {
           </div>
         )}
 
-        {error && (
-          <div className="alert alert-danger" role="alert">
-            <span>{error}</span>
-          </div>
-        )}
+        {error && <FormError message={error} />}
 
-        <form onSubmit={handleSubmit} noValidate>
+        <form onSubmit={handleSubmit}>
+          <RequiredFieldsNote />
           <div className="form-group">
             <label htmlFor="identifier" className="form-label">
-              DNI o Correo electrónico
+              DNI o Correo electrónico<RequiredMark />
             </label>
             <input
               id="identifier"
@@ -117,7 +115,7 @@ export function Login() {
           <div className="form-group">
             <div className="form-header-row">
               <label htmlFor="password" className="form-label">
-                Contraseña
+                Contraseña<RequiredMark />
               </label>
               <Link to="/forgot-password" className="form-hint">
                 ¿Olvidaste tu contraseña?
@@ -149,7 +147,7 @@ export function Login() {
           {showMfa && (
             <div className="form-group">
               <label htmlFor="mfaCode" className="form-label">
-                Código de segundo factor (TOTP)
+                Código de segundo factor (TOTP)<RequiredMark />
               </label>
               <input
                 id="mfaCode"

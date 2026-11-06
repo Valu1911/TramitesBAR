@@ -1,11 +1,11 @@
 import { useState, useEffect, type ChangeEvent, type FormEvent } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { api } from '../../lib/api';
+import { RequiredMark, RequiredFieldsNote, FormError } from '../../components/FormFeedback';
 import type { Procedure, DocumentItem } from '../../lib/types';
 import {
   Activity,
   Check,
-  AlertTriangle,
   Upload,
   ChevronLeft,
   FileText,
@@ -31,7 +31,8 @@ export function Health() {
   const [procedure, setProcedure] = useState<Procedure | null>(null);
 
   // Declaración jurada médica
-  const [bloodType, setBloodType] = useState('0+');
+  // No atribuimos un grupo sanguíneo a quien todavía no respondió.
+  const [bloodType, setBloodType] = useState('');
   const [questions, setQuestions] = useState<HealthQuestionsState>({
     hasVisionIssue: false,
     hasHearingIssue: false,
@@ -234,12 +235,7 @@ export function Health() {
         </div>
       </div>
 
-      {errorMsg && (
-        <div className="alert alert-danger spacing-mb-1" role="alert">
-          <AlertTriangle width={18} height={18} />
-          <span>{errorMsg}</span>
-        </div>
-      )}
+      {errorMsg && <FormError message={errorMsg} />}
 
       {loading ? (
         <div className="card text-center">
@@ -247,6 +243,7 @@ export function Health() {
         </div>
       ) : (
         <form onSubmit={handleSubmit}>
+          <RequiredFieldsNote />
           {/* Sección 1: Grupo Sanguíneo */}
           <div className="health-form-section">
             <h2 className="health-section-heading">
@@ -258,13 +255,15 @@ export function Health() {
             </p>
 
             <div className="form-group">
-              <label htmlFor="bloodTypeSelect">Grupo sanguíneo</label>
+              <label htmlFor="bloodTypeSelect">Grupo sanguíneo<RequiredMark /></label>
               <select
                 id="bloodTypeSelect"
                 className="form-input"
                 value={bloodType}
                 onChange={handleBloodTypeChange}
+                required
               >
+                <option value="" disabled>Seleccioná tu grupo o indicá que no lo conocés</option>
                 <option value="0+">0 Positivo (0+)</option>
                 <option value="A+">A Positivo (A+)</option>
                 <option value="B+">B Positivo (B+)</option>
@@ -478,7 +477,7 @@ export function Health() {
 
             <div className="grid-cols-2">
               <div className="form-group">
-                <label htmlFor="emergencyNameInput">Nombre y apellido de contacto</label>
+                <label htmlFor="emergencyNameInput">Nombre y apellido de contacto<RequiredMark /></label>
                 <input
                   id="emergencyNameInput"
                   type="text"
@@ -487,11 +486,12 @@ export function Health() {
                   value={emergencyName}
                   onChange={handleEmergencyNameChange}
                   required
+                  minLength={3}
                 />
               </div>
 
               <div className="form-group">
-                <label htmlFor="emergencyPhoneInput">Teléfono de contacto</label>
+                <label htmlFor="emergencyPhoneInput">Teléfono de contacto<RequiredMark /></label>
                 <input
                   id="emergencyPhoneInput"
                   type="tel"
@@ -500,6 +500,7 @@ export function Health() {
                   value={emergencyPhone}
                   onChange={handleEmergencyPhoneChange}
                   required
+                  minLength={6}
                 />
               </div>
             </div>
@@ -529,7 +530,7 @@ export function Health() {
               <div>
                 <label htmlFor="certFileInput" className="health-upload-box">
                   <Upload width={28} height={28} />
-                  <p>Hacé clic acá para seleccionar el archivo de certificado médico</p>
+                  <p>Seleccioná el certificado médico<RequiredMark /></p>
                   <span className="matrix-spec-label">Formatos admitidos: PDF, JPG, PNG (máx. 10 MB)</span>
                   <input
                     id="certFileInput"
@@ -570,6 +571,7 @@ export function Health() {
               required
             />
             <label htmlFor="declaresAptCheck" className="sworn-declaration-text">
+              <RequiredMark />
               <strong>Declaración Jurada de Aptitud:</strong> Declaro bajo juramento que los datos consignados en el presente formulario municipal son fidedignos y exactos, que no he ocultado patologías ni prescripciones farmacológicas que alteren mis aptitudes psicofísicas para el gobierno del vehículo, asumiendo las responsabilidades civiles y penales derivadas de conformidad con la Ley Nacional de Tránsito N° 24.449 y normativas municipales de Baradero.
             </label>
           </div>

@@ -4,6 +4,14 @@ Este documento detalla los controles de seguridad implementados en `sistema_lice
 
 ---
 
+## Registro: disponibilidad de políticas (2026-11-06)
+
+El frontend bloquea el registro mientras se consultan las políticas, si falla la consulta o si la API devuelve una lista vacía. No fabrica políticas, versiones ni consentimientos de reemplazo. El usuario puede reintentar la consulta sin perder sus datos. Los consentimientos se marcan explícitamente y los controles del backend siguen siendo la autoridad; la validación del navegador no los reemplaza.
+
+La suite aislada de [QA responsive](QA_RESPONSIVE.md) verifica fallo/recuperación y el payload de consentimiento. No acredita aceptación persistida ni constituye aprobación de seguridad. **Se solicita revisión de seguridad de este cambio antes de integrar**, junto con regresión de registro/políticas en un entorno de integración controlado.
+
+---
+
 ## 1. Hashing de contraseñas y política de credenciales
 
 Implementado en `sistema_licencias/backend/app/core/security.py`:

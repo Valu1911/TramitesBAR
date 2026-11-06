@@ -1,9 +1,44 @@
 # Handoff del Proyecto — TramitesBAR
 
-**Fecha de actualización:** 2026-11-05  
+**Fecha de actualización:** 2026-11-06
+
 **Rama:** `fix/project-recovery`
 
-**Estado:** T02 detenido en la validación de política, antes de modificar aplicación o pruebas. T01 conserva su verificación local; los 2 fallos conocidos por `jwt` siguen pendientes. No se certifica funcionamiento integral ni preparación para producción.
+**Estado:** UX ciudadana y QA responsive implementados y verificados localmente. T02 sigue bloqueado por política y T03 sigue pendiente en el código de esta rama; no se corrigieron ni repitieron los 2 fallos conocidos del backend por `jwt`. No se certifica funcionamiento integral ni preparación para producción.
+
+## Sesión 2026-11-06 — Experiencia ciudadana y Playwright
+
+### Qué se hizo y decisiones
+
+- Playwright, Chromium y axe instalados. Suite aislada con cuatro anchos (320, 390, 768, 1440 px), capturas e informe local ignorados por Git. Se incorpora a CI sin tocar backend ni sus checks; Node de frontend pasa a 24 LTS para satisfacer los engines actuales.
+- Selección explícita de tipo → categoría → resumen, desplazamiento instantáneo y foco accesible, sin salto al cargar. Se limpia la categoría al cambiar tipo; no se crea el expediente hasta confirmar. Guardas ante matriz ausente y rango de edad tomado de API.
+- Al crear se usa el expediente devuelto por API, sin una segunda consulta que pueda reportar falsamente que falló el alta. Opciones bloqueadas durante el envío.
+- `*`, leyenda y validación nativa en formularios intervenidos; opcionales de registro identificados. Errores visibles con foco en login, registro, panel y salud. Grupo sanguíneo sin dato médico preseleccionado. Entrega con selección accesible y domicilio señalado como obligatorio si es postal.
+- Se elimina el fallback de políticas inventadas del registro y el fallback de licencias vacías ante error. Ambos errores quedan visibles, con reintento; registrar requiere políticas reales disponibles.
+- Contraste de enlaces/estados corregido, enlaces de texto subrayados, controles táctiles ampliados, entradas de etapas estilizadas, grillas sin desborde y movimiento reducido. Credencial del panel rotulada municipal, no nacional oficial.
+
+### Verificación local
+
+- Playwright: 84/84 aprobadas (21 escenarios × 4 anchos), incluyendo 40 inspecciones axe (36 de vistas y 4 del resumen de selección). Se revisaron capturas de selección y registro a 320 px. Chromium emulado, no Safari ni dispositivos físicos.
+- TypeScript, ESLint, Vitest 5/5 y build aprobados. La suite nueva vive fuera de Vitest y sus archivos/configuración están incluidos en el chequeo de tipos.
+- `npm audit --omit=dev`: cero vulnerabilidades; auditoría completa: 10 moderadas del tooling de desarrollo (`minimatch`/ESLint), sin actualización forzada.
+- Toda API de las pruebas Playwright está interceptada exclusivamente desde fixtures de test. No se inició backend, no se leyó `.env`, no se migraron bases ni se accedió a servicios reales. No se ejecutó CI remoto ni se publicó/mergeó una rama.
+
+### Riesgos, pendientes y próximo paso
+
+- **Se solicita revisión de seguridad de registro/consentimiento antes del merge.** Pruebas UI no validan persistencia, CSRF, archivos, permisos ni entrega de correo reales.
+- T02: definir modalidad remota/presencial de examen v1 y contrato verificable de admisión, luego corregir simulación y fallos `jwt` con regresiones. Se mantiene el bloqueo anterior, sin inventar reglas municipales.
+- T03: especialistas todavía redirigidos a `/admin/cuentas`, cuya allowlist no los admite. Resolver navegación sin ampliar permisos.
+- Falta recorrido integral de seis matrices y servicios en staging, incluido pago ciudadano (sin pantalla/ruta en el frontend actual), conciliación, emisión, correo y proctoring. Revisar también cuestionarios dinámicos y backoffice; no están cubiertos íntegramente por esta tanda.
+- Revisar y aprobar con municipio matriz, textos y modalidades de entrega. Revisar tooling vulnerable en una unidad separada. No afirmar que el sistema entero funciona.
+
+### Cómo probar y archivos
+
+- Instrucciones reproducibles, límites y rollback: [QA_RESPONSIVE.md](QA_RESPONSIVE.md). Ejecutar desde `sistema_licencias/frontend`: `npm run typecheck`, `npm run lint`, `npm test`, `npm run build`, `npm run test:e2e`. Para instalación limpia: `npm ci` y `npx playwright install chromium`.
+- Archivos: `.github/workflows/ci.yml`, `.gitignore`, `sistema_licencias/README.md`; frontend `package.json`, `package-lock.json`, `playwright.config.ts`, `tsconfig.node.json`, `vite.config.ts`, `e2e/fixtures.ts`, `e2e/responsive.spec.ts`, `src/components/FormFeedback.tsx`, `src/pages/auth/{Login,Register,ForgotPassword,ResetPassword}.tsx`, `src/pages/admin/AdminLogin.tsx`, `src/pages/citizen/{CitizenPanel,Health,Delivery,Profile,citizenFlow.test}.tsx`, `src/styles/main.css`, `src/test/setup.ts`; documentación `QA_RESPONSIVE.md`, `OPERACION.md`, `SEGURIDAD.md` y este handoff.
+- Reversión acotada: revertir esta unidad UX/QA por PR; no hay migraciones ni cambios de API/datos. No recuperar los fallbacks falsos de políticas/credenciales como arreglo operativo.
+
+---
 
 ## Sesión 2026-11-05 — Bloqueo de política previo a T02
 

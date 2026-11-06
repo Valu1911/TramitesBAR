@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { api, ApiError } from '../../lib/api';
 import type { PolicySummary } from '../../lib/types';
 import { Check, AlertTriangle, Eye, EyeOff } from '../../components/Icons';
+import { RequiredMark, RequiredFieldsNote, FormError } from '../../components/FormFeedback';
 
 export function Register() {
   const navigate = useNavigate();
@@ -32,6 +33,8 @@ export function Register() {
   const [policies, setPolicies] = useState<PolicySummary[]>([]);
   const [acceptedPolicies, setAcceptedPolicies] = useState<Record<string, boolean>>({});
   const [policiesLoading, setPoliciesLoading] = useState(true);
+  const [policiesError, setPoliciesError] = useState(false);
+  const [policiesAttempt, setPoliciesAttempt] = useState(0);
 
   // Estado general del formulario
   const [error, setError] = useState<string | null>(null);
@@ -43,6 +46,7 @@ export function Register() {
       try {
         const data = await api.get<PolicySummary[]>('/policies');
         if (active) {
+          if (!data.length) throw new Error('No hay políticas vigentes');
           setPolicies(data);
           const initialMap: Record<string, boolean> = {};
           data.forEach((p) => {
@@ -52,28 +56,10 @@ export function Register() {
         }
       } catch {
         if (active) {
-          setPolicies([
-            {
-              slug: 'terminos_y_condiciones',
-              title: 'Términos y Condiciones del Servicio Municipal',
-              version: 1,
-              mandatory: true,
-              content_hash: '',
-              effective_at: new Date().toISOString(),
-            },
-            {
-              slug: 'politica_privacidad',
-              title: 'Política de Privacidad y Protección de Datos Personales',
-              version: 1,
-              mandatory: true,
-              content_hash: '',
-              effective_at: new Date().toISOString(),
-            },
-          ]);
-          setAcceptedPolicies({
-            terminos_y_condiciones: false,
-            politica_privacidad: false,
-          });
+          // Sin políticas auténticas no se puede registrar consentimiento.
+          setPoliciesError(true);
+          setPolicies([]);
+          setAcceptedPolicies({});
         }
       } finally {
         if (active) setPoliciesLoading(false);
@@ -83,7 +69,14 @@ export function Register() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [policiesAttempt]);
+
+  /** Permite recuperar una caída sin fabricar versiones de políticas. */
+  const handleRetryPolicies = () => {
+    setPoliciesLoading(true);
+    setPoliciesError(false);
+    setPoliciesAttempt((attempt) => attempt + 1);
+  };
 
   const handleFirstNameChange = (e: ChangeEvent<HTMLInputElement>) => setFirstName(e.target.value);
   const handleLastNameChange = (e: ChangeEvent<HTMLInputElement>) => setLastName(e.target.value);
@@ -124,13 +117,23 @@ export function Register() {
     }));
   };
 
+  /** Mantiene un handler estable también en la lista de consentimientos. */
+  const handlePolicyChange = (event: ChangeEvent<HTMLInputElement>) => {
+    handlePolicyToggle(event.currentTarget.value);
+  };
+
   const handleTogglePassword = () => {
     setShowPassword((prev) => !prev);
   };
 
-  const handleSubmit = async (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
+
+    if (policiesLoading || policiesError || !policies.length || submitting) {
+      setError('Esperá a que se carguen las políticas vigentes antes de crear tu cuenta.');
+      return;
+    }
 
     const cleanDni = dni.replace(/\D/g, '');
     if (cleanDni.length < 7 || cleanDni.length > 8) {
@@ -223,18 +226,14 @@ export function Register() {
           <p>Registrate para iniciar o renovar tu licencia de conducir en Baradero.</p>
         </div>
 
-        {error && (
-          <div className="alert alert-danger" role="alert">
-            <AlertTriangle width={20} height={20} />
-            <span>{error}</span>
-          </div>
-        )}
+        {error && <FormError message={error} />}
 
-        <form onSubmit={handleSubmit} noValidate>
+        <form onSubmit={handleSubmit}>
+          <RequiredFieldsNote />
           <div className="grid-cols-2">
             <div className="form-group">
               <label htmlFor="firstName" className="form-label">
-                Nombre
+                Nombre<RequiredMark />
               </label>
               <input
                 id="firstName"
@@ -243,6 +242,7 @@ export function Register() {
                 value={firstName}
                 onChange={handleFirstNameChange}
                 placeholder="Ej: Juan"
+                autoComplete="given-name"
                 required
                 disabled={submitting}
               />
@@ -250,7 +250,7 @@ export function Register() {
 
             <div className="form-group">
               <label htmlFor="lastName" className="form-label">
-                Apellido
+                Apellido<RequiredMark />
               </label>
               <input
                 id="lastName"
@@ -259,6 +259,7 @@ export function Register() {
                 value={lastName}
                 onChange={handleLastNameChange}
                 placeholder="Ej: Pérez"
+                autoComplete="family-name"
                 required
                 disabled={submitting}
               />
@@ -268,7 +269,7 @@ export function Register() {
           <div className="grid-cols-2">
             <div className="form-group">
               <label htmlFor="dni" className="form-label">
-                DNI
+                DNI<RequiredMark />
               </label>
               <input
                 id="dni"
@@ -279,6 +280,7 @@ export function Register() {
                 onChange={handleDniChange}
                 placeholder="Sin puntos ni espacios"
                 maxLength={8}
+                pattern="[0-9]{7,8}"
                 required
                 disabled={submitting}
               />
@@ -287,11 +289,12 @@ export function Register() {
 
             <div className="form-group">
               <label htmlFor="birthDate" className="form-label">
-                Fecha de nacimiento
+                Fecha de nacimiento<RequiredMark />
               </label>
               <input
                 id="birthDate"
                 type="date"
+                autoComplete="bday"
                 className="input"
                 value={birthDate}
                 onChange={handleBirthDateChange}
@@ -318,7 +321,7 @@ export function Register() {
               <div className="grid-cols-2">
                 <div className="form-group">
                   <label htmlFor="guardianFullName" className="form-label">
-                    Nombre y apellido del tutor
+                    Nombre y apellido del tutor<RequiredMark />
                   </label>
                   <input
                     id="guardianFullName"
@@ -334,7 +337,7 @@ export function Register() {
 
                 <div className="form-group">
                   <label htmlFor="guardianDni" className="form-label">
-                    DNI del tutor
+                    DNI del tutor<RequiredMark />
                   </label>
                   <input
                     id="guardianDni"
@@ -354,12 +357,13 @@ export function Register() {
               <div className="grid-cols-2">
                 <div className="form-group">
                   <label htmlFor="guardianRelationship" className="form-label">
-                    Vínculo
+                    Vínculo<RequiredMark />
                   </label>
                   <select
                     id="guardianRelationship"
                     className="select"
                     value={guardianRelationship}
+                    required
                     onChange={handleGuardianRelationshipChange}
                     disabled={submitting}
                   >
@@ -404,7 +408,7 @@ export function Register() {
           <div className="grid-cols-2">
             <div className="form-group">
               <label htmlFor="email" className="form-label">
-                Correo electrónico
+                Correo electrónico<RequiredMark />
               </label>
               <input
                 id="email"
@@ -422,7 +426,7 @@ export function Register() {
 
             <div className="form-group">
               <label htmlFor="phone" className="form-label">
-                Teléfono de contacto
+                Teléfono de contacto (opcional)
               </label>
               <input
                 id="phone"
@@ -440,7 +444,7 @@ export function Register() {
           <div className="grid-cols-2">
             <div className="form-group">
               <label htmlFor="address" className="form-label">
-                Dirección en Baradero
+                Dirección en Baradero (opcional)
               </label>
               <input
                 id="address"
@@ -456,7 +460,7 @@ export function Register() {
 
             <div className="form-group">
               <label htmlFor="locality" className="form-label">
-                Localidad
+                Localidad (opcional)
               </label>
               <input
                 id="locality"
@@ -472,7 +476,7 @@ export function Register() {
           <div className="grid-cols-2">
             <div className="form-group">
               <label htmlFor="password" className="form-label">
-                Contraseña
+                Contraseña<RequiredMark />
               </label>
               <div className="input-password-wrapper">
                 <input
@@ -483,6 +487,7 @@ export function Register() {
                   onChange={handlePasswordChange}
                   placeholder="Mínimo 12 caracteres"
                   autoComplete="new-password"
+                  minLength={12}
                   required
                   disabled={submitting}
                 />
@@ -495,12 +500,12 @@ export function Register() {
                   {showPassword ? <EyeOff width={18} height={18} /> : <Eye width={18} height={18} />}
                 </button>
               </div>
-              <span className="form-hint">Al menos 12 caracteres, mayúsculas y números.</span>
+              <span className="form-hint">Al menos 12 caracteres, con letras y números.</span>
             </div>
 
             <div className="form-group">
               <label htmlFor="confirmPassword" className="form-label">
-                Confirmar contraseña
+                Confirmar contraseña<RequiredMark />
               </label>
               <div className="input-password-wrapper">
                 <input
@@ -511,6 +516,7 @@ export function Register() {
                   onChange={handleConfirmPasswordChange}
                   placeholder="Repetí la contraseña"
                   autoComplete="new-password"
+                  minLength={12}
                   required
                   disabled={submitting}
                 />
@@ -525,20 +531,29 @@ export function Register() {
 
             {policiesLoading ? (
               <p className="loading-text">Cargando políticas vigentes...</p>
+            ) : policiesError ? (
+              <div className="alert alert-warning" role="alert">
+                <AlertTriangle width={20} height={20} />
+                <div>
+                  <p>No pudimos cargar las políticas vigentes. El registro está pausado para proteger tu consentimiento.</p>
+                  <button type="button" className="btn btn-secondary spacing-mt-1" onClick={handleRetryPolicies}>Reintentar carga de políticas</button>
+                </div>
+              </div>
             ) : (
               policies.map((p) => (
                 <label key={p.slug} className="checkbox-group">
                   <input
                     type="checkbox"
                     checked={Boolean(acceptedPolicies[p.slug])}
-                    onChange={() => handlePolicyToggle(p.slug)}
+                    value={p.slug}
+                    onChange={handlePolicyChange}
                     disabled={submitting}
                     required={p.mandatory}
                   />
                   <span className="checkbox-label">
                     Acepto los{' '}
                     <strong>{p.title}</strong> (Versión {p.version}){' '}
-                    {p.mandatory && <span className="required-asterisk">*</span>}
+                    {p.mandatory && <RequiredMark />}
                   </span>
                 </label>
               ))
@@ -548,7 +563,7 @@ export function Register() {
           <button
             type="submit"
             className="btn btn-primary btn-block btn-lg"
-            disabled={submitting}
+            disabled={submitting || policiesLoading || policiesError || !policies.length}
           >
             <Check width={18} height={18} />
             <span>{submitting ? 'Procesando registro...' : 'Crear mi cuenta'}</span>

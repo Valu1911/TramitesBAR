@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { api, ApiError } from '../../lib/api';
 import type { MessageResponse } from '../../lib/types';
 import { Send, Check, AlertTriangle } from '../../components/Icons';
+import { RequiredMark, RequiredFieldsNote } from '../../components/FormFeedback';
 
 export function ForgotPassword() {
   const [email, setEmail] = useState('');
@@ -65,7 +66,8 @@ export function ForgotPassword() {
             </Link>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} noValidate>
+          <form onSubmit={handleSubmit}>
+            <RequiredFieldsNote />
             {error && (
               <div className="alert alert-danger" role="alert">
                 <AlertTriangle width={20} height={20} />
@@ -75,7 +77,7 @@ export function ForgotPassword() {
 
             <div className="form-group">
               <label htmlFor="email" className="form-label">
-                Correo electrónico registrado
+                Correo electrónico registrado<RequiredMark />
               </label>
               <input
                 id="email"

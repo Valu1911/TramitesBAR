@@ -12,7 +12,7 @@ Módulo municipal oficial de emisión y renovación de licencias de conducir de 
 ## Requisitos Previos
 
 - Python 3.12+
-- Node.js 20+ y npm
+- Node.js 24 LTS y npm
 - MySQL 8.4 (o SQLite en entorno local de pruebas con migraciones compatibles)
 
 ## Puesta en Marcha
@@ -48,4 +48,5 @@ O ejecutá `iniciar_frontend.bat` en Windows.
 - **Frontend Tipos**: `cd frontend && npm run typecheck`
 - **Frontend Lint**: `cd frontend && npm run lint`
 - **Frontend Build**: `cd frontend && npm run build`
+- **Responsive y accesibilidad**: desde `frontend`, instalar Chromium con `npx playwright install chromium` y ejecutar `npm run test:e2e`. [Alcance y pendientes](../docs/QA_RESPONSIVE.md).
 

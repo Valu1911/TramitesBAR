@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useLayoutEffect, useRef, type MouseEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { api } from '../../lib/api';
+import { RequiredMark, RequiredFieldsNote, FormError } from '../../components/FormFeedback';
 import type { Procedure, ProcedureListItem, ProcedureType, Matrix, License } from '../../lib/types';
 import {
   FileText,
@@ -79,7 +80,12 @@ export function CitizenPanel() {
   const [licenses, setLicenses] = useState<License[]>([]);
   const [procedureTypes, setProcedureTypes] = useState<ProcedureType[]>([]);
   const [selectedType, setSelectedType] = useState<ProcedureType | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState<string>('B');
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const categoryHeading = useRef<HTMLHeadingElement>(null);
+  const summaryHeading = useRef<HTMLHeadingElement>(null);
+  const procedureHeading = useRef<HTMLHeadingElement>(null);
+  const focusCreatedProcedure = useRef(false);
+  const [loadFailed, setLoadFailed] = useState(false);
   const [creating, setCreating] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
@@ -87,10 +93,11 @@ export function CitizenPanel() {
   const fetchProceduresData = async () => {
     try {
       setLoading(true);
+      setLoadFailed(false);
       setErrorMsg(null);
       const [mine, licList] = await Promise.all([
         api.get<ProcedureListItem[]>('/procedures/mine'),
-        api.get<License[]>('/licenses/mine').catch(() => [] as License[]),
+        api.get<License[]>('/licenses/mine'),
       ]);
       setLicenses(licList);
 
@@ -105,17 +112,11 @@ export function CitizenPanel() {
         setActiveProcedure(null);
         const types = await api.get<ProcedureType[]>('/catalog/procedure-types');
         setProcedureTypes(types);
-        if (types.length > 0) {
-          const defaultType = types[0];
-          setSelectedType(defaultType);
-          if (defaultType.matrix.length > 0) {
-            setSelectedCategory(defaultType.matrix[0].license_category);
-          }
-        }
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Error al cargar expedientes';
       setErrorMsg(msg);
+      setLoadFailed(true);
     } finally {
       setLoading(false);
     }
@@ -126,7 +127,7 @@ export function CitizenPanel() {
 
     Promise.all([
       api.get<ProcedureListItem[]>('/procedures/mine'),
-      api.get<License[]>('/licenses/mine').catch(() => [] as License[]),
+      api.get<License[]>('/licenses/mine'),
     ])
       .then(async ([mine, licList]) => {
         if (!active) return;
@@ -144,13 +145,6 @@ export function CitizenPanel() {
           const types = await api.get<ProcedureType[]>('/catalog/procedure-types');
           if (active) {
             setProcedureTypes(types);
-            if (types.length > 0) {
-              const defaultType = types[0];
-              setSelectedType(defaultType);
-              if (defaultType.matrix.length > 0) {
-                setSelectedCategory(defaultType.matrix[0].license_category);
-              }
-            }
           }
         }
       })
@@ -158,6 +152,7 @@ export function CitizenPanel() {
         if (active) {
           const msg = err instanceof Error ? err.message : 'Error al cargar expedientes';
           setErrorMsg(msg);
+          setLoadFailed(true);
         }
       })
       .finally(() => {
@@ -169,29 +164,61 @@ export function CitizenPanel() {
     };
   }, []);
 
-  const handleSelectType = (procType: ProcedureType) => {
-    setSelectedType(procType);
-    if (procType.matrix.length > 0) {
-      setSelectedCategory(procType.matrix[0].license_category);
+  // El foco sigue la elección explícita, nunca la carga inicial del catálogo.
+  useLayoutEffect(() => {
+    if (selectedType) {
+      categoryHeading.current?.focus({ preventScroll: true });
+      categoryHeading.current?.scrollIntoView({ behavior: 'instant', block: 'start' });
     }
+  }, [selectedType]);
+
+  useLayoutEffect(() => {
+    if (selectedCategory) {
+      summaryHeading.current?.focus({ preventScroll: true });
+      summaryHeading.current?.scrollIntoView({ behavior: 'instant', block: 'start' });
+    }
+  }, [selectedCategory]);
+
+  // Al confirmar, el botón desaparece: el foco pasa al expediente recién creado.
+  useLayoutEffect(() => {
+    if (activeProcedure && focusCreatedProcedure.current) {
+      focusCreatedProcedure.current = false;
+      procedureHeading.current?.focus({ preventScroll: true });
+      procedureHeading.current?.scrollIntoView({ behavior: 'instant', block: 'start' });
+    }
+  }, [activeProcedure]);
+
+  /** Resuelve la opción desde el catálogo real y reinicia la categoría anterior. */
+  const handleSelectType = (event: MouseEvent<HTMLButtonElement>) => {
+    const procType = procedureTypes.find((item) => item.code === event.currentTarget.dataset.code);
+    if (!procType) return;
+    setSelectedType({ ...procType });
+    setSelectedCategory('');
+    setErrorMsg(null);
   };
 
-  const handleSelectCategory = (cat: string) => {
-    setSelectedCategory(cat);
+  /** El resumen requiere una categoría elegida por el ciudadano. */
+  const handleSelectCategory = (event: MouseEvent<HTMLButtonElement>) => {
+    setSelectedCategory(event.currentTarget.dataset.category ?? '');
+    setErrorMsg(null);
+    // Si vuelve a elegir la misma categoría, el resumen ya está montado.
+    summaryHeading.current?.focus({ preventScroll: true });
+    summaryHeading.current?.scrollIntoView({ behavior: 'instant', block: 'start' });
   };
 
   const handleCreateProcedure = async () => {
-    if (!selectedType) return;
+    if (!selectedType || !selectedMatrixItem || !isAgeValid || creating) return;
     try {
       setCreating(true);
       setErrorMsg(null);
-      await api.post<Procedure>('/procedures', {
+      const created = await api.post<Procedure>('/procedures', {
         procedure_type: selectedType.code,
         license_category: selectedCategory,
         data: {},
       });
       setSuccessMsg('Expediente municipal iniciado correctamente.');
-      await fetchProceduresData();
+      focusCreatedProcedure.current = true;
+      setActiveProcedure(created);
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'No se pudo iniciar el trámite';
       setErrorMsg(msg);
@@ -207,7 +234,8 @@ export function CitizenPanel() {
   const isAgeValid =
     citizenAge === null ||
     selectedMatrixItem === undefined ||
-    citizenAge >= selectedMatrixItem.min_age;
+    (citizenAge >= selectedMatrixItem.min_age &&
+      (selectedMatrixItem.max_age === null || citizenAge <= selectedMatrixItem.max_age));
 
   return (
     <div className="container profile-container">
@@ -225,10 +253,7 @@ export function CitizenPanel() {
       </div>
 
       {errorMsg && (
-        <div className="alert alert-danger spacing-mb-1" role="alert">
-          <AlertTriangle width={18} height={18} />
-          <span>{errorMsg}</span>
-        </div>
+        <FormError message={errorMsg} />
       )}
 
       {successMsg && (
@@ -243,10 +268,10 @@ export function CitizenPanel() {
         <div className="card credential-banner">
           <div className="card-header">
             <div>
-              <span className="profile-item-label">Documento Oficial Nacional</span>
-              <h2 className="card-title">Licencia Nacional de Conducir Digital</h2>
+              <span className="profile-item-label">Credencial municipal</span>
+              <h2 className="card-title">Credencial Digital Municipal</h2>
               <p className="card-subtitle">
-                Emitida por la Municipalidad de Baradero conforme a la Ley Nacional de Tránsito.
+                Emitida por la Municipalidad de Baradero. No reemplaza la licencia nacional oficial.
               </p>
             </div>
             <Award width={28} height={28} />
@@ -293,13 +318,18 @@ export function CitizenPanel() {
         <div className="card text-center">
           <p className="loading-text">Consultando expedientes municipales...</p>
         </div>
+      ) : loadFailed ? (
+        <div className="card">
+          <p className="spacing-mb-1">No pudimos cargar tus datos. Reintentá para continuar.</p>
+          <button type="button" className="btn btn-secondary" onClick={fetchProceduresData}>Reintentar</button>
+        </div>
       ) : activeProcedure ? (
         /* ================= VISTA DE TRÁMITE ACTIVO ================= */
         <div className="card procedure-hero-card">
           <div className="card-header">
             <div>
               <span className="profile-item-label">Expediente Municipal</span>
-              <h2 className="card-title">
+              <h2 ref={procedureHeading} tabIndex={-1} className="card-title flow-heading">
                 {activeProcedure.procedure_type.name} — Categoría {activeProcedure.license_category}
               </h2>
               <p className="card-subtitle">
@@ -459,8 +489,10 @@ export function CitizenPanel() {
           </div>
 
           <div className="spacing-mt-1">
-            <h3 className="catalog-section-title">1. Elegí el tipo de trámite</h3>
-            <div className="catalog-grid">
+            <RequiredFieldsNote />
+            <h3 id="type-heading" className="catalog-section-title">1. Elegí el tipo de trámite<RequiredMark /></h3>
+            {procedureTypes.length === 0 && <p role="status">No hay trámites disponibles por el momento. Consultá con la Municipalidad.</p>}
+            <div className="catalog-grid" role="group" aria-labelledby="type-heading">
               {procedureTypes.map((pt) => {
                 const isSelected = selectedType?.id === pt.id;
                 return (
@@ -468,7 +500,11 @@ export function CitizenPanel() {
                     key={pt.code}
                     type="button"
                     className={`catalog-option-card ${isSelected ? 'selected' : ''}`}
-                    onClick={() => handleSelectType(pt)}
+                    data-code={pt.code}
+                    aria-pressed={isSelected}
+                    aria-controls={selectedType ? 'category-section' : undefined}
+                    onClick={handleSelectType}
+                    disabled={creating}
                   >
                     <h3>{pt.name}</h3>
                     <p>{pt.short_description || pt.description}</p>
@@ -479,13 +515,14 @@ export function CitizenPanel() {
           </div>
 
           {selectedType && (
-            <div className="category-selection-box">
-              <h3 className="catalog-section-title">2. Seleccioná la categoría de licencia</h3>
+            <section id="category-section" className="category-selection-box" aria-labelledby="category-heading">
+              <h3 id="category-heading" ref={categoryHeading} tabIndex={-1} className="catalog-section-title flow-heading">2. Seleccioná la categoría de licencia<RequiredMark /></h3>
               <p className="mfa-step-desc">
-                Las categorías habilitadas para este trámite dependen de la edad y requisitos municipales.
+                Trámite elegido: <strong>{selectedType.name}</strong>. Las categorías dependen de la matriz municipal vigente.
               </p>
 
-              <div className="category-pill-group">
+              {selectedType.matrix.length === 0 && <p role="status">Este trámite todavía no tiene categorías habilitadas. No se puede iniciar la solicitud.</p>}
+              <div className="category-pill-group" role="group" aria-labelledby="category-heading">
                 {selectedType.matrix.map((m) => {
                   const isActive = selectedCategory === m.license_category;
                   return (
@@ -493,7 +530,11 @@ export function CitizenPanel() {
                       key={m.license_category}
                       type="button"
                       className={`category-pill-btn ${isActive ? 'active' : ''}`}
-                      onClick={() => handleSelectCategory(m.license_category)}
+                      data-category={m.license_category}
+                      aria-pressed={isActive}
+                      aria-controls={selectedMatrixItem ? 'procedure-summary' : undefined}
+                      onClick={handleSelectCategory}
+                      disabled={creating}
                     >
                       Categoría {m.license_category}
                     </button>
@@ -502,6 +543,9 @@ export function CitizenPanel() {
               </div>
 
               {selectedMatrixItem && (
+                <section id="procedure-summary" className="procedure-summary" aria-labelledby="summary-heading">
+                <h3 id="summary-heading" ref={summaryHeading} tabIndex={-1} className="catalog-section-title flow-heading">3. Revisá y confirmá tu solicitud</h3>
+                <p>{selectedType.name} · Categoría {selectedCategory}. El expediente se crea solamente al confirmar.</p>
                 <div className="matrix-specs-grid">
                   <div className="matrix-spec-item">
                     <span className="matrix-spec-label">Edad Mínima</span>
@@ -518,17 +562,18 @@ export function CitizenPanel() {
                   <div className="matrix-spec-item">
                     <span className="matrix-spec-label">Examen Teórico</span>
                     <span className="matrix-spec-val">
-                      {selectedMatrixItem.theory_questions} preguntas ({selectedMatrixItem.theory_minutes} min)
+                      {selectedMatrixItem.steps.includes('theory') ? `${selectedMatrixItem.theory_questions} preguntas (${selectedMatrixItem.theory_minutes} min)` : 'No requerido para este trámite'}
                     </span>
                   </div>
                 </div>
+                </section>
               )}
 
               {!isAgeValid && selectedMatrixItem && (
                 <div className="alert alert-warning spacing-mt-1">
                   <AlertTriangle width={18} height={18} />
                   <span>
-                    La categoría seleccionada requiere una edad mínima de {selectedMatrixItem.min_age} años. Tu edad
+                    La categoría seleccionada admite desde {selectedMatrixItem.min_age} años{selectedMatrixItem.max_age !== null ? ` hasta ${selectedMatrixItem.max_age} años` : ''}. Tu edad
                     registrada es {citizenAge} años.
                   </span>
                 </div>
@@ -539,12 +584,12 @@ export function CitizenPanel() {
                   type="button"
                   className="btn btn-primary"
                   onClick={handleCreateProcedure}
-                  disabled={creating || !isAgeValid}
+                  disabled={creating || !selectedMatrixItem || !isAgeValid}
                 >
                   {creating ? 'Iniciando expediente...' : 'Iniciar Solicitud de Trámite'}
                 </button>
               </div>
-            </div>
+            </section>
           )}
         </div>
       )}

@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, type ChangeEvent } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { api } from '../../lib/api';
+import { RequiredMark, RequiredFieldsNote } from '../../components/FormFeedback';
 import type { Procedure } from '../../lib/types';
 import { useAuth } from '../../context/AuthContext';
 import {
@@ -47,6 +48,11 @@ export function Delivery() {
       active = false;
     };
   }, [id, user]);
+
+  /** Explicita la selección para teclado y evita callbacks dentro del JSX. */
+  const handleBranch = () => setMethod('branch');
+  const handlePostal = () => setMethod('postal');
+  const handleAddressChange = (event: ChangeEvent<HTMLInputElement>) => setAddress(event.target.value);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -105,12 +111,15 @@ export function Delivery() {
       ) : (
         <div className="card">
           <form onSubmit={handleSubmit}>
+            <RequiredFieldsNote />
             <h2 className="card-title spacing-mb-1">¿Cómo deseás recibir tu credencial?</h2>
 
             <div className="grid-cols-2 spacing-mb-1">
               <button
                 type="button"
-                onClick={() => setMethod('branch')}
+                onClick={handleBranch}
+                aria-pressed={method === 'branch'}
+                disabled={submitting}
                 className={`card text-left ${method === 'branch' ? 'kpi-card active' : 'kpi-card'}`}
               >
                 <div className="flex-row-gap">
@@ -128,7 +137,9 @@ export function Delivery() {
 
               <button
                 type="button"
-                onClick={() => setMethod('postal')}
+                onClick={handlePostal}
+                aria-pressed={method === 'postal'}
+                disabled={submitting}
                 className={`card text-left ${method === 'postal' ? 'kpi-card active' : 'kpi-card'}`}
               >
                 <div className="flex-row-gap">
@@ -146,14 +157,16 @@ export function Delivery() {
             {method === 'postal' && (
               <div className="form-group spacing-mb-1">
                 <label htmlFor="delivery-address" className="form-label">
-                  Confirmar Domicilio de Entrega en Baradero
+                  Confirmar Domicilio de Entrega en Baradero<RequiredMark />
                 </label>
                 <input
                   id="delivery-address"
                   type="text"
                   required
                   value={address}
-                  onChange={(e) => setAddress(e.target.value)}
+                  onChange={handleAddressChange}
+                  autoComplete="street-address"
+                  disabled={submitting}
                   placeholder="Calle, número, piso/depto, Baradero"
                   className="form-input"
                 />

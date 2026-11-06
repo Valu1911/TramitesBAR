@@ -108,6 +108,8 @@ Elimina tokens de un solo uso vencidos y sesiones antiguas ya expiradas.
 
 ## 4. Ejecución de procesos
 
+Para frontend y QA responsive usar Node.js 24 LTS. El workflow de frontend usa esa versión, compatible con las dependencias de Vite, JSDOM y axe. Instalación de Chromium, comandos y límites de las pruebas están en [QA_RESPONSIVE.md](QA_RESPONSIVE.md).
+
 1. **Servidor HTTP (API):**
    ```bash
    uvicorn app.main:app --host 127.0.0.1 --port 8000

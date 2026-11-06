@@ -3,6 +3,7 @@ import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { api, ApiError } from '../../lib/api';
 import type { MessageResponse } from '../../lib/types';
 import { Lock, Eye, EyeOff, Check, AlertTriangle } from '../../components/Icons';
+import { RequiredMark, RequiredFieldsNote } from '../../components/FormFeedback';
 
 export function ResetPassword() {
   const [searchParams] = useSearchParams();
@@ -86,7 +87,8 @@ export function ResetPassword() {
             </button>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} noValidate>
+          <form onSubmit={handleSubmit}>
+            <RequiredFieldsNote />
             {error && (
               <div className="alert alert-danger" role="alert">
                 <AlertTriangle width={20} height={20} />
@@ -97,7 +99,7 @@ export function ResetPassword() {
             {!tokenFromUrl && (
               <div className="form-group">
                 <label htmlFor="token" className="form-label">
-                  Código o token de recuperación
+                  Código o token de recuperación<RequiredMark />
                 </label>
                 <input
                   id="token"
@@ -114,7 +116,7 @@ export function ResetPassword() {
 
             <div className="form-group">
               <label htmlFor="newPassword" className="form-label">
-                Nueva contraseña
+                Nueva contraseña<RequiredMark />
               </label>
               <div className="input-password-wrapper">
                 <input
@@ -125,6 +127,7 @@ export function ResetPassword() {
                   onChange={handleNewPasswordChange}
                   placeholder="Mínimo 12 caracteres"
                   autoComplete="new-password"
+                  minLength={12}
                   required
                   disabled={submitting}
                 />
@@ -142,7 +145,7 @@ export function ResetPassword() {
 
             <div className="form-group">
               <label htmlFor="confirmPassword" className="form-label">
-                Confirmar nueva contraseña
+                Confirmar nueva contraseña<RequiredMark />
               </label>
               <div className="input-password-wrapper">
                 <input
@@ -153,6 +156,7 @@ export function ResetPassword() {
                   onChange={handleConfirmPasswordChange}
                   placeholder="Repetí la nueva contraseña"
                   autoComplete="new-password"
+                  minLength={12}
                   required
                   disabled={submitting}
                 />

@@ -74,7 +74,7 @@ jobs:
           alembic upgrade head
 
   frontend:
-    name: Frontend (TypeScript, ESLint, Vitest, Build)
+    name: Frontend (TypeScript, ESLint, Vitest, Build, Playwright)
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -84,10 +84,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Node.js 20
+      - name: Set up Node.js 24
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "24"
           cache: "npm"
           cache-dependency-path: sistema_licencias/frontend/package-lock.json
 
@@ -105,3 +105,9 @@ jobs:
 
       - name: Production build
         run: npm run build
+
+      - name: Install Chromium for responsive tests
+        run: npx playwright install --with-deps chromium
+
+      - name: Responsive interactions and accessibility (isolated API)
+        run: npm run test:e2e

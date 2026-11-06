@@ -3,6 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import { api, ApiError } from '../../lib/api';
 import type { SessionInfo, MfaSetup, MfaRecovery, MessageResponse } from '../../lib/types';
 import { generateQrDataUri } from '../../lib/qr';
+import { RequiredMark, RequiredFieldsNote } from '../../components/FormFeedback';
 import {
   User as UserIcon,
   Shield,
@@ -446,10 +447,11 @@ export function Profile() {
             </div>
           )}
 
-          <form onSubmit={handlePasswordSubmit} noValidate>
+          <form onSubmit={handlePasswordSubmit}>
+            <RequiredFieldsNote />
             <div className="form-group">
               <label htmlFor="currentPassword" className="form-label">
-                Contraseña actual
+                Contraseña actual<RequiredMark />
               </label>
               <input
                 id="currentPassword"
@@ -464,7 +466,7 @@ export function Profile() {
 
             <div className="form-group">
               <label htmlFor="newPassword" className="form-label">
-                Nueva contraseña
+                Nueva contraseña<RequiredMark />
               </label>
               <input
                 id="newPassword"
@@ -481,7 +483,7 @@ export function Profile() {
 
             <div className="form-group">
               <label htmlFor="confirmPassword" className="form-label">
-                Confirmar nueva contraseña
+                Confirmar nueva contraseña<RequiredMark />
               </label>
               <input
                 id="confirmPassword"
@@ -621,6 +623,7 @@ export function Profile() {
                   Paso 2: Confirmá el código de 6 dígitos
                 </h3>
                 <div className="form-group mfa-code-input-group">
+                  <label htmlFor="mfaCode" className="form-label">Código de 6 dígitos<RequiredMark /></label>
                   <input
                     id="mfaCode"
                     type="text"
@@ -680,7 +683,7 @@ export function Profile() {
                   <div className="grid-cols-2">
                     <div className="form-group">
                       <label htmlFor="disablePassword" className="form-label">
-                        Contraseña
+                        Contraseña<RequiredMark />
                       </label>
                       <input
                         id="disablePassword"
@@ -695,7 +698,7 @@ export function Profile() {
 
                     <div className="form-group">
                       <label htmlFor="disableCode" className="form-label">
-                        Código de 6 dígitos
+                        Código de 6 dígitos<RequiredMark />
                       </label>
                       <input
                         id="disableCode"

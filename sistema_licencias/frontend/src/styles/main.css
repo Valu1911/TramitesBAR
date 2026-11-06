@@ -8,8 +8,8 @@
   --color-primary: #0b2a3a;
   --color-primary-hover: #081d28;
   --color-primary-light: #16435c;
-  --color-accent: #0284c7;
-  --color-accent-hover: #0369a1;
+  --color-accent: #0369a1;
+  --color-accent-hover: #075985;
   --color-accent-soft: #e0f2fe;
   --color-accent-light: #38bdf8;
 
@@ -25,17 +25,17 @@
   /* Texto */
   --color-text: #0f172a;
   --color-text-secondary: #475569;
-  --color-text-muted: #64748b;
+  --color-text-muted: #5b6b80;
   --color-text-inverse: #ffffff;
 
   /* Semántica */
-  --color-success: #059669;
+  --color-success: #047857;
   --color-success-bg: #ecfdf5;
   --color-success-border: #a7f3d0;
   --color-danger: #dc2626;
   --color-danger-bg: #fef2f2;
   --color-danger-border: #fecaca;
-  --color-warning: #d97706;
+  --color-warning: #92400e;
   --color-warning-bg: #fffbeb;
   --color-warning-border: #fde68a;
   --color-info: #0284c7;
@@ -245,6 +245,84 @@ a:hover {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+p a:not(.btn) {
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+/* Las vistas de etapas comparten los controles base, también en pantallas táctiles. */
+.form-input {
+  width: 100%;
+  min-height: 44px;
+  padding: 0.625rem 0.875rem;
+  font: inherit;
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+}
+
+.required-fields-note {
+  font-size: 0.875rem;
+  margin-bottom: 1.25rem;
+}
+
+.form-feedback {
+  margin-bottom: 1rem;
+}
+
+.flow-heading, .form-feedback {
+  scroll-margin-top: 6rem;
+}
+
+.procedure-summary {
+  margin-top: 1.5rem;
+}
+
+/* Evitamos zoom al escribir, objetivos pequeños y desbordes, no los ocultamos. */
+.btn, .category-pill-btn, .navbar-burger, .password-toggle-btn, .health-toggle-btn {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+.btn {
+  white-space: normal;
+  text-align: center;
+}
+
+.card, .form-group, .flex-row-gap > *, .flex-row-between > * {
+  min-width: 0;
+}
+
+.card, .alert {
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 640px) {
+  .input, .select, .textarea, .form-input {
+    font-size: 1rem;
+  }
+
+  .flex-row-between, .form-header-row {
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .category-selection-box {
+    padding: 1rem;
+  }
+}
+
+/* Los desplazamientos del flujo son instantáneos; tampoco animamos los controles
+   cuando la persona pidió reducir movimiento. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 .input:focus, .select:focus, .textarea:focus {
@@ -1437,7 +1515,7 @@ a:hover {
 
 .catalog-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
   gap: 1rem;
   margin-bottom: 1.5rem;
 }
@@ -1518,7 +1596,7 @@ a:hover {
 
 .matrix-specs-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
   gap: 0.75rem;
   margin-top: 1rem;
   padding: 0.875rem;
