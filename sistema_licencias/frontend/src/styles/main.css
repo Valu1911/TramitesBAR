@@ -281,6 +281,52 @@ p a:not(.btn) {
   margin-top: 1.5rem;
 }
 
+/* Pago ciudadano: datos bancarios legibles y seleccionables sin desbordar el móvil. */
+.payment-container {
+  max-width: 52rem;
+}
+
+.payment-amount {
+  margin: 1rem 0;
+  color: var(--color-primary);
+  font-size: clamp(1.75rem, 6vw, 2.5rem);
+  font-weight: 700;
+}
+
+.payment-details > div {
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.payment-details dt {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.payment-details dd {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.payment-details dd > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.payment-fields {
+  border: 0;
+  min-width: 0;
+}
+
+.payment-fields input[type="file"] {
+  font-size: 0.875rem;
+}
+
 /* Evitamos zoom al escribir, objetivos pequeños y desbordes, no los ocultamos. */
 .btn, .category-pill-btn, .navbar-burger, .password-toggle-btn, .health-toggle-btn {
   min-height: 44px;

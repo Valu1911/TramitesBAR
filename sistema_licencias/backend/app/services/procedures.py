@@ -795,7 +795,11 @@ def claim_payment(
         raise api_error(422, "receipt_rejected", "Ese comprobante fue observado. Subí uno nuevo")
 
     payment = db.execute(
-        select(Payment).where(Payment.procedure_id == procedure.id).with_for_update()
+        select(Payment)
+        .where(Payment.procedure_id == procedure.id)
+        .with_for_update()
+        # El expediente pudo precargar el pago antes de que otra sesión iniciara un control.
+        .execution_options(populate_existing=True)
     ).scalar_one_or_none()
     if payment is None:
         payment = Payment(
@@ -811,6 +815,14 @@ def claim_payment(
 
     if payment.status == PaymentStatus.APPROVED.value:
         raise api_error(409, "payment_already_approved", "El pago ya está aprobado")
+    # Un reenvío no puede borrar un control municipal en curso ni reabrir un reintegro.
+    # La fila ya está bloqueada: verificamos el estado antes de alterar comprobante o revisores.
+    if payment.status not in {PaymentStatus.PENDING.value, PaymentStatus.REJECTED.value}:
+        raise api_error(
+            409,
+            "payment_not_claimable",
+            "Ese pago no admite otro comprobante. Actualizá el estado antes de continuar",
+        )
 
     before = {"status": payment.status}
     payment.receipt_document_id = document.id

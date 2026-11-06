@@ -59,13 +59,19 @@ Estas pruebas validan la interfaz y los payloads emitidos, no la persistencia, a
 
 El personal con enrolamiento pendiente va a `/perfil`, incluso tras recarga o acceso directo, y no ve enlaces operativos hasta completar MFA. El ciudadano sigue sin acceso a rutas staff. Los destinos son rutas locales fijas, no parámetros de redirección recibidos del usuario.
 
-`src/navigation.test.tsx` verifica 120 escenarios de router, enlaces, login y MFA. `e2e/navigation.spec.ts` aporta 10 escenarios × 4 anchos con redirecciones reales, lecturas administrativas controladas y detección de montaje de recursos no permitidos. Las pantallas operativas se prueban con listas vacías de test: esto no certifica sus acciones, datos o autorización real. La suite completa queda en **125 unitarias y 124 de navegador**. Requiere revisión de seguridad antes de integrar.
+`src/navigation.test.tsx` verifica 134 escenarios de router, enlaces, login y MFA, incluida la ruta ciudadana de pago. `e2e/navigation.spec.ts` aporta 10 escenarios × 4 anchos con redirecciones reales, lecturas administrativas controladas y detección de montaje de recursos no permitidos. Las pantallas operativas se prueban con listas vacías de test: esto no certifica sus acciones, datos o autorización real. Requiere revisión de seguridad antes de integrar.
+
+### Pago ciudadano implementado
+
+`e2e/payment.spec.ts` aporta otros 10 escenarios × 4 anchos: acceso desde el panel, etapas reales, referencia y monto de API, envío multipart y declaración con CSRF, falta de datos bancarios, error/reintento de consulta, respuesta incierta con consulta previa, reutilización de adjunto confirmado, observación/rechazo, validación de archivo, estados de solo lectura, ID inválido y ausencia de pago en la matriz. Verifica escape de observaciones, fallo del portapapeles, ancho real y axe sobre la pantalla de pago. Las capturas `pago-responsive.png` también quedan solo en `test-results/`.
+
+Suite completa actual: **162 unitarias** (134 navegación, 22 ayudas de pago, 1 de privacidad del formulario, 5 ciudadanas previas) y **164 de navegador** (84 UX, 40 navegación, 40 pagos). Backend aislado: **40 pruebas**. Comandos, diferencias de entorno y límites en [PAGOS_CIUDADANOS.md](PAGOS_CIUDADANOS.md). No se certifica conciliación real por pasar pruebas de UI.
 
 ### Trabajo restante
 
-- Resolver la política de admisión/supervisión del examen v1 (T02 en `docs/HANDOFF.md`), corregir sus respuestas simuladas y los fallos conocidos de `jwt`; no habilitar un examen remoto sin supervisión como parche.
+- Resolver la política de admisión/supervisión del examen v1 (T02 en `docs/HANDOFF.md`), corregir sus respuestas simuladas y la dependencia `jwt` no declarada. El entorno actual tiene PyJWT y no reproduce los fallos históricos; eso no acredita una instalación limpia ni supervisión real. No habilitar un examen remoto sin supervisión como parche.
 - Revisar las pestañas y acciones del backoffice según permisos específicos de API; corregir la navegación (T03) no implementa el trabajo operativo de Pagos ni su conciliación.
-- Completar recorrido de las seis matrices con API/MySQL, archivos, pagos y conciliación, correo, revisión municipal, turnos y credencial. El panel actual no tiene un recorrido ciudadano de pagos; no se certifica como completo.
+- Completar recorrido de las seis matrices con API/MySQL, archivos, pagos y conciliación, correo, revisión municipal, turnos y credencial. La pantalla ciudadana de pagos está implementada; falta la consola operativa de pagos y el recorrido conjunto con servicios reales.
 - Revisar el resto de backoffice, cuestionarios dinámicos y examen con pruebas funcionales/accesibilidad específicas; la cobertura de perfil corresponde a su vista inicial.
 - Validar matriz, políticas, modalidades de entrega y textos con el municipio; no confundir la credencial municipal con una licencia nacional oficial.
 - Pruebas reales en staging, navegadores/dispositivos adicionales y revisión de seguridad de registro/consentimiento antes del merge. No ejecutar contra producción.

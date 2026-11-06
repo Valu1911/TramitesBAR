@@ -119,6 +119,12 @@ Todas las rutas de trámites exigen correo verificado y todas las políticas obl
 | `POST` | `/api/v1/procedures/{procedure_id}/delivery` | Sesión + CSRF | — | Registra la preferencia de entrega (`retiro` presencial o `domicilio`) en el paso `delivery`. |
 | `POST` | `/api/v1/procedures/{procedure_id}/cancel` | Sesión + CSRF | — | Cancela un trámite propio en curso. |
 
+### Declaración de pago: estado y prevención de reenvíos
+
+`payment/claim` admite un pago nuevo/pendiente o la corrección de uno `rejected`. Si el pago existente está `claimed`, `pending_second`, `refunded` o en otro estado no habilitado, devuelve `409 payment_not_claimable` **sin borrar comprobante, notas ni revisores**. Conserva `payment_already_approved` para la guarda de aprobado. Las guardas previas de propiedad, CSRF y etapa siguen vigentes; pueden rechazar primero una operación fuera de orden.
+
+La lectura del pago bajo `FOR UPDATE` refresca la instancia ORM precargada antes de validar el estado. El monto sigue calculado en el servidor. Declarar deja el pago `claimed` y el paso `submitted`; no acredita la transferencia ni habilita la siguiente etapa. La interfaz disponible en `/tramites/:id/pago` y sus límites están en [PAGOS_CIUDADANOS.md](PAGOS_CIUDADANOS.md).
+
 ---
 
 ## 6. Credenciales y verificación pública (`/api/v1/licenses` y `/api/v1/public`)

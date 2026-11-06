@@ -20,6 +20,7 @@ vi.mock('react-router-dom', async (importOriginal) => ({
 }));
 vi.mock('./pages/citizen/CitizenPanel', () => ({ CitizenPanel: () => <h1>Panel permitido</h1> }));
 vi.mock('./pages/citizen/Profile', () => ({ Profile: () => <h1>Perfil permitido</h1> }));
+vi.mock('./pages/citizen/Payment', () => ({ Payment: () => <h1>Pago permitido</h1> }));
 vi.mock('./pages/admin/AdminAccounts', () => ({ AdminAccounts: () => <h1>Cuentas permitidas</h1> }));
 vi.mock('./pages/admin/AdminProcedures', () => ({ AdminProcedures: () => <h1>Trámites permitidos</h1> }));
 
@@ -90,6 +91,13 @@ describe.each(cases)('Navegación de $role', ({ role, home, accounts }) => {
     else expect(await screen.findByTestId('redirect')).toHaveTextContent(home);
   });
 
+  it('reserva la nueva ruta de pago para ciudadanos', async () => {
+    setSession(role);
+    renderPath('/tramites/42/pago');
+    if (role === 'citizen') expect(await screen.findByText('Pago permitido')).toBeInTheDocument();
+    else expect(await screen.findByTestId('redirect')).toHaveTextContent(home);
+  });
+
   it.each(['ciudadano', 'municipal'])('resuelve el login %s sin cambiar roles', async (entry) => {
     const context = setSession(null);
     const payload: SessionPayload = { user: identity(role), csrf_token: '', mfa_enrollment_required: false };
@@ -108,7 +116,7 @@ describe.each(cases)('Navegación de $role', ({ role, home, accounts }) => {
 });
 
 describe.each(cases.filter(({ role }) => role !== 'citizen'))('Enrolamiento MFA de $role', ({ role }) => {
-  it.each(['/', '/login', '/admin/login', '/admin/cuentas', '/admin/tramites', '/panel'])('dirige %s al perfil sin abrir operaciones', async (path) => {
+  it.each(['/', '/login', '/admin/login', '/admin/cuentas', '/admin/tramites', '/panel', '/tramites/42/pago'])('dirige %s al perfil sin abrir operaciones', async (path) => {
     setSession(role, true);
     renderPath(path);
     expect(await screen.findByTestId('redirect')).toHaveTextContent('/perfil');
@@ -137,6 +145,7 @@ describe.each(cases.filter(({ role }) => role !== 'citizen'))('Enrolamiento MFA 
 it.each([
   { path: '/', target: '/login' }, { path: '/panel', target: '/login' },
   { path: '/admin/cuentas', target: '/admin/login' }, { path: '/admin/tramites', target: '/admin/login' },
+  { path: '/tramites/42/pago', target: '/login' },
 ])('sin sesión: $path dirige a $target', async ({ path, target }) => {
   setSession(null);
   renderPath(path);

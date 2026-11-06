@@ -91,6 +91,14 @@ Pruebas unitarias cubren los siete roles, anónimos, carga de sesión, rechazos 
   - No se permite desactivar ni quitar el rol al último `superadmin` activo (`409 last_superadmin`).
 - **Doble control en pagos de alto monto (`app/services/payments.py`):** cuando el monto de un pago es mayor o igual a `PAYMENT_SECOND_APPROVAL_THRESHOLD` (`100000.00` por defecto), la primera aprobación deja el pago en estado `pending_second` y guarda `reviewed_by`. Para pasar a `approved`, debe intervenir un segundo usuario distinto con permiso `payments.review` (`second_reviewed_by != reviewed_by`).
 
+### Declaración ciudadana de pagos (2026-11-06)
+
+La nueva UI usa las instrucciones del servidor y declara un comprobante, no una aprobación. No genera datos bancarios, no envía montos como autoridad y no guarda PII/tokens en almacenamiento persistente del navegador. Un error de respuesta exige consultar estado antes de reenviar. Solo `pending`/`rejected` habilitan la declaración; desconocidos, revisión, segundo control, aprobado y reintegrado no habilitan reenvío desde la pantalla.
+
+La API bloquea reenvíos de pagos que ya están en revisión/segundo control o reintegrados, antes de borrar revisores o asociar otro comprobante. `populate_existing=True` evita validar una instancia ORM desactualizada al adquirir el bloqueo de pago. Regresiones comprueban estado/revisores sin mutación y guardas existentes de propietario, CSRF y etapa. Son pruebas aisladas con SQLite: falta comprobar la concurrencia en MySQL.
+
+**Se solicita revisión de seguridad de pagos y archivos antes de integrar.** Las ayudas de formato/tamaño del navegador no acreditan seguridad del contenido, cifrado, antivirus ni retención. Alcance, runner aislado y pendientes en [PAGOS_CIUDADANOS.md](PAGOS_CIUDADANOS.md).
+
 ---
 
 ## 6. Validación y almacenamiento seguro de archivos

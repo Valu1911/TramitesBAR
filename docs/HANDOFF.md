@@ -4,7 +4,41 @@
 
 **Rama:** `fix/project-recovery`
 
-**Estado:** UX/QA responsive y navegación por rol (T03) implementadas y verificadas localmente. Pendientes revisión de seguridad e integración. T02 sigue bloqueado por política; no se corrigieron ni repitieron los 2 fallos conocidos del backend por `jwt`. No se certifica funcionamiento integral ni preparación para producción.
+**Estado:** UX/QA, navegación por rol (T03) y pago ciudadano implementados y verificados localmente. Backend actual 40/40, frontend 162 unitarias y 164 de navegador. Pendientes revisión de seguridad e integración. T02 sigue bloqueado por política; los fallos históricos de `jwt` no se reproducen en el venv actual, que ya tiene PyJWT instalado pero no declarado. No se certifica funcionamiento integral ni preparación para producción.
+
+## Sesión 2026-11-06 — Continuación: pago ciudadano y protección del doble control
+
+### Qué se hizo y decisiones
+
+- Ruta ciudadana `/tramites/:id/pago`, acceso desde el panel y etapas tomadas de `procedure.steps`/`position`, sin circuito fijo que omita pago o agregue exámenes no requeridos.
+- Consulta monto/referencia/destino reales de API. Copia de datos con feedback honesto, falta de configuración municipal explícita, campos obligatorios y opcionales, formatos y tamaño de comprobante previos al control real del servidor.
+- Upload como `payment_receipt` y posterior declaración con el ID devuelto, sin monto cliente ni aprobación. Distingue pendiente, observado, revisión, segundo control, aprobado, reintegrado y desconocido. Ningún estado desconocido habilita enviar.
+- Ante respuesta incierta, exige consultar antes de reenviar; reutiliza un adjunto confirmado de una declaración aún pendiente sin subirlo dos veces. No reutiliza automáticamente comprobantes observados o de un pago rechazado. In-flight guard, cancelación al salir y formulario separado por expediente/usuario, sin persistencia de PII en navegador.
+- Se corrigió en `claim_payment` el reenvío que borraba revisores o reabría reintegros. Solo `pending`/`rejected` permiten declarar; en otros estados no habilitados devuelve `409 payment_not_claimable` sin alterar controles. Se conserva la guarda de aprobado.
+- La consulta bloqueada refresca la instancia ORM con `populate_existing=True`: un pago precargado antes de que otro revisor actúe no puede ocultar ese control. Sin cambios de esquema, migraciones, roles, permisos, dependencias ni reglas de monto.
+
+### Pruebas y evidencia
+
+- Antes de implementar: Playwright reprodujo el panel con etapas ficticias y sin pago. En API, tres regresiones de reenvío devolvían 200 y borraban revisores en lugar de rechazar; otra regresión mostró que el estado ORM viejo omitía un segundo control. Se corrigió antes un error del fixture (dominio `.test` rechazado por `EmailStr`), sin modificar el validador ni atribuir ese fallo al producto.
+- Después: backend completo **40/40** con dotenv deshabilitado, entorno limpiado, SQLite en memoria, claves y archivos temporales. Incluye **12 pruebas de pagos** (3 existentes + 9 nuevas), propiedad, CSRF, etapa y revisión sin mutación. Ruff y Mypy (`app tests`, 71 archivos) aprobados.
+- Frontend: **162/162 unitarias**, **164/164 Playwright** en cuatro tamaños (40 pruebas nuevas de pago), tipos y ESLint aprobados. La regresión de privacidad cambia la identidad sin recargar la ruta y verifica que nombre/DNI anteriores se limpien. Pago inspeccionado con axe y captura a 320 px. Build aprobado. Las ejecuciones completas no omiten pruebas.
+- **Diferencia de entorno:** el venv actual es Python 3.13.14 y ya tiene PyJWT 2.15.1. Los fallos históricos de `jwt` no se reprodujeron al repetir toda la suite; `requirements.txt` sigue sin declararlo. No se instaló PyJWT, no se cambió el manifiesto ni se corrigió la supervisión; no afirmar que un clon limpio o CI está resuelto por este resultado local.
+- No se accedió a `.env`, bases existentes, servicios externos ni producción. No hubo migraciones, transferencia bancaria, CI remoto, publicación ni merge. La prueba ORM con SQLite no certifica locks/concurrencia MySQL.
+
+### Riesgos, pendientes y próximo paso
+
+- **Se solicita revisión de seguridad de pagos/archivos antes del merge**, además de las revisiones de consentimiento y navegación pendientes. Verificar el pipeline de archivos (cifrado, antivirus, retención) y flujo de doble control con MySQL en staging.
+- Próximo paso independiente: consola de pagos (revisión, segundo control, conciliación y excepciones) y acciones de backoffice por permiso. Falta el recorrido conjunto ciudadano–municipio con servicios reales.
+- T02 conserva el bloqueo de modalidad/admisión del examen; la presencia local de PyJWT no elimina las respuestas simuladas ni asegura supervisión. Corregir esa dependencia junto con la unidad correspondiente, sin presentar el examen como seguro.
+- No se cambiaron matriz municipal, políticas, examen, CI, `.atl/` ni `legacy/`. El trabajo anterior queda preservado en `f21e994` y `ec193a9`.
+
+### Cómo probar, archivos y reversión
+
+- [PAGOS_CIUDADANOS.md](PAGOS_CIUDADANOS.md) contiene recorrido, contratos, estados y runner de backend aislado reproducible; [QA_RESPONSIVE.md](QA_RESPONSIVE.md) cubre instalación y ejecución de Playwright. No usar `iniciar.bat` ni pruebas contra producción.
+- Archivos: backend `app/services/procedures.py`, `tests/test_payments.py`; frontend `src/pages/citizen/Payment.tsx`, `src/pages/citizen/Payment.test.tsx`, `src/lib/payment.ts`, `src/lib/payment.test.ts`, `src/App.tsx`, `src/pages/citizen/CitizenPanel.tsx`, `src/navigation.test.tsx`, `src/styles/main.css`, `e2e/payment.spec.ts`; documentos `PAGOS_CIUDADANOS.md`, `API.md`, `SEGURIDAD.md`, `QA_RESPONSIVE.md` y este handoff.
+- Reversión acotada por PR: retirar la UI/ruta si fuera necesario, conservando las guardas del servidor. No reabrir pagos en revisión como arreglo operativo; no hay datos/esquema que revertir. Solo commit local de esta unidad, sin publicar ni mergear.
+
+---
 
 ## Sesión 2026-11-06 — Continuación: navegación por rol (T03)
 

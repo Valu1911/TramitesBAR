@@ -57,6 +57,12 @@ const STAGES: StageConfig[] = [
     description: 'Evaluación teórica supervisada de tránsito.',
   },
   {
+    code: 'payment',
+    title: 'Pago del arancel',
+    routeSuffix: 'pago',
+    description: 'Transferencia, comprobante y revisión municipal.',
+  },
+  {
     code: 'practical',
     title: 'Examen Práctico',
     routeSuffix: 'turnos',
@@ -349,8 +355,9 @@ export function CitizenPanel() {
           {/* Stepper visual de etapas */}
           <div className="stepper-container">
             <ol className="stepper-list">
-              {STAGES.map((stage, idx) => {
-                const stepObj = activeProcedure.steps.find((s) => s.code === stage.code);
+              {[...activeProcedure.steps].sort((a, b) => a.position - b.position).map((stepObj, idx) => {
+                // Cada matriz puede omitir o reordenar etapas; no mostramos un circuito ficticio.
+                const stage = STAGES.find((item) => item.code === stepObj.code) ?? { code: stepObj.code, title: stepObj.label };
                 const isCompleted = stepObj?.status === 'completed' || !!stepObj?.completed_at;
                 const isCurrent =
                   activeProcedure.current_step === stage.code ||
@@ -405,9 +412,10 @@ export function CitizenPanel() {
                   {activeProcedure.current_step === 'charlas' && 'Etapa: Charlas de Seguridad Vial'}
                   {activeProcedure.current_step === 'health' && 'Etapa: Salud y Declaración Médica'}
                   {activeProcedure.current_step === 'theory' && 'Etapa: Examen Teórico Supervisado'}
+                  {activeProcedure.current_step === 'payment' && 'Etapa: Pago del arancel'}
                   {activeProcedure.current_step === 'practical' && 'Etapa: Examen Práctico en Circuito'}
                   {activeProcedure.current_step === 'delivery' && 'Etapa: Entrega de Licencia'}
-                  {!['charlas', 'health', 'theory', 'practical', 'delivery'].includes(
+                  {!['charlas', 'health', 'theory', 'payment', 'practical', 'delivery'].includes(
                     activeProcedure.current_step ?? '',
                   ) && 'Trámite en proceso municipal'}
                 </h4>
@@ -418,6 +426,8 @@ export function CitizenPanel() {
                     'Completá la declaración jurada y adjuntá tu certificado médico habilitante.'}
                   {activeProcedure.current_step === 'theory' &&
                     'Rendí la evaluación teórica en línea con supervisión de escritorio y cámara.'}
+                  {activeProcedure.current_step === 'payment' &&
+                    'Consultá la referencia, informá tu transferencia y seguí la revisión municipal.'}
                   {activeProcedure.current_step === 'practical' &&
                     'Coordiná tu turno práctico en el autódromo municipal con los inspectores.'}
                   {activeProcedure.current_step === 'delivery' &&
@@ -427,6 +437,11 @@ export function CitizenPanel() {
             </div>
 
             <div>
+              {activeProcedure.current_step === 'payment' && (
+                <Link to={`/tramites/${activeProcedure.id}/pago`} className="btn btn-primary">
+                  <span>Gestionar pago del arancel</span><ChevronRight width={16} height={16} />
+                </Link>
+              )}
               {activeProcedure.current_step === 'charlas' && (
                 <Link
                   to={`/tramites/${activeProcedure.id}/charlas`}

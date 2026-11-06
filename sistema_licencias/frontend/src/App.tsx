@@ -36,6 +36,7 @@ const PracticalAppointment = lazy(() =>
 const Delivery = lazy(() =>
   import('./pages/citizen/Delivery').then((m) => ({ default: m.Delivery })),
 );
+const Payment = lazy(() => import('./pages/citizen/Payment').then((m) => ({ default: m.Payment })));
 const VerifyLicense = lazy(() =>
   import('./pages/public/VerifyLicense').then((m) => ({ default: m.VerifyLicense })),
 );
@@ -219,6 +220,14 @@ export function App() {
               element={
                 <ProtectedRoute allowRoles={['citizen']}>
                   <PracticalAppointment />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/tramites/:id/pago"
+              element={
+                <ProtectedRoute allowRoles={['citizen']}>
+                  <Payment />
                 </ProtectedRoute>
               }
             />
