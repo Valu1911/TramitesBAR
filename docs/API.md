@@ -168,11 +168,17 @@ Todas las rutas bajo `/api/v1/admin` exigen cuenta de personal municipal con MFA
 ### 8.2 Pagos y conciliación (`app/api/v1/payments.py`)
 | Método | Ruta | Permiso requerido | Descripción |
 |---|---|---|---|
-| `GET` | `/api/v1/admin/payments` | `payments.read` | Lista pagos con filtro por estado y búsqueda por referencia o código de trámite. |
+| `GET` | `/api/v1/admin/payments` | `payments.read` | Lista pagos por `status`, búsqueda `q` por referencia, código de trámite o correo (máx. 80 caracteres), `limit` 1–100 y `offset` desde 0. |
 | `GET` | `/api/v1/admin/payments/imports` | `payments.import` | Lista el historial de importaciones de extractos bancarios. |
 | `GET` | `/api/v1/admin/payments/{payment_id}` | `payments.read` | Devuelve el detalle de un pago. |
 | `POST` | `/api/v1/admin/payments/{payment_id}/review` | `payments.review` | Aprueba o rechaza un pago. Si el monto alcanza `PAYMENT_SECOND_APPROVAL_THRESHOLD`, pasa a `pending_second` y exige un segundo revisor distinto. |
 | `POST` | `/api/v1/admin/payments/import` | `payments.import` | Importa un archivo CSV o XLSX (máx. 10 / hora), concilia por referencia y monto exacto, y reporta excepciones. |
+
+`payments.read` y `payments.review` están restringidos a `admin_pagos`, `admin` y `superadmin`, con MFA. Listado, detalle y revisión devuelven `PaymentAdminOut`: además del pago ciudadano, contexto `procedure_code`, `citizen_email`, `citizen_name`, `second_reviewed_by` y los nuevos campos `procedure_id` (entero) y `reviewed_by` (entero o null). Estos dos campos no se agregan a `PaymentOut` ciudadano. Los esquemas de detalle/revisión se reflejan en OpenAPI.
+
+Revisión: cuerpo `{ "decision": "approve" | "reject", "notes": string | null }`, observaciones de hasta 2000 caracteres; rechazar exige al menos 5 caracteres al quitar espacios exteriores. Solo admite pagos `claimed`/`pending_second`. Refresca pago y expediente bajo `FOR UPDATE` antes de decidir. Errores: `409 payment_not_reviewable` si el pago ya no admite revisión, `409 payment_step_unavailable` si el expediente no está activo en `payment`, `409 second_approval_required` si repite el primer aprobador, `422 notes_required` si falta un motivo válido de rechazo. No avanza el expediente con la primera aprobación de doble control.
+
+La consola consume el estado retornado y exige consultar detalle tras una respuesta incierta. No calcula el umbral ni reintenta decisiones automáticamente. Operación y límites en [PAGOS_MUNICIPALES.md](PAGOS_MUNICIPALES.md).
 
 ### 8.3 Banco de preguntas y exámenes (`app/api/v1/exams.py`)
 | Método | Ruta | Permiso requerido | Descripción |

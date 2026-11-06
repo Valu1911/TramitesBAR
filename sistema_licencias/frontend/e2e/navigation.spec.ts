@@ -27,7 +27,8 @@ async function mockRole(page: Page, role: Role, pendingMfa = false) {
     adminRequests.push(path);
     const permitted = !pendingMfa && route.request().method() === 'GET' && (
       (path === '/api/v1/admin/users' && ['admin_cuentas', 'admin', 'superadmin'].includes(role)) ||
-      (path === '/api/v1/admin/procedures' && role !== 'citizen')
+      (path === '/api/v1/admin/procedures' && role !== 'citizen') ||
+      (path === '/api/v1/admin/payments' && ['admin_pagos', 'admin', 'superadmin'].includes(role))
     );
     if (!permitted) {
       await route.fulfill({ status: 403, json: { error: { code: 'forbidden', message: 'No permitido en esta prueba' } } });

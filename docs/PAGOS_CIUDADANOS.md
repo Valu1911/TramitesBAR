@@ -60,7 +60,7 @@ npm run test:e2e
 
 Solo pago: `npm test -- src/lib/payment.test.ts` y `npm run test:e2e -- e2e/payment.spec.ts`. Playwright usa API interceptada y datos controlados, cuatro tamaños y Chromium; no mueve dinero ni valida una transferencia bancaria real. Ver [QA_RESPONSIVE.md](QA_RESPONSIVE.md).
 
-Backend: `tests/test_payments.py` contiene 12 casos: tres previos de revisión/conciliación y nueve nuevos de declaración, rechazos sin mutación, propiedad, CSRF, etapa y refresco de estado ORM. Para ejecutarlos sin `.env`, bases ni servicios reales, desde `sistema_licencias/backend`:
+Backend: `tests/test_payments.py` incluye los casos de declaración y revisión municipal, rechazos sin mutación, permisos, propiedad, CSRF, MFA, etapa, refresco de estado ORM y doble control. Para ejecutarlos sin `.env`, bases ni servicios reales, desde `sistema_licencias/backend`:
 
 ```powershell
 $env:PYTEST_DISABLE_PLUGIN_AUTOLOAD = '1'
@@ -80,10 +80,10 @@ runpy.run_module('pytest', run_name='__main__')
 
 Usar una carpeta temporal existente y aprobada. Para la suite completa, reemplazar `tests/test_payments.py` por `tests` dentro del mismo runner. `conftest.py` crea únicamente SQLite en memoria, claves aleatorias y archivos temporales. Ruff: `.\.venv\Scripts\python.exe -m ruff check app tests`; Mypy: `.\.venv\Scripts\python.exe -m mypy app tests`.
 
-### Evidencia y límites de esta sesión
+### Evidencia y límites de la unidad ciudadana
 
 - Backend completo: **40/40**; frontend: **162 unitarias y 164 de navegador**, sin omitir casos. Incluye reinicio de datos del ordenante al cambiar de cuenta sin recargar la ruta. Tipos/lint y build aprobados según el handoff.
 - El venv observado usa Python 3.13.14 y ya tenía PyJWT 2.15.1 instalado. **PyJWT sigue sin declararse en `requirements.txt`**. Por eso no se reprodujeron localmente los dos fallos históricos de `jwt`; no se corrigió el manifiesto ni el proctoring. Una instalación limpia/CI todavía puede fallar y el examen sigue bloqueado por política de supervisión.
-- Falta consola de revisión/conciliación de pagos por rol y recorrido conjunto ciudadano–municipio con MySQL, archivos y correo en staging. No se accedió a producción, no se ejecutaron migraciones ni se comprobó una transferencia real.
+- La consola de revisión se incorporó en una unidad posterior: ver [PAGOS_MUNICIPALES.md](PAGOS_MUNICIPALES.md) y la evidencia vigente en [HANDOFF.md](HANDOFF.md). Sigue pendiente la UI de importación/conciliación y el recorrido conjunto ciudadano–municipio con MySQL, archivos y correo en staging. No se accedió a producción, no se ejecutaron migraciones ni se comprobó una transferencia real.
 
 Si se revierte la UI, conservar las guardas del servidor; no reabrir reenvíos de pagos en revisión como arreglo operativo. Integración y rollback siempre mediante PR revisado.

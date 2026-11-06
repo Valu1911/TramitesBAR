@@ -65,13 +65,17 @@ El personal con enrolamiento pendiente va a `/perfil`, incluso tras recarga o ac
 
 `e2e/payment.spec.ts` aporta otros 10 escenarios × 4 anchos: acceso desde el panel, etapas reales, referencia y monto de API, envío multipart y declaración con CSRF, falta de datos bancarios, error/reintento de consulta, respuesta incierta con consulta previa, reutilización de adjunto confirmado, observación/rechazo, validación de archivo, estados de solo lectura, ID inválido y ausencia de pago en la matriz. Verifica escape de observaciones, fallo del portapapeles, ancho real y axe sobre la pantalla de pago. Las capturas `pago-responsive.png` también quedan solo en `test-results/`.
 
-Suite completa actual: **162 unitarias** (134 navegación, 22 ayudas de pago, 1 de privacidad del formulario, 5 ciudadanas previas) y **164 de navegador** (84 UX, 40 navegación, 40 pagos). Backend aislado: **40 pruebas**. Comandos, diferencias de entorno y límites en [PAGOS_CIUDADANOS.md](PAGOS_CIUDADANOS.md). No se certifica conciliación real por pasar pruebas de UI.
+### Revisión municipal de pagos implementada
+
+`e2e/admin-payments.spec.ts` aporta 14 escenarios × 4 anchos: bandeja de Pagos con su rol inicial, comprobante por descarga autenticada, primera aprobación que sigue en segundo control, rechazo con motivo obligatorio, segundo revisor distinto, búsqueda/paginación resueltas en API, fallo de listado con reintento, respuesta incierta bloqueada hasta **Actualizar detalle**, fallo de recarga posterior a una aprobación confirmada, estados no revisables con notas escapadas, axe/no desborde y cuatro roles sin acceso financiero. También comprueba que Pagos no revisa certificados de salud desde el expediente. Captura `revision-pagos-responsive.png` solo en `test-results/`.
+
+Suite completa actual: **172 unitarias** (134 navegación, 22 ayudas de pago, 1 de privacidad del formulario, 5 ciudadanas previas, 10 de capacidades de rol) y **220 de navegador** (84 UX, 40 navegación, 40 pagos, 56 revisión municipal). Backend aislado: **59 pruebas**. Comandos, diferencias de entorno y límites en [PAGOS_CIUDADANOS.md](PAGOS_CIUDADANOS.md) y [PAGOS_MUNICIPALES.md](PAGOS_MUNICIPALES.md). No se certifica conciliación real por pasar pruebas de UI.
 
 ### Trabajo restante
 
 - Resolver la política de admisión/supervisión del examen v1 (T02 en `docs/HANDOFF.md`), corregir sus respuestas simuladas y la dependencia `jwt` no declarada. El entorno actual tiene PyJWT y no reproduce los fallos históricos; eso no acredita una instalación limpia ni supervisión real. No habilitar un examen remoto sin supervisión como parche.
-- Revisar las pestañas y acciones del backoffice según permisos específicos de API; corregir la navegación (T03) no implementa el trabajo operativo de Pagos ni su conciliación.
-- Completar recorrido de las seis matrices con API/MySQL, archivos, pagos y conciliación, correo, revisión municipal, turnos y credencial. La pantalla ciudadana de pagos está implementada; falta la consola operativa de pagos y el recorrido conjunto con servicios reales.
+- Completar la consola de pagos con importación de extractos, conciliación y excepciones, y revisar el resto de pestañas/acciones del backoffice con pruebas funcionales propias. La revisión manual y el doble control ya tienen UI y pruebas; eso no equivale a conciliación bancaria automática.
+- Completar recorrido de las seis matrices con API/MySQL, archivos, pagos y conciliación, correo, revisión municipal, turnos y credencial. Pantallas ciudadana y municipal implementadas; falta el recorrido conjunto con servicios reales.
 - Revisar el resto de backoffice, cuestionarios dinámicos y examen con pruebas funcionales/accesibilidad específicas; la cobertura de perfil corresponde a su vista inicial.
 - Validar matriz, políticas, modalidades de entrega y textos con el municipio; no confundir la credencial municipal con una licencia nacional oficial.
 - Pruebas reales en staging, navegadores/dispositivos adicionales y revisión de seguridad de registro/consentimiento antes del merge. No ejecutar contra producción.

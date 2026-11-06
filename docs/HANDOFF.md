@@ -4,7 +4,42 @@
 
 **Rama:** `fix/project-recovery`
 
-**Estado:** UX/QA, navegación por rol (T03) y pago ciudadano implementados y verificados localmente. Backend actual 40/40, frontend 162 unitarias y 164 de navegador. Pendientes revisión de seguridad e integración. T02 sigue bloqueado por política; los fallos históricos de `jwt` no se reproducen en el venv actual, que ya tiene PyJWT instalado pero no declarado. No se certifica funcionamiento integral ni preparación para producción.
+**Estado:** UX/QA, navegación por rol (T03), pago ciudadano y revisión municipal de pagos implementados y verificados localmente. Backend actual 59/59, frontend 172 unitarias y 220 de navegador. Pendientes revisión de seguridad e integración. T02 sigue bloqueado por política; los fallos históricos de `jwt` no se reproducen en el venv actual, que ya tiene PyJWT instalado pero no declarado. No se certifica funcionamiento integral ni preparación para producción.
+
+## Sesión 2026-11-06 — Revisión municipal de pagos y permisos operativos
+
+### Qué se hizo y decisiones
+
+- Se agregó **Pagos y comprobantes** en `/admin/tramites` para `admin_pagos`, `admin` y `superadmin`, con MFA al día. Pagos abre esa sección por defecto; los administradores generales la eligen desde sus pestañas. Los demás roles conservan solo sus operaciones.
+- Bandeja con búsqueda (referencia, expediente o correo), filtro, paginación de 25 y detalle fresco por selección. Los filtros se resuelven en API; no se filtra una página incompleta en el navegador. El importe y el estado se muestran desde el servidor.
+- Revisión explícita: aprobar o rechazar; el rechazo exige al menos 5 caracteres y las observaciones admiten hasta 2000. `*` y validación nativa visible. El comprobante se abre por la descarga autenticada y auditada existente, con la base de API configurada y `noopener noreferrer`; si falta adjunto se informa.
+- Se usa el estado devuelto: la primera aprobación puede quedar en `pending_second` y el mismo primer revisor no puede aprobar otra vez. La pantalla no calcula el umbral ni inventa el paso siguiente. Solo `claimed`/`pending_second` permiten decidir; otros estados, incluso desconocidos, quedan en solo lectura.
+- Sin aprobación optimista ni reintentos automáticos: ante una respuesta incierta hay que **Actualizar detalle** antes de decidir de nuevo. Actualizar solo la bandeja no desbloquea el formulario. Una aprobación confirmada sigue siendo exitosa aunque falle la recarga posterior del listado.
+- Consultas separadas por identidad, caché sin persistencia, cancelación al salir, selección/notas reiniciadas al cambiar de cuenta o rol. Observaciones y nombres se escapan con React; no hay `innerHTML`, handlers ni estilos inline nuevos.
+- `staffAccess.ts` centraliza capacidades de presentación y se comprobó contra los permisos reales de API. No otorga permisos: Salud revisa certificados; Turnos opera turnos y credenciales; Pagos no recibe acciones de salud. Se cerraron también los handlers y botones previos que no validaban el rol.
+- Backend: `PaymentAdminOut` agrega `procedure_id` y `reviewed_by` solo al contrato administrativo. La revisión vuelve a leer pago y expediente bajo `FOR UPDATE` con refresco ORM, rechaza pagos que ya no están en revisión (`409 payment_not_reviewable`) y expedientes cerrados/fuera de etapa (`409 payment_step_unavailable`) sin reabrirlos. El doble control se sigue exigiendo en servidor.
+
+### Pruebas y evidencia
+
+- Antes de conectar la consola, las regresiones de backend reprodujeron cuatro fallos: una instancia ORM vieja reabría un pago ya aprobado y se podía aprobar sobre un expediente cerrado. Se corrigió con bloqueo y refresco de pago y expediente antes de mutar.
+- Backend: **31/31 de pagos** y **59/59 de la suite completa** con dotenv deshabilitado, SQLite en memoria, claves y archivos temporales. Incluye permisos de los siete roles, CSRF/MFA/validación sin mutación, segundo revisor distinto vía HTTP, cierre concurrente y metadatos administrativos ausentes en el contrato ciudadano. Ruff y Mypy aprobados.
+- Frontend: **172/172 unitarias** (10 nuevas de la matriz de capacidades) y **220/220 Playwright** en cuatro anchos (56 nuevas de revisión municipal). Cubren doble control, rechazo, permisos, búsqueda/paginación en servidor, fallos de listado, respuesta incierta, fuga de acciones de salud, escape de notas, axe y no desborde. Tipos, ESLint y build aprobados.
+- **Diferencia de entorno:** el venv actual es Python 3.13.14 y ya tiene PyJWT 2.15.1; `requirements.txt` sigue sin declararlo. No se acreditó instalación limpia ni CI remoto. Las pruebas SQLite no certifican locks ni concurrencia MySQL.
+
+### Riesgos, pendientes y próximo paso
+
+- **Se solicita revisión de seguridad de pagos, permisos y descargas antes del merge**, además de las revisiones de consentimiento, navegación y archivos ya pedidas. Verificar con MySQL en staging decisiones simultáneas, cierre de expediente concurrente, archivos cifrados/antivirus/retención y correo real.
+- La revisión manual no es conciliación bancaria: falta la UI de importación de extractos, conciliación y excepciones, y el recorrido conjunto ciudadano–municipio con servicios reales. El resto del backoffice y los cuestionarios dinámicos siguen sin cobertura funcional propia.
+- T02 conserva el bloqueo de modalidad/admisión del examen; no se modificó examen, proctoring, matriz, migraciones ni dependencias. No se accedió a producción, `.env`, bases existentes ni servicios externos.
+- Próximo paso independiente: conciliación/importación de pagos con permisos y pruebas propias, o completar la regresión del resto del backoffice. No presentar esta unidad como conciliación completa.
+
+### Cómo probar, archivos y reversión
+
+- [PAGOS_MUNICIPALES.md](PAGOS_MUNICIPALES.md) contiene recorrido, contratos, guardas y límites; [PAGOS_CIUDADANOS.md](PAGOS_CIUDADANOS.md) mantiene el runner aislado de backend; [QA_RESPONSIVE.md](QA_RESPONSIVE.md) cubre Playwright y los totales.
+- Archivos: backend `app/schemas/payment.py`, `app/services/payments.py`, `app/services/serializers.py`, `tests/test_payments.py`; frontend `src/pages/admin/AdminPayments.tsx`, `src/pages/admin/AdminProcedures.tsx`, `src/lib/staffAccess.ts`, `src/lib/staffAccess.test.ts`, `src/lib/api.ts`, `src/lib/types.ts`, `src/styles/main.css`, `e2e/admin-payments.spec.ts`, `e2e/navigation.spec.ts`; documentos `PAGOS_MUNICIPALES.md`, `API.md`, `SEGURIDAD.md`, `PAGOS_CIUDADANOS.md`, `QA_RESPONSIVE.md` y este handoff.
+- Reversión acotada por PR: retirar la pestaña/componente y sus pruebas si fuera necesario, conservando las guardas de servidor. No hay datos, migraciones ni esquema que revertir. Solo commit local, sin publicar ni mergear.
+
+---
 
 ## Sesión 2026-11-06 — Continuación: pago ciudadano y protección del doble control
 

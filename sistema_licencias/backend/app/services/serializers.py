@@ -214,9 +214,11 @@ def payment_admin_out(payment: Payment) -> PaymentAdminOut:
     )
     return PaymentAdminOut(
         **payment_out(payment).model_dump(),
+        procedure_id=payment.procedure_id,
         procedure_code=procedure.public_code if procedure else "",
         citizen_email=procedure.user.email if procedure and procedure.user else "",
         citizen_name=name,
+        reviewed_by=payment.reviewed_by,
         second_reviewed_by=payment.second_reviewed_by,
     )
 

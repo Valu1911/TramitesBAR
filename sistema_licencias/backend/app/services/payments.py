@@ -18,7 +18,7 @@ from sqlalchemy.orm import Session, selectinload
 from app.core.config import get_settings
 from app.core.errors import api_error
 from app.core.security import utcnow
-from app.domain.enums import PaymentStatus, StepCode, StepStatus
+from app.domain.enums import PaymentStatus, ProcedureStatus, StepCode, StepStatus
 from app.models.payment import Payment, PaymentImport
 from app.models.procedure import Procedure
 from app.models.user import User
@@ -93,6 +93,16 @@ def review_payment(
     user_agent: str | None,
 ) -> Payment:
     """Aprueba o rechaza un pago, aplicando doble control si corresponde."""
+    # La consola pudo leer el pago antes de otra revisión. Validamos la fila actual,
+    # no la instancia precargada, y serializamos decisiones sobre el mismo pago.
+    locked = db.execute(
+        select(Payment).where(Payment.id == payment.id).with_for_update()
+        .execution_options(populate_existing=True)
+    ).scalar_one_or_none()
+    if locked is None:
+        raise api_error(404, "payment_not_found", "No encontramos ese pago")
+    payment = locked
+    previous_status = payment.status
     if payment.status not in {
         PaymentStatus.CLAIMED.value,
         PaymentStatus.PENDING_SECOND.value,
@@ -100,6 +110,18 @@ def review_payment(
         raise api_error(409, "payment_not_reviewable", "Ese pago no está pendiente de revisión")
 
     procedure = get_procedure_or_404(db, payment.procedure_id, staff=True)
+    # Conservamos también el estado vigente del expediente antes de avanzar un paso.
+    procedure = db.execute(
+        select(Procedure).where(Procedure.id == procedure.id).with_for_update()
+        .execution_options(populate_existing=True)
+    ).scalar_one()
+    if (
+        procedure.current_step != StepCode.PAYMENT.value
+        or procedure.status not in {
+            ProcedureStatus.IN_PROGRESS.value, ProcedureStatus.UNDER_REVIEW.value,
+        }
+    ):
+        raise api_error(409, "payment_step_unavailable", "El expediente ya no admite revisar ese pago")
     step = next((item for item in procedure.steps if item.code == StepCode.PAYMENT.value), None)
     if step is None:
         raise api_error(500, "payment_step_missing", "El trámite no tiene paso de pago")

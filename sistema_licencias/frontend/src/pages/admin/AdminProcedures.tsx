@@ -1,6 +1,9 @@
-import { useState, useEffect, type FormEvent, type ChangeEvent } from 'react';
+import { useState, useEffect, type FormEvent, type ChangeEvent, type MouseEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { api, ApiError } from '../../lib/api';
+import { useAuth } from '../../context/AuthContext';
+import { staffAccess } from '../../lib/staffAccess';
+import { AdminPayments } from './AdminPayments';
 import type {
   AdminProcedure,
   AdminAppointment,
@@ -22,10 +25,19 @@ import {
   X,
 } from '../../components/Icons';
 
-type AdminTab = 'expedientes' | 'turnos' | 'licencias';
+type AdminTab = 'expedientes' | 'turnos' | 'licencias' | 'pagos';
 
+/** Una identidad distinta no conserva búsquedas, documentos ni decisiones de la anterior. */
 export function AdminProcedures() {
-  const [activeTab, setActiveTab] = useState<AdminTab>('expedientes');
+  const { user } = useAuth();
+  return <OperationsWorkspace key={`${user?.id}:${user?.role}`} />;
+}
+
+/** Presenta solo operaciones que ya permite el mapa de permisos del servidor. */
+function OperationsWorkspace() {
+  const { user } = useAuth();
+  const access = staffAccess(user?.role);
+  const [activeTab, setActiveTab] = useState<AdminTab>(user?.role === 'admin_pagos' ? 'pagos' : 'expedientes');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
@@ -54,6 +66,25 @@ export function AdminProcedures() {
   const [revokeReason, setRevokeReason] = useState('');
   const [submittingDelivery, setSubmittingDelivery] = useState(false);
   const [submittingRevoke, setSubmittingRevoke] = useState(false);
+
+  /** Valida el destino del botón contra las secciones habilitadas, sin ampliar roles. */
+  const handleTabChange = (event: MouseEvent<HTMLButtonElement>) => {
+    const tab = event.currentTarget.dataset.tab;
+    const allowed: AdminTab[] = ['expedientes'];
+    if (access.payments) allowed.push('pagos');
+    if (access.appointments) allowed.push('turnos');
+    if (access.licenses) allowed.push('licencias');
+    if (!allowed.includes(tab as AdminTab)) return;
+    setActiveTab(tab as AdminTab); setError(null); setSelectedProcedure(null);
+    setReviewingDocId(null); setRejectNotes(''); setLoading(tab !== 'pagos');
+  };
+
+  /** La bandeja financiera tiene su propio refresco y sus estados de carga. */
+  const handleRefresh = () => {
+    if (activeTab === 'expedientes') void loadProcedures();
+    else if (activeTab === 'turnos' && access.appointments) void loadAppointments();
+    else if (activeTab === 'licencias' && access.licenses) void loadLicenses();
+  };
 
   // Carga de datos para Tab 1: Expedientes
   const loadProcedures = async () => {
@@ -143,12 +174,7 @@ export function AdminProcedures() {
     } else if (activeTab === 'licencias') {
       Promise.all([
         api.get<Page<AdminProcedure>>('/admin/procedures', { limit: 50 }),
-        api.get<Page<LicenseAdmin>>('/admin/licenses', { limit: 50 }).catch(() => ({
-          items: [],
-          total: 0,
-          page: 1,
-          page_size: 50,
-        })),
+        api.get<Page<LicenseAdmin>>('/admin/licenses', { limit: 50 }),
       ])
         .then(([procRes, licRes]) => {
           if (active) {
@@ -178,7 +204,7 @@ export function AdminProcedures() {
 
   // Revisión de documento de salud
   const handleReviewDocument = async (doc: DocumentItem, decision: 'approve' | 'reject') => {
-    if (!selectedProcedure) return;
+    if (!selectedProcedure || !access.health || doc.kind !== 'health_certificate') return;
     try {
       setSubmittingReview(true);
       setError(null);
@@ -191,7 +217,7 @@ export function AdminProcedures() {
       );
       setActionSuccess(
         decision === 'approve'
-          ? 'Certificado médico aprobado. El trámite avanzó a la etapa teórica.'
+          ? 'Certificado médico aprobado. Consultá la etapa vigente del trámite.'
           : 'Certificado médico rechazado con observaciones.',
       );
       setReviewingDocId(null);
@@ -212,7 +238,7 @@ export function AdminProcedures() {
   // Creación de nuevo cupo práctico
   const handleCreateSlot = async (e: FormEvent) => {
     e.preventDefault();
-    if (!newSlotDateTime) return;
+    if (!newSlotDateTime || !access.appointments) return;
     try {
       setSubmittingSlot(true);
       setError(null);
@@ -239,6 +265,7 @@ export function AdminProcedures() {
     appointmentId: number,
     result: 'passed' | 'failed',
   ) => {
+    if (!access.appointments) return;
     try {
       setError(null);
       await api.patch(`/admin/appointments/${appointmentId}`, {
@@ -259,6 +286,7 @@ export function AdminProcedures() {
 
   // Confirmar entrega y emisión de credencial
   const handleCompleteDelivery = async (procedureId: number) => {
+    if (!access.licenses) return;
     try {
       setSubmittingDelivery(true);
       setError(null);
@@ -278,7 +306,7 @@ export function AdminProcedures() {
   // Revocación de licencia
   const handleRevokeLicense = async (e: FormEvent) => {
     e.preventDefault();
-    if (!revokingLicense || !revokeReason.trim()) return;
+    if (!revokingLicense || !revokeReason.trim() || !access.licenses) return;
     try {
       setSubmittingRevoke(true);
       setError(null);
@@ -307,24 +335,20 @@ export function AdminProcedures() {
         <div>
           <h1>Trámites y Operaciones Municipales</h1>
           <p>
-            Revisión psicofísica, asignación de turnos prácticos y entrega de credenciales.
+            Expedientes, pagos y operaciones habilitadas para tu rol municipal.
           </p>
         </div>
-        <div className="flex-row-gap">
+        {activeTab !== 'pagos' && <div className="flex-row-gap">
           <button
             type="button"
             className="btn btn-secondary btn-sm"
-            onClick={() => {
-              if (activeTab === 'expedientes') void loadProcedures();
-              else if (activeTab === 'turnos') void loadAppointments();
-              else void loadLicenses();
-            }}
+            onClick={handleRefresh}
             disabled={loading}
           >
             <Refresh width={14} height={14} />
             <span>Actualizar</span>
           </button>
-        </div>
+        </div>}
       </div>
 
       {actionSuccess && (
@@ -342,32 +366,35 @@ export function AdminProcedures() {
       )}
 
       {/* Navegación por pestañas */}
-      <div className="tabs-nav">
+      <nav className="tabs-nav" aria-label="Secciones operativas">
         <button
           type="button"
-          className={`tab-item ${activeTab === 'expedientes' ? 'active' : ''}`}
-          onClick={() => setActiveTab('expedientes')}
+          className={`tab-btn ${activeTab === 'expedientes' ? 'active' : ''}`}
+          data-tab="expedientes" aria-pressed={activeTab === 'expedientes'} onClick={handleTabChange}
         >
           <FileText width={16} height={16} />
-          <span>1. Expedientes y Salud</span>
+          <span>Expedientes y Salud</span>
         </button>
-        <button
+        {access.payments && <button type="button" className={`tab-btn ${activeTab === 'pagos' ? 'active' : ''}`} data-tab="pagos" aria-pressed={activeTab === 'pagos'} onClick={handleTabChange}>Pagos y comprobantes</button>}
+        {access.appointments && <button
           type="button"
-          className={`tab-item ${activeTab === 'turnos' ? 'active' : ''}`}
-          onClick={() => setActiveTab('turnos')}
+          className={`tab-btn ${activeTab === 'turnos' ? 'active' : ''}`}
+          data-tab="turnos" aria-pressed={activeTab === 'turnos'} onClick={handleTabChange}
         >
           <Calendar width={16} height={16} />
-          <span>2. Examen Práctico y Turnos</span>
-        </button>
-        <button
+          <span>Examen Práctico y Turnos</span>
+        </button>}
+        {access.licenses && <button
           type="button"
-          className={`tab-item ${activeTab === 'licencias' ? 'active' : ''}`}
-          onClick={() => setActiveTab('licencias')}
+          className={`tab-btn ${activeTab === 'licencias' ? 'active' : ''}`}
+          data-tab="licencias" aria-pressed={activeTab === 'licencias'} onClick={handleTabChange}
         >
           <Award width={16} height={16} />
-          <span>3. Entrega y Licencias</span>
-        </button>
-      </div>
+          <span>Entrega y Licencias</span>
+        </button>}
+      </nav>
+
+      {activeTab === 'pagos' && access.payments && <AdminPayments />}
 
       {/* ================= PESTAÑA 1: EXPEDIENTES ================= */}
       {activeTab === 'expedientes' && (
@@ -378,6 +405,7 @@ export function AdminProcedures() {
                 <Search width={18} height={18} className="search-icon" />
                 <input
                   type="search"
+                  aria-label="Buscar expedientes"
                   className="search-input"
                   placeholder="Buscar por código (BAR-...), nombre, email o DNI..."
                   value={searchQuery}
@@ -386,6 +414,7 @@ export function AdminProcedures() {
               </div>
               <div className="flex-row-gap">
                 <select
+                  aria-label="Estado del expediente"
                   className="filter-select"
                   value={statusFilter}
                   onChange={(e: ChangeEvent<HTMLSelectElement>) => setStatusFilter(e.target.value)}
@@ -456,6 +485,7 @@ export function AdminProcedures() {
                             {proc.current_step === 'charlas' && 'Charlas Viales'}
                             {proc.current_step === 'health' && 'Salud / Médico'}
                             {proc.current_step === 'theory' && 'Examen Teórico'}
+                            {proc.current_step === 'payment' && 'Pago del arancel'}
                             {proc.current_step === 'practical' && 'Examen Práctico'}
                             {proc.current_step === 'delivery' && 'Entrega'}
                             {proc.status === 'completed' && 'Finalizado'}
@@ -483,7 +513,7 @@ export function AdminProcedures() {
                           >
                             <FileText width={14} height={14} />
                             <span>
-                              {healthDoc?.status === 'pending'
+                              {access.health && healthDoc?.status === 'pending'
                                 ? 'Revisar Certificado'
                                 : 'Detalle'}
                             </span>
@@ -723,7 +753,7 @@ export function AdminProcedures() {
               <div>
                 <h3 className="card-title">Registro Municipal de Credenciales Emitidas</h3>
                 <p className="card-subtitle">
-                  Licencias de conducir nacionales emitidas con token criptográfico QR.
+                  Credenciales municipales emitidas con token criptográfico QR.
                 </p>
               </div>
               <span className="badge badge-success">{licenses.length} emitidas</span>
@@ -874,7 +904,7 @@ export function AdminProcedures() {
                           <span>Descargar Documento</span>
                         </a>
 
-                        {doc.status === 'pending' && (
+                        {access.health && doc.kind === 'health_certificate' && doc.status === 'pending' && (
                           <>
                             <button
                               type="button"

@@ -221,6 +221,179 @@ def test_citizen_claim_does_not_restart_review(
     assert payment.receipt_document_id is None
 
 
+def test_review_rechecks_state_from_other_session(db: Session, seeded: Session, make_user) -> None:
+    """Una aprobación anterior no puede reabrirse desde una instancia ORM precargada."""
+    citizen = make_user(email="pago.anterior@example.com")
+    reviewer = make_user(email="revision.nueva@example.com", role=Role.ADMIN_PAGOS.value)
+    _procedure, payment = _procedure_with_payment(db, citizen)
+    assert payment.status == "claimed"
+    with Session(db.get_bind()) as other_session:
+        other_session.execute(update(Payment).where(Payment.id == payment.id).values(status="approved"))
+        other_session.commit()
+    assert payment.status == "claimed"
+
+    with pytest.raises(HTTPException) as raised:
+        payment_service.review_payment(
+            db, payment, decision="approve", notes=None, actor=reviewer,
+            ip="127.0.0.1", user_agent="test",
+        )
+    assert raised.value.status_code == 409
+    db.refresh(payment)
+    assert payment.status == "approved"
+    assert payment.reviewed_by is None
+
+
+@pytest.mark.parametrize("procedure_status", ["cancelled", "rejected", "completed"])
+def test_review_does_not_reopen_closed_procedure(
+    db: Session, seeded: Session, make_user, procedure_status: str
+) -> None:
+    """Revisar un comprobante no resucita un expediente que ya está cerrado."""
+    citizen = make_user(email="pago.cerrado@example.com")
+    reviewer = make_user(email="revision.cierre@example.com", role=Role.ADMIN_PAGOS.value)
+    procedure, payment = _procedure_with_payment(db, citizen)
+    procedure.status = procedure_status
+    procedure.current_step = None
+    db.commit()
+    with pytest.raises(HTTPException) as raised:
+        payment_service.review_payment(
+            db, payment, decision="approve", notes=None, actor=reviewer,
+            ip="127.0.0.1", user_agent="test",
+        )
+    assert raised.value.status_code == 409
+    db.refresh(payment)
+    db.refresh(procedure)
+    assert payment.status == "claimed"
+    assert payment.reviewed_by is None
+    assert procedure.status == procedure_status
+    assert procedure.current_step is None
+
+
+@pytest.mark.parametrize("role", [
+    "citizen", "admin_cuentas", "admin_salud", "admin_turnos", "admin_pagos", "admin", "superadmin",
+])
+def test_staff_payment_api_permissions_and_metadata(
+    client, db: Session, seeded: Session, make_user, login, role: str
+) -> None:
+    """El contrato de revisión expone contexto solo a los roles autorizados por la API."""
+    citizen = make_user(email="titular.revision@example.com")
+    procedure, payment = _procedure_with_payment(db, citizen)
+    actor = citizen if role == "citizen" else make_user(
+        email="revision.rol@example.com", role=role, mfa_enabled=True,
+    )
+    csrf, _ = login(actor.email)
+    expected = 200 if role in {"admin_pagos", "admin", "superadmin"} else 403
+    listing = client.get("/api/v1/admin/payments")
+    detail = client.get(f"/api/v1/admin/payments/{payment.id}")
+    assert listing.status_code == expected
+    assert detail.status_code == expected
+    review = client.post(
+        f"/api/v1/admin/payments/{payment.id}/review",
+        headers={"X-CSRF-Token": csrf}, json={"decision": "approve", "notes": None},
+    )
+    assert review.status_code == expected
+    if expected == 200:
+        assert detail.json()["procedure_id"] == procedure.id
+        assert detail.json()["reviewed_by"] is None
+        assert review.json()["status"] == "pending_second"
+        assert review.json()["reviewed_by"] == actor.id
+    else:
+        db.refresh(payment)
+        assert payment.status == "claimed"
+        assert payment.reviewed_by is None
+    if role == "citizen":
+        own = client.get(f"/api/v1/procedures/{procedure.id}").json()["payment"]
+        assert "reviewed_by" not in own
+        assert "procedure_id" not in own
+
+
+def test_staff_review_api_requires_other_reviewer_for_second_approval(
+    client, db: Session, seeded: Session, make_user, login
+) -> None:
+    """El doble control se exige también al confirmar desde la consola HTTP."""
+    citizen = make_user(email="doble.control@example.com")
+    first = make_user(email="primer.control@example.com", role="admin_pagos", mfa_enabled=True)
+    second = make_user(email="segundo.control@example.com", role="admin", mfa_enabled=True)
+    procedure, payment = _procedure_with_payment(db, citizen)
+    csrf, _ = login(first.email)
+    path = f"/api/v1/admin/payments/{payment.id}/review"
+    first_response = client.post(path, headers={"X-CSRF-Token": csrf}, json={"decision": "approve"})
+    assert first_response.status_code == 200
+    assert first_response.json()["status"] == "pending_second"
+    repeated = client.post(path, headers={"X-CSRF-Token": csrf}, json={"decision": "approve"})
+    assert repeated.status_code == 409
+    assert repeated.json()["error"]["code"] == "second_approval_required"
+    db.refresh(payment)
+    assert payment.reviewed_by == first.id
+    assert payment.second_reviewed_by is None
+    csrf, _ = login(second.email)
+    approved = client.post(path, headers={"X-CSRF-Token": csrf}, json={"decision": "approve"})
+    assert approved.status_code == 200
+    assert approved.json()["status"] == "approved"
+    assert approved.json()["second_reviewed_by"] == second.id
+    db.refresh(procedure)
+    assert procedure.current_step == "delivery"
+
+
+@pytest.mark.parametrize("case,expected", [
+    ("missing_csrf", 403), ("pending_mfa", 403),
+    ("missing_reason", 422), ("blank_reason", 422),
+    ("oversized_reason", 422), ("invalid_decision", 422),
+])
+def test_staff_review_rejects_unsafe_requests_without_mutation(
+    client, db: Session, seeded: Session, make_user, login, case: str, expected: int
+) -> None:
+    """CSRF, MFA y validación se exigen también fuera del formulario del navegador."""
+    citizen = make_user(email="control.seguro@example.com")
+    reviewer = make_user(
+        email="control.personal@example.com", role="admin_pagos",
+        mfa_enabled=case != "pending_mfa",
+    )
+    procedure, payment = _procedure_with_payment(db, citizen)
+    csrf, _ = login(reviewer.email)
+    notes = "     " if case == "blank_reason" else "a" * 2001 if case == "oversized_reason" else None
+    decision = "other" if case == "invalid_decision" else "reject"
+    response = client.post(
+        f"/api/v1/admin/payments/{payment.id}/review",
+        headers={} if case == "missing_csrf" else {"X-CSRF-Token": csrf},
+        json={"decision": decision, "notes": notes},
+    )
+    assert response.status_code == expected, response.text
+    db.refresh(payment)
+    db.refresh(procedure)
+    assert payment.status == "claimed"
+    assert payment.reviewed_by is None
+    assert payment.review_notes is None
+    assert procedure.current_step == "payment"
+
+
+def test_review_rechecks_procedure_closed_by_other_session(
+    db: Session, seeded: Session, make_user
+) -> None:
+    """El bloqueo refresca también un cierre de expediente posterior a su precarga."""
+    citizen = make_user(email="cierre.titular@example.com")
+    reviewer = make_user(email="cierre.revisor@example.com", role="admin_pagos")
+    procedure, payment = _procedure_with_payment(db, citizen)
+    with Session(db.get_bind()) as other_session:
+        other_session.execute(update(Procedure).where(Procedure.id == procedure.id).values(
+            status="cancelled", current_step=None,
+        ))
+        other_session.commit()
+    assert procedure.status == "in_progress"
+    with pytest.raises(HTTPException) as raised:
+        payment_service.review_payment(
+            db, payment, decision="reject", notes="Comprobante observado",
+            actor=reviewer, ip="127.0.0.1", user_agent="test",
+        )
+    assert raised.value.status_code == 409
+    detail = raised.value.detail
+    assert isinstance(detail, dict) and detail.get("code") == "payment_step_unavailable"
+    db.refresh(payment)
+    db.refresh(procedure)
+    assert payment.status == "claimed"
+    assert payment.reviewed_by is None
+    assert procedure.status == "cancelled"
+
+
 def test_claim_refreshes_payment_state_before_overwriting_review(
     db: Session, seeded: Session, make_user
 ) -> None:

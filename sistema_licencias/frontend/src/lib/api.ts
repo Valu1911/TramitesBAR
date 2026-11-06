@@ -119,6 +119,10 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
 }
 
 export const api = {
+  /** URL de lectura con la misma base configurada que el cliente autenticado. */
+  url(path: string): string {
+    return buildUrl(path);
+  },
   get<T>(path: string, params?: Record<string, unknown>, signal?: AbortSignal): Promise<T> {
     const url = buildUrl(path, params);
     return request<T>(url, { signal });

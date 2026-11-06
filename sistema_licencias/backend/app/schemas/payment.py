@@ -29,9 +29,11 @@ class PaymentOut(BaseModel):
 class PaymentAdminOut(PaymentOut):
     """Pago con contexto para el backoffice."""
 
+    procedure_id: int
     procedure_code: str
     citizen_email: str
     citizen_name: str
+    reviewed_by: int | None
     second_reviewed_by: int | None
 
 

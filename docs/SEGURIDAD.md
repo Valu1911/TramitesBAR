@@ -101,6 +101,16 @@ La API bloquea reenvíos de pagos que ya están en revisión/segundo control o r
 
 ---
 
+### Revisión municipal de pagos (2026-11-06)
+
+La bandeja financiera solo se monta para Pagos/Admin/Superadmin con enrolamiento completo. `staffAccess.ts` refleja permisos de presentación sin ampliar RBAC del servidor; las acciones de salud, turnos y credenciales quedan limitadas a sus roles. Los IDs del expediente y primer revisor se agregan solo al contrato administrativo, no al ciudadano.
+
+Revisar refresca pago y expediente bajo bloqueo antes de validar estado. Una aprobación anterior o un cierre de expediente no pueden quedar ocultos por una instancia ORM vieja. Las pruebas de API cubren los siete roles, segundo control distinto y preservación del estado ante rechazos. SQLite no certifica concurrencia MySQL: comprobar decisiones simultáneas y cancelación/revisión en staging.
+
+La UI no reintenta mutaciones automáticamente; una respuesta incierta exige actualizar detalle. Consultas por identidad y sin caché persistente, cancelación al desmontar, notas escapadas y comprobante por descarga autenticada/auditada, con base de API configurada y `noopener noreferrer`. No se accede al banco desde esta vista.
+
+**Se solicita revisión de seguridad de pagos/permisos/descargas antes del merge.** Alcance y pendientes en [PAGOS_MUNICIPALES.md](PAGOS_MUNICIPALES.md); la aprobación de seguridad sigue pendiente.
+
 ## 6. Validación y almacenamiento seguro de archivos
 
 En `app/services/storage.py`:

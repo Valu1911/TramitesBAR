@@ -151,9 +151,11 @@ export interface Payment {
 }
 
 export interface PaymentAdmin extends Payment {
+  procedure_id: number;
   procedure_code: string;
   citizen_email: string;
   citizen_name: string;
+  reviewed_by: number | null;
   second_reviewed_by: number | null;
 }
 

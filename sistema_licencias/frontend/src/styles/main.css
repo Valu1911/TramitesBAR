@@ -327,6 +327,13 @@ p a:not(.btn) {
   font-size: 0.875rem;
 }
 
+.staff-payment-list {
+  list-style: none;
+  display: grid;
+  gap: 1rem;
+  padding: 0;
+}
+
 /* Evitamos zoom al escribir, objetivos pequeños y desbordes, no los ocultamos. */
 .btn, .category-pill-btn, .navbar-burger, .password-toggle-btn, .health-toggle-btn {
   min-height: 44px;
