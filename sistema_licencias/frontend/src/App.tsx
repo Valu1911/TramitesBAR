@@ -3,6 +3,7 @@ import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import { Navbar } from './components/Navbar';
 import type { Role } from './lib/types';
+import { getNavigation } from './lib/navigation';
 
 // Carga diferida de vistas para optimización de paquetes y rendimiento
 const Login = lazy(() => import('./pages/auth/Login').then((m) => ({ default: m.Login })));
@@ -63,7 +64,7 @@ function ProtectedRoute({
   children: ReactNode;
   allowRoles?: Role[];
 }) {
-  const { user, loading, isStaff } = useAuth();
+  const { user, loading, mfaEnrollmentRequired } = useAuth();
   const location = useLocation();
 
   if (loading) {
@@ -79,18 +80,20 @@ function ProtectedRoute({
     return <Navigate to={redirectPath} state={{ from: location }} replace />;
   }
 
+  // El perfil debe seguir disponible para enrolar MFA, incluso tras recargar.
+  if (user.role !== 'citizen' && mfaEnrollmentRequired && location.pathname !== '/perfil') {
+    return <Navigate to="/perfil" replace />;
+  }
+
   if (allowRoles && !allowRoles.includes(user.role)) {
-    if (isStaff) {
-      return <Navigate to="/admin/cuentas" replace />;
-    }
-    return <Navigate to="/panel" replace />;
+    return <Navigate to={getNavigation(user.role, mfaEnrollmentRequired).home} replace />;
   }
 
   return <>{children}</>;
 }
 
 function PublicOnlyRoute({ children }: { children: ReactNode }) {
-  const { user, loading, isStaff } = useAuth();
+  const { user, loading, mfaEnrollmentRequired } = useAuth();
 
   if (loading) {
     return (
@@ -101,14 +104,14 @@ function PublicOnlyRoute({ children }: { children: ReactNode }) {
   }
 
   if (user) {
-    return <Navigate to={isStaff ? '/admin/cuentas' : '/panel'} replace />;
+    return <Navigate to={getNavigation(user.role, mfaEnrollmentRequired).home} replace />;
   }
 
   return <>{children}</>;
 }
 
 function HomeRedirect() {
-  const { user, loading, isStaff } = useAuth();
+  const { user, loading, mfaEnrollmentRequired } = useAuth();
 
   if (loading) {
     return (
@@ -119,7 +122,7 @@ function HomeRedirect() {
   }
 
   if (user) {
-    return <Navigate to={isStaff ? '/admin/cuentas' : '/panel'} replace />;
+    return <Navigate to={getNavigation(user.role, mfaEnrollmentRequired).home} replace />;
   }
 
   return <Navigate to="/login" replace />;

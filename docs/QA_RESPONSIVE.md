@@ -47,8 +47,24 @@ Estas pruebas validan la interfaz y los payloads emitidos, no la persistencia, a
 
 ## Pendientes para afirmar funcionamiento integral
 
+### Navegación por rol implementada (T03)
+
+`frontend/src/lib/navigation.ts` coordina inicio, redirecciones, ambos logins y Navbar, sin modificar las allowlists del router ni los permisos del servidor:
+
+| Cuenta | Destino con sesión y MFA al día |
+|---|---|
+| Ciudadano | `/panel` |
+| Salud, Turnos, Pagos | `/admin/tramites` |
+| Cuentas, Admin, Superadmin | `/admin/cuentas` |
+
+El personal con enrolamiento pendiente va a `/perfil`, incluso tras recarga o acceso directo, y no ve enlaces operativos hasta completar MFA. El ciudadano sigue sin acceso a rutas staff. Los destinos son rutas locales fijas, no parámetros de redirección recibidos del usuario.
+
+`src/navigation.test.tsx` verifica 120 escenarios de router, enlaces, login y MFA. `e2e/navigation.spec.ts` aporta 10 escenarios × 4 anchos con redirecciones reales, lecturas administrativas controladas y detección de montaje de recursos no permitidos. Las pantallas operativas se prueban con listas vacías de test: esto no certifica sus acciones, datos o autorización real. La suite completa queda en **125 unitarias y 124 de navegador**. Requiere revisión de seguridad antes de integrar.
+
+### Trabajo restante
+
 - Resolver la política de admisión/supervisión del examen v1 (T02 en `docs/HANDOFF.md`), corregir sus respuestas simuladas y los fallos conocidos de `jwt`; no habilitar un examen remoto sin supervisión como parche.
-- Corregir y probar navegación por rol del personal (T03): especialistas son enviados a cuentas aunque su ruta permitida es trámites.
+- Revisar las pestañas y acciones del backoffice según permisos específicos de API; corregir la navegación (T03) no implementa el trabajo operativo de Pagos ni su conciliación.
 - Completar recorrido de las seis matrices con API/MySQL, archivos, pagos y conciliación, correo, revisión municipal, turnos y credencial. El panel actual no tiene un recorrido ciudadano de pagos; no se certifica como completo.
 - Revisar el resto de backoffice, cuestionarios dinámicos y examen con pruebas funcionales/accesibilidad específicas; la cobertura de perfil corresponde a su vista inicial.
 - Validar matriz, políticas, modalidades de entrega y textos con el municipio; no confundir la credencial municipal con una licencia nacional oficial.

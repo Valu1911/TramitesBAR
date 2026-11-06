@@ -4,7 +4,38 @@
 
 **Rama:** `fix/project-recovery`
 
-**Estado:** UX ciudadana y QA responsive implementados y verificados localmente. T02 sigue bloqueado por política y T03 sigue pendiente en el código de esta rama; no se corrigieron ni repitieron los 2 fallos conocidos del backend por `jwt`. No se certifica funcionamiento integral ni preparación para producción.
+**Estado:** UX/QA responsive y navegación por rol (T03) implementadas y verificadas localmente. Pendientes revisión de seguridad e integración. T02 sigue bloqueado por política; no se corrigieron ni repitieron los 2 fallos conocidos del backend por `jwt`. No se certifica funcionamiento integral ni preparación para producción.
+
+## Sesión 2026-11-06 — Continuación: navegación por rol (T03)
+
+### Qué se hizo y decisiones
+
+- Se agregó `src/lib/navigation.ts` como política única de destinos y enlaces de interfaz. Salud, Turnos y Pagos llegan a `/admin/tramites`; Cuentas, Admin y Superadmin a `/admin/cuentas`; el ciudadano conserva `/panel` y el anónimo `/login`.
+- Inicio, rutas públicas con sesión, rechazo de rutas protegidas y ambos logins consumen esa política. Navbar deja de ofrecer Cuentas a especialistas que no pueden abrirla. No se modificaron las allowlists de rutas, los roles ni permisos del backend.
+- El enrolamiento MFA informado por servidor lleva al perfil también tras recargar o entrar por URL directa; el perfil permanece disponible y no muestra enlaces operativos hasta terminar. Un desafío TOTP sigue requiriendo su código. No se agrega return URL arbitraria ni persistencia de roles en el cliente.
+- Al completar MFA, los enlaces reaparecen sin abandonar el perfil ni los códigos de recuperación que acaba de recibir la persona. Se mantiene el rechazo de ciudadanos en el login municipal.
+
+### Pruebas y evidencia
+
+- Antes de cambiar producción, la regresión enfocada de `admin_salud` produjo 7 fallos de destino y 1 aprobación; las otras 108 pruebas del archivo quedaron fuera de ese filtro. El fallo observado fue `/admin/cuentas` en lugar de `/admin/tramites`.
+- Después: Vitest completo **125/125** (120 nuevas de navegación, MFA y límites; 5 ciudadanas anteriores). Las expectativas de rol y destino son independientes de las listas de producción. Se montan las allowlists reales del router; las vistas finales son sentinelas de prueba.
+- Playwright completo **124/124** (84 responsive anteriores y 40 nuevas de navegación en los cuatro anchos). En navegador se comprueban los siete roles, redirecciones reales sin bucle, enlaces, marca de inicio, ambos logins de especialista y enrolamiento pendiente tras recarga. No se consulta `/admin/users` desde un rol sin acceso a cuentas ni ningún recurso operativo cuando falta enrolar MFA.
+- Typecheck, ESLint y build aprobados. Sin pruebas omitidas en las ejecuciones completas. No se ejecutó backend, ni CI remoto, ni integración con servicios reales.
+
+### Riesgos y qué falta
+
+- **Se solicita revisión de seguridad de navegación/login/MFA antes del merge.** La UI no otorga permisos: el servidor sigue siendo la autoridad. Las pruebas interceptadas no acreditan autorización real del backend.
+- La vista operativa todavía contiene pestañas/acciones que deben revisarse por permiso específico; ocultar Cuentas no completa el backoffice de Pagos ni su conciliación. Ese trabajo es una unidad distinta de T03.
+- T02 conserva su bloqueo municipal (modalidad y admisión verificable del examen). Siguen pendientes pagos ciudadanos, recorrido completo con servicios reales y revisión de las reglas/textos. No se modificó examen, API, datos, migraciones, dependencias, CI, `.atl/` ni `legacy/`.
+- Próximo paso independiente recomendado: pantalla de pago ciudadano y acciones de backoffice ajustadas a los permisos de su API, con revisión de seguridad; para examen hace falta definición municipal antes de implementar la admisión.
+
+### Cómo probar, archivos y reversión
+
+- Desde `sistema_licencias/frontend`: `npm test`, `npm run typecheck`, `npm run lint`, `npm run build`, `npm run test:e2e`. Solo navegación: `npm test -- src/navigation.test.tsx` y `npm run test:e2e -- e2e/navigation.spec.ts`.
+- Archivos: frontend `src/lib/navigation.ts`, `src/App.tsx`, `src/components/Navbar.tsx`, `src/pages/auth/Login.tsx`, `src/pages/admin/AdminLogin.tsx`, `src/navigation.test.tsx`, `e2e/navigation.spec.ts`; `docs/HANDOFF.md`, `docs/QA_RESPONSIVE.md`, `docs/SEGURIDAD.md` y `odd/tasks/project-recovery.md`.
+- Reversión: revertir esta unidad de política de UI y sus consumidores/pruebas como conjunto, mediante PR. Sin reversión de datos ni esquema. Se conserva el commit UX anterior `f21e994`. Commit local, sin publicación ni merge.
+
+---
 
 ## Sesión 2026-11-06 — Experiencia ciudadana y Playwright
 

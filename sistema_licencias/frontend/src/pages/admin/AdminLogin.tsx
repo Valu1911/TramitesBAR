@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { ApiError } from '../../lib/api';
 import { Shield, Eye, EyeOff } from '../../components/Icons';
 import { RequiredMark, RequiredFieldsNote } from '../../components/FormFeedback';
+import { getNavigation } from '../../lib/navigation';
 
 export function AdminLogin() {
   const { login, logout } = useAuth();
@@ -44,11 +45,7 @@ export function AdminLogin() {
         return;
       }
 
-      if (payload.mfa_enrollment_required) {
-        navigate('/perfil');
-      } else {
-        navigate('/admin/cuentas');
-      }
+      navigate(getNavigation(payload.user.role, payload.mfa_enrollment_required).home);
     } catch (err) {
       if (err instanceof ApiError) {
         if (err.code === 'mfa_required') {

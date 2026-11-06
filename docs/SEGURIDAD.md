@@ -77,6 +77,12 @@ Para buscar un ciudadano por DNI y garantizar que no existan cuentas duplicadas 
 
 ## 5. Control de acceso (RBAC), anti-IDOR y doble control
 
+### Navegación de interfaz por rol (2026-11-06)
+
+`frontend/src/lib/navigation.ts` determina destinos y enlaces a partir del rol y `mfa_enrollment_required` de la sesión devuelta por API. No cambia la autorización: se preservan las allowlists existentes de `App.tsx` y todo el mapa de permisos del backend. El frontend no debe mostrar Cuentas a Salud, Turnos o Pagos, ni montar vistas operativas cuando el servidor informa que falta enrolar MFA; el perfil sigue disponible. Se usan exclusivamente destinos locales fijos, sin return URL arbitraria.
+
+Pruebas unitarias cubren los siete roles, anónimos, carga de sesión, rechazos y MFA en ambos logins; Playwright verifica redirecciones reales y ausencia de consultas administrativas no previstas. Estas pruebas usan API interceptada, no reemplazan una regresión de RBAC/IDOR con el servidor. **Se solicita revisión de seguridad de login/navegación/MFA antes de integrar.** No hay aprobación de seguridad ni certificación de autorización integral por pasar estas pruebas.
+
 - **Mapa de permisos en código (`app/core/permissions.py`):** los permisos por rol no se leen de tablas editables por un administrador común, evitando escaladas de privilegios por manipulación de datos.
 - **Protección anti-IDOR:** todas las consultas de trámites (`get_procedure_or_404`), documentos, intentos de examen, credenciales y notificaciones del ciudadano filtran explícitamente por `user_id == current_user.id`.
 - **Protección contra auto-escalada (`PATCH /api/v1/admin/users/{id}`):**

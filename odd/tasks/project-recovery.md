@@ -1,9 +1,34 @@
 # Project recovery: bounded first slice
 
-Current phase: independent T03 navigation implementation, authorized by the parent
-while T02 stays policy-blocked. T01 remains complete. The T02 question below stays
-unchanged for eventual municipal clarification; no exam behavior is in scope.
+Current phase (2026-11-06): T03 navigation locally implemented and verified after
+the user's direct request to continue. Human/security review and integration remain
+pending. T01 and the preceding UX unit (`f21e994`) are preserved. T02 stays
+policy-blocked; its municipal question remains unchanged. No exam behavior changed.
 This document does not certify that the application works end to end.
+
+## T03 local implementation evidence — 2026-11-06
+
+- Scope: one frontend navigation policy, App redirects, Navbar, both login
+  consumers, MFA enrollment routing, regression tests and docs. Existing route
+  allowlists and every backend permission remain unchanged. This unit does not
+  implement the operations/payment backoffice or the policy-blocked exam.
+- Tests first: focused `admin_salud` regression had 7 failures and 1 pass before
+  production changes (108 cases outside the filter). Failures reproduced the
+  incorrect `/admin/cuentas` destination. No configured strict-TDD claim.
+- Final local checks: `npm test` 125/125 (120 navigation + 5 existing);
+  `npm run typecheck`, `npm run lint`, `npm run build` passed;
+  `npm run test:e2e` 124/124 (84 UX + 40 navigation). No skipped tests in full runs.
+- Browser scope: Chromium, four viewports, all seven roles, actual redirects,
+  both specialist login entry points, forbidden routes, profile/brand links and
+  pending MFA across reload/direct URL. All API responses are test-only; unexpected
+  staff reads fail. No real account, production, secrets, DB or external service.
+- Security review is requested, not obtained. No remote publication, PR, merge,
+  native review retry, backend/exam/CI/dependency change or mutation of `.atl/` or
+  `legacy/`. The test runner starts only its isolated local Vite server.
+- Authoritative current handoff: `docs/HANDOFF.md`; runnable QA and limits:
+  `docs/QA_RESPONSIVE.md`. Rollback is this UI policy and its consumers/tests/docs
+  together, with no schema/data rollback. Historical parent workflow evidence
+  below is retained and does not represent a new review approval.
 
 ## Recovery locator and execution boundary
 
@@ -85,7 +110,8 @@ record locally, or enable an unsupervised substitute for supervised exams.
   - Rollback: availability guards, token behavior, corresponding UI/types/tests
     and docs as one coherent security unit; no schema changes.
 
-- [ ] **T03 — Role-aware navigation preserving allowlists.** Direct specialist
+- [x] **T03 — Role-aware navigation preserving allowlists (local implementation;
+  review and integration pending).** Direct specialist
   staff to an existing permitted landing page and show only permitted links.
   - Evidence: `App.tsx:82-85,103-104,121-122` sends all staff to `/admin/cuentas`;
     its allowlist at lines 248-264 excludes health, appointments and payments

@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { ApiError } from '../../lib/api';
 import { Shield, Lock, Eye, EyeOff } from '../../components/Icons';
 import { RequiredMark, RequiredFieldsNote, FormError } from '../../components/FormFeedback';
+import { getNavigation } from '../../lib/navigation';
 
 export function Login() {
   const { login } = useAuth();
@@ -52,11 +53,7 @@ export function Login() {
     setSubmitting(true);
     try {
       const payload = await login(identifier.trim(), password, showMfa ? mfaCode : undefined);
-      if (payload.user.role === 'citizen') {
-        navigate('/panel');
-      } else {
-        navigate('/admin/cuentas');
-      }
+      navigate(getNavigation(payload.user.role, payload.mfa_enrollment_required).home);
     } catch (err) {
       if (err instanceof ApiError) {
         if (err.code === 'mfa_required') {

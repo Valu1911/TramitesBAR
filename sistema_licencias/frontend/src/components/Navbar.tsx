@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { LogOut, User as UserIcon, Menu, X, Shield, FileText } from './Icons';
 import type { Role } from '../lib/types';
+import { getNavigation } from '../lib/navigation';
 
 const ROLE_LABELS: Record<Role, string> = {
   citizen: 'Ciudadano/a',
@@ -15,7 +16,7 @@ const ROLE_LABELS: Record<Role, string> = {
 };
 
 export function Navbar() {
-  const { user, logout, isStaff } = useAuth();
+  const { user, logout, isStaff, mfaEnrollmentRequired } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -26,6 +27,8 @@ export function Navbar() {
   };
 
   const closeMenu = () => setMenuOpen(false);
+  const toggleMenu = () => setMenuOpen((open) => !open);
+  const navigation = getNavigation(user?.role ?? null, mfaEnrollmentRequired);
 
   const displayName = user?.profile
     ? `${user.profile.first_name} ${user.profile.last_name}`
@@ -48,7 +51,7 @@ export function Navbar() {
         <button
           type="button"
           className="navbar-burger"
-          onClick={() => setMenuOpen(!menuOpen)}
+          onClick={toggleMenu}
           aria-expanded={menuOpen}
           aria-label={menuOpen ? 'Cerrar menú' : 'Abrir menú'}
         >
@@ -62,22 +65,22 @@ export function Navbar() {
               <>
                 {isStaff ? (
                   <>
-                    <Link
+                    {navigation.showAccounts && <Link
                       to="/admin/cuentas"
                       className={`nav-link ${location.pathname.startsWith('/admin/cuentas') ? 'active' : ''}`}
                       onClick={closeMenu}
                     >
                       <Shield width={16} height={16} />
                       <span>Gestión de Cuentas</span>
-                    </Link>
-                    <Link
+                    </Link>}
+                    {navigation.showProcedures && <Link
                       to="/admin/tramites"
                       className={`nav-link ${location.pathname.startsWith('/admin/tramites') ? 'active' : ''}`}
                       onClick={closeMenu}
                     >
                       <FileText width={16} height={16} />
                       <span>Trámites y Operaciones</span>
-                    </Link>
+                    </Link>}
                   </>
                 ) : (
                   <>
